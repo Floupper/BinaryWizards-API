@@ -35,7 +35,7 @@ export async function create_one(req: Request, res: Response) {
         const { response_code, results } = apiResponse.data;
 
         if (response_code !== 0) {
-            return res.status(400).json({ error: 'Erreur lors de la récupération des questions depuis l\'API.' });
+            return res.status(400).json({ error: 'Error retrieving questions from the API.' });
         }
 
         // Créer le quiz
