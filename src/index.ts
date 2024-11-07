@@ -1,11 +1,22 @@
 import express, { Request, Response, NextFunction } from 'express';
+import cors from 'cors';
+
+import * as quizHandler from './RequestHandlers/quizHandler';
+import * as categoriesHandler from './RequestHandlers/categoriesHandler';
 
 const app = express();
 const port = 3000;
 
-app.post('/quiz', (req: Request, res: Response) => {
-  res.status(201).json({ "quizz_id": "123e4567-e89b-12d3-a456-426614174000" });
+app.use(cors());
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.header('Access-Control-Expose-Headers', 'Count');
+  next();
 });
+app.use(express.json());
+
+app.post('/quiz', quizHandler.create_one as (req: Request, res: Response) => Promise<void>);
+
+app.get('/categories', categoriesHandler.get_all);
 
 app.get('/quiz/:quiz_id/question', (req: Request, res: Response) => {
   res.status(200).json({
