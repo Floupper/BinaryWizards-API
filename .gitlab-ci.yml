@@ -1,20 +1,15 @@
 stages:
   - trigger_clients_pipelines
 
-workflow:
-    when: never
-
-trigger_repo_2:
+trigger_web:
   stage: trigger_clients_pipelines
-  script: []
   trigger:
     project: "binarywizards/s5-binarywizards-web"
     branch: "main"  
     strategy: depend
 
-trigger_repo_3:
+trigger_mobile:
   stage: trigger_clients_pipelines
-  script: []
   trigger:
     project: "binarywizards/s5-binarywizards-mobile"
     branch: "main"
