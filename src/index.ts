@@ -41,6 +41,6 @@ app.post('/quiz/:quiz_id/:question_id', (req: Request, res: Response) => {
   });
 });
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server is running on http://0.0.0.0:${port}`);
 });
