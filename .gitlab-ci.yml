@@ -5,12 +5,12 @@ trigger_web:
   stage: trigger_clients_pipelines
   trigger:
     project: "binarywizards/s5-binarywizards-web"
-    branch: "main"  
+    branch: "devops"  
     strategy: depend
 
 trigger_mobile:
   stage: trigger_clients_pipelines
   trigger:
     project: "binarywizards/s5-binarywizards-mobile"
-    branch: "main"
+    branch: "devops"
     strategy: depend
