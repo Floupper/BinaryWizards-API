@@ -29,15 +29,10 @@ export async function create_one(req: Request, res: Response) {
         // Construire l'URL complète
         const fullURL = `https://opentdb.com/api.php?${queryString}`;
 
-        // Afficher l'URL complète
-        console.log('Request URL:', fullURL);
-
         // Récupérer les questions depuis l'API Open Trivia Database
         const apiResponse = await axios.get(fullURL);
 
         const { response_code, results } = apiResponse.data;
-        console.log("response_code: " + response_code);
-        console.log("results: " + results);
 
         if (response_code !== 0) {
             return res.status(400).json({ error: 'Erreur lors de la récupération des questions depuis l\'API.' });

@@ -4,7 +4,6 @@ import path from 'path';
 
 export async function get_all(req: Request, res: Response) {
     const filePath = path.join(__dirname, '../Data/categories.json');
-    console.log("filepath: " + filePath);
 
     fs.readFile(filePath, 'utf8', (err, data) => {
         if (err) {
