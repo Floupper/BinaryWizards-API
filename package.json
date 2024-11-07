@@ -12,7 +12,9 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
+    "@types/he": "^1.2.3",
     "@types/node": "^22.9.0",
     "prisma": "^5.22.0",
     "ts-node": "^10.9.2",
@@ -21,6 +23,10 @@
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
-    "express": "^5.0.1"
+    "axios": "^1.7.7",
+    "cors": "^2.8.5",
+    "express": "^5.0.1",
+    "he": "^1.2.0",
+    "superstruct": "^2.0.2"
   }
 }

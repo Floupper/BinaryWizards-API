@@ -25,6 +25,7 @@ model Questions {
   question_text       String
   question_category   String
   question_difficulty String
+  question_type       String
   Quizzes             Quizzes?  @relation(fields: [quizzesQuiz_id], references: [quiz_id])
   quizzesQuiz_id      String?
   options             Options[]
