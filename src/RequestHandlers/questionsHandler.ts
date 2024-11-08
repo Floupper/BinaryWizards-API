@@ -26,7 +26,7 @@ export async function get_one(req: Request, res: Response) {
         });
 
 
-        //
+        // Vérifier si le quiz est terminé
         if (quiz.current_question_index >= nb_questions_total) {
             return res.status(200).json({
                 quizz_finished: true,
