@@ -6,11 +6,17 @@ import axios from 'axios';
 import he from 'he';
 
 export async function create_one(req: Request, res: Response) {
-    assert(req.body, QuizCreationData);
+    try {
+        assert(req.body, QuizCreationData);
+    } catch (error) {
+        res.status(400).json({ message: 'Data is invalid: \n- category is optional and must be a number between 9 and 32\n- difficulty is optional too and must be a string\n- amount must be a number' });
+        return;
+    }
+
     try {
         const { category, difficulty, amount } = req.body;
 
-        // Construire l'objet params dynamiquement
+        // Build object params
         const params: any = { amount };
 
         if (category) {
@@ -21,14 +27,14 @@ export async function create_one(req: Request, res: Response) {
             params.difficulty = difficulty;
         }
 
-        // Récupérer les questions depuis l'API Open Trivia Database
-        // Construire la chaîne de requête
+        /**** Get questions from API Open Trivia Database ****/
+        // Build request string
         const queryString = new URLSearchParams(params).toString();
 
-        // Construire l'URL complète
+        // CBuild the full URL for the API request
         const fullURL = `https://opentdb.com/api.php?${queryString}`;
 
-        // Récupérer les questions depuis l'API Open Trivia Database
+        // Get questions from API Open Trivia Database
         const apiResponse = await axios.get(fullURL);
 
         const { response_code, results } = apiResponse.data;
@@ -37,7 +43,7 @@ export async function create_one(req: Request, res: Response) {
             return res.status(400).json({ error: 'Error retrieving questions from the API.' });
         }
 
-        // Créer le quiz
+        // Create quiz
         const quiz = await prisma.quizzes.create({
             data: {
                 category: category || 0,
@@ -47,16 +53,16 @@ export async function create_one(req: Request, res: Response) {
             },
         });
 
-        // Parcourir les questions et les enregistrer en base de données
+        // Browsing questions and options
         for (let index = 0; index < results.length; index++) {
             const questionData = results[index];
 
-            // Décoder les textes encodés en HTML
+            // Decode texts
             const questionText = he.decode(questionData.question);
             const correctAnswer = he.decode(questionData.correct_answer);
             const incorrectAnswers = questionData.incorrect_answers.map((ans: string) => he.decode(ans));
 
-            // Créer la question
+            // Create question
             const question = await prisma.questions.create({
                 data: {
                     question_index: index,
@@ -68,10 +74,10 @@ export async function create_one(req: Request, res: Response) {
                 },
             });
 
-            // Préparer les options (réponses)
+            // Prepare the options
             const optionsData = [];
 
-            // Ajouter la réponse correcte
+            // Add the correct answer
             optionsData.push({
                 option_text: correctAnswer,
                 option_index: 0,
@@ -79,7 +85,7 @@ export async function create_one(req: Request, res: Response) {
                 questionsQuestion_id: question.question_id,
             });
 
-            // Ajouter les réponses incorrectes
+            // Add incorrect answers
             incorrectAnswers.forEach((incorrectAnswer: string, idx: number) => {
                 optionsData.push({
                     option_text: incorrectAnswer,
@@ -89,10 +95,10 @@ export async function create_one(req: Request, res: Response) {
                 });
             });
 
-            // Mélanger les options pour plus d'aléatoire
+            // Sort questions randomly
             optionsData.sort(() => Math.random() - 0.5);
 
-            // Enregistrer les options en base de données
+            // Save options to database
             for (const option of optionsData) {
                 await prisma.options.create({
                     data: option,

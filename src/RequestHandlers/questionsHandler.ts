@@ -9,7 +9,7 @@ export async function get_one(req: Request, res: Response) {
     const { quiz_id } = req.params;
 
     try {
-        // Récupérer le quiz par son ID
+        // Find quiz by id
         const quiz = await prisma.quizzes.findUnique({
             where: { quiz_id },
         });
@@ -18,7 +18,7 @@ export async function get_one(req: Request, res: Response) {
             return res.status(404).json({ error: 'Quiz not found' });
         }
 
-        // Compter le nombre total de questions dans le quiz
+        // Count the number of questions
         const nb_questions_total = await prisma.questions.count({
             where: {
                 quizzesQuiz_id: quiz_id,
@@ -26,7 +26,7 @@ export async function get_one(req: Request, res: Response) {
         });
 
 
-        // Vérifier si le quiz est terminé
+        // Verify if the quiz is finished
         if (quiz.current_question_index >= nb_questions_total) {
             return res.status(200).json({
                 quizz_finished: true,
@@ -34,7 +34,7 @@ export async function get_one(req: Request, res: Response) {
             });
         }
 
-        // Récupérer la question actuelle du quiz
+        // Find actual question
         const question = await prisma.questions.findFirst({
             where: {
                 quizzesQuiz_id: quiz_id,
@@ -49,12 +49,12 @@ export async function get_one(req: Request, res: Response) {
             return res.status(404).json({ error: 'Question not found' });
         }
 
-        // Récupérer toutes les options de la question
+        // Find all options for questions
         const options = question.options.map((option) => option.option_text);
 
 
 
-        // Construire la réponse JSON
+        // Build the response
         res.status(200).json({
             question_text: question.question_text,
             options: options,

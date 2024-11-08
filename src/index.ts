@@ -5,8 +5,10 @@ import * as quizHandler from './RequestHandlers/quizHandler';
 import * as categoriesHandler from './RequestHandlers/categoriesHandler';
 import * as questionsHandler from './RequestHandlers/questionsHandler';
 
+const config = require('./Data/config.json');
+
 const app = express();
-const port = 3000;
+const port = config[0].port;
 
 app.use(cors());
 app.use((req: Request, res: Response, next: NextFunction) => {
