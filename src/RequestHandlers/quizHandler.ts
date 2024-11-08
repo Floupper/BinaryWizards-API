@@ -1,9 +1,8 @@
 import { prisma } from '../db'
-import express, { Request, Response, NextFunction, query } from 'express';
+import { Request, Response } from 'express';
 import { QuizCreationData } from '../Validation/quiz';
 import { assert } from 'superstruct';
 import axios from 'axios';
-import { Prisma } from '@prisma/client';
 import he from 'he';
 
 export async function create_one(req: Request, res: Response) {
