@@ -3,6 +3,7 @@ import cors from 'cors';
 
 import * as quizHandler from './RequestHandlers/quizHandler';
 import * as categoriesHandler from './RequestHandlers/categoriesHandler';
+import * as difficultiesHandler from './RequestHandlers/difficultiesHandler';
 import * as questionsHandler from './RequestHandlers/questionsHandler';
 
 const config = require('./Data/config.json');
@@ -20,6 +21,7 @@ app.use(express.json());
 app.post('/quiz', quizHandler.create_one as (req: Request, res: Response) => Promise<void>);
 
 app.get('/categories', categoriesHandler.get_all);
+app.get('/difficulties', difficultiesHandler.get_all);
 
 app.get('/quiz/:quiz_id/question', questionsHandler.get_one as (req: Request, res: Response) => Promise<void>);
 
