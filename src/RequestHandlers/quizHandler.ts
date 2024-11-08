@@ -41,7 +41,7 @@ export async function create_one(req: Request, res: Response) {
         // Créer le quiz
         const quiz = await prisma.quizzes.create({
             data: {
-                category: category || 'Any',
+                category: category || 0,
                 difficulty: difficulty || 'Any',
                 score: 0,
                 current_question_index: 0,

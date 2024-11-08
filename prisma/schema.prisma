@@ -12,7 +12,7 @@ datasource db {
 
 model Quizzes {
   quiz_id                String      @id @default(uuid())
-  category               String
+  category               Int
   difficulty             String
   score                  Int
   current_question_index Int

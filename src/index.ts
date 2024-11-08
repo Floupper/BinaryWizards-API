@@ -20,16 +20,14 @@ app.get('/categories', categoriesHandler.get_all);
 
 app.get('/quiz/:quiz_id/question', (req: Request, res: Response) => {
   res.status(200).json({
-    "question": {
-      "question_text": "Quelle est la capitale de la France ?",
-      "options": ["Paris", "Londres", "Rome", "Berlin"],
-      "question_index": 1,
-      "nb_questions_total": 20,
-      "score": 10,
-      "question_type": "multiple",// ou "boolean"
-      "question_difficulty": "easy",
-      "question_category": "Geography"
-    }
+    "question_text": "Quelle est la capitale de la France ?",
+    "options": ["Paris", "Londres", "Rome", "Berlin"],
+    "question_index": 1,
+    "nb_questions_total": 20,
+    "score": 10,
+    "question_type": "multiple",// ou "boolean"
+    "question_difficulty": "easy",
+    "question_category": "Geography"
   });
 });
 
