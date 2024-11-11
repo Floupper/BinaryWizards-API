@@ -70,3 +70,112 @@ export async function get_one(req: Request, res: Response) {
         res.status(500).json({ error: 'Intern server error' });
     }
 }
+
+
+export async function send_answer(req: Request, res: Response) {
+    const { quiz_id } = req.params;
+    let { question_index, option_index } = req.body;
+
+    // In DB, question_index starts at 0
+    question_index--;
+
+    try {
+        // Find the quiz by his id
+        const quiz = await prisma.quizzes.findUnique({
+            where: { quiz_id },
+        });
+
+        if (!quiz) {
+            return res.status(404).json({ error: 'Quiz not found' });
+        }
+
+        // Verify that there in no desynchronization
+        if (question_index !== quiz.current_question_index) {
+            return res.status(400).json({ error: 'Question\'s index invalid' });
+        }
+
+        // Count the number of questions
+        const nb_questions_total = await prisma.questions.count({
+            where: {
+                quizzesQuiz_id: quiz_id,
+            },
+        });
+
+        if (question_index >= nb_questions_total) {
+            return res.status(200).json({
+                quizz_finished: true,
+                score: quiz.score,
+            });
+        }
+
+        // Find corresponding question
+        const question = await prisma.questions.findFirst({
+            where: {
+                quizzesQuiz_id: quiz_id,
+                question_index: question_index,
+            },
+            include: {
+                options: true,
+            },
+        });
+
+        if (!question) {
+            return res.status(404).json({ error: 'Question not found' });
+        }
+
+        // Find chosen option
+        const chosenOption = question.options.find(
+            (option) => option.option_index === option_index
+        );
+
+        if (!chosenOption) {
+            return res.status(400).json({ error: 'Invalid option index' });
+        }
+
+        // Determine if the answer is correct
+        const isCorrect = chosenOption.is_correct_answer;
+
+        // Find correct answer's index
+        const correctOption = question.options.find(
+            (option) => option.is_correct_answer
+        );
+
+        if (!correctOption) {
+            return res.status(500).json({ error: 'Correct answer not found' });
+        }
+
+        const correctOptionIndex = correctOption.option_index;
+
+        // Update quiz score
+        const difficultyPoints: { [key: string]: number } = {
+            'easy': 1,
+            'medium': 2,
+            'hard': 3,
+        };
+
+        let updatedScore = quiz.score;
+        if (isCorrect) {
+            const difficulty = question.question_difficulty.toLowerCase();
+            const points = difficultyPoints[difficulty] || 1; // 1 is the default value
+            updatedScore += points;
+        }
+
+        // Update quiz in DB
+        await prisma.quizzes.update({
+            where: { quiz_id },
+            data: {
+                score: updatedScore,
+                current_question_index: quiz.current_question_index + 1,
+            },
+        });
+
+        // Build the response
+        res.status(200).json({
+            is_correct: isCorrect,
+            correct_option_index: correctOptionIndex,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
