@@ -1,12 +1,18 @@
 import { prisma } from '../db'
 import { Request, Response } from 'express';
-import { QuizCreationData } from '../Validation/quiz';
+import { UUID } from '../Validation/quiz';
 import { assert } from 'superstruct';
-import axios from 'axios';
-import he from 'he';
+import { QuestionAnswerData } from '../Validation/question';
 
 export async function get_one(req: Request, res: Response) {
     const { quiz_id } = req.params;
+
+    try {
+        assert(quiz_id, UUID);
+    } catch (error) {
+        res.status(400).json({ message: 'The quiz id is invalid' });
+        return;
+    }
 
     try {
         // Find quiz by id
@@ -74,7 +80,22 @@ export async function get_one(req: Request, res: Response) {
 
 export async function send_answer(req: Request, res: Response) {
     const { quiz_id } = req.params;
+    try {
+        assert(quiz_id, UUID);
+    } catch (error) {
+        res.status(400).json({ message: 'The quiz id is invalid' });
+        return;
+    }
+
+
     let { question_index, option_index } = req.body;
+
+    try {
+        assert(req.body, QuestionAnswerData);
+    } catch (error) {
+        res.status(400).json({ message: 'Data is invalid: \n- question_index must be between 1 and 50\n- option_index must be between 0 and 3' });
+        return;
+    }
 
     // In DB, question_index starts at 0
     question_index--;
