@@ -19,6 +19,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use(express.json());
 
 app.post('/quiz', quizzesHandler.create_one as (req: Request, res: Response) => Promise<void>);
+app.put('/quiz/:quiz_id', quizzesHandler.reset_quiz as (req: Request, res: Response) => Promise<void>);
 
 app.get('/categories', categoriesHandler.get_all);
 app.get('/difficulties', difficultiesHandler.get_all);
