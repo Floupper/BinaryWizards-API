@@ -14,7 +14,7 @@ const port = config[0].port;
 app.use((req: Request, res: Response, next: NextFunction) => {
   if (req.header('x-forwarded-proto') === 'https') {
     const httpUrl = `http://${req.header('host')}${req.url}`;
-    res.redirect(301,
+    res.redirect(301, httpUrl);
   } else {
     next();
   }
