@@ -11,7 +11,6 @@ const config = require('./Data/config.json');
 const app = express();
 const port = config[0].port;
 
-// Middleware pour rediriger les requêtes HTTPS vers HTTP
 app.use((req: Request, res: Response, next: NextFunction) => {
   if (req.header('x-forwarded-proto') === 'https') {
     const httpUrl = `http://${req.header('host')}${req.url}`;
