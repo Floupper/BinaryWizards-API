@@ -1,6 +1,6 @@
 import { prisma } from '../db'
 import { Request, Response } from 'express';
-import { QuizCreationData } from '../Validation/quiz';
+import { QuizCreationData, UUID } from '../Validation/quiz';
 import { assert } from 'superstruct';
 import axios from 'axios';
 import he from 'he';
@@ -117,3 +117,50 @@ export async function create_one(req: Request, res: Response) {
         res.status(500).json({ error: 'Erreur while creating quiz', details: error.message });
     }
 }
+
+
+export async function reset_quiz(req: Request, res: Response) {
+    const { quiz_id } = req.params;
+    try {
+        assert(quiz_id, UUID);
+    } catch (error) {
+        res.status(400).json({ message: 'The quiz id is invalid' });
+        return;
+    }
+
+    try {
+        // Verify if quiz exists
+        const quiz = await prisma.quizzes.findUnique({
+            where: { quiz_id },
+        });
+
+        if (!quiz) {
+            return res.status(404).json({ error: 'Quiz not found' });
+        }
+
+        // Get the total number of questions in the quiz
+        const totalQuestions = await prisma.questions.count({
+            where: { quizzesQuiz_id: quiz_id },
+        });
+
+        // Verify if the quiz is not finished yet
+        if (quiz.current_question_index < totalQuestions) {
+            return res.status(400).json({ error: 'The quiz have to be finished to be reset' });
+        }
+
+        // Reset quiz
+        await prisma.quizzes.update({
+            where: { quiz_id },
+            data: {
+                score: 0,
+                current_question_index: 0,
+            },
+        });
+
+        res.status(200).json({ message: 'The quiz has been reset' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
