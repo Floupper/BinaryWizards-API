@@ -46,7 +46,7 @@ export async function get_one(req: Request, res: Response) {
         if (quiz.current_question_index >= nb_questions_total) {
 
             return res.status(200).json({
-                quizz_finished: true,
+                quiz_finished: true,
                 score: quiz.score,
                 max_score: await calculateMaxScore(quiz_id)
             });
@@ -74,7 +74,7 @@ export async function get_one(req: Request, res: Response) {
 
         // Build the response
         res.status(200).json({
-            quizz_finished: false,
+            quiz_finished: false,
             question_text: question.question_text,
             options: options,
             question_index: question.question_index + 1,
