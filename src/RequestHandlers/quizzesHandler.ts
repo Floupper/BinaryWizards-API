@@ -1,9 +1,11 @@
-import { prisma } from '../db'
 import { Request, Response } from 'express';
 import { QuizCreationData, UUID } from '../Validation/quiz';
 import { assert } from 'superstruct';
 import axios from 'axios';
 import he from 'he';
+import { get_total_questions, persist_question } from '../Repositories/questionsRepository';
+import { persist_option } from '../Repositories/optionsRepository';
+import { get_quiz, persist_quiz, persist_quiz_update } from '../Repositories/quizzesRepository';
 
 export async function create_one(req: Request, res: Response) {
     try {
@@ -44,14 +46,7 @@ export async function create_one(req: Request, res: Response) {
         }
 
         // Create quiz
-        const quiz = await prisma.quizzes.create({
-            data: {
-                category: category || 0,
-                difficulty: difficulty || 'Any',
-                score: 0,
-                current_question_index: 0,
-            },
-        });
+        const quiz = await persist_quiz(category, difficulty, 0, 0);
 
         // Browsing questions and options
         for (let index = 0; index < results.length; index++) {
@@ -63,16 +58,7 @@ export async function create_one(req: Request, res: Response) {
             const incorrectAnswers = questionData.incorrect_answers.map((ans: string) => he.decode(ans));
 
             // Create question
-            const question = await prisma.questions.create({
-                data: {
-                    question_index: index,
-                    question_text: questionText,
-                    question_category: questionData.category,
-                    question_difficulty: questionData.difficulty,
-                    question_type: questionData.type,
-                    quizzesQuiz_id: quiz.quiz_id,
-                },
-            });
+            const question = await persist_question(index, questionText, questionData.category, questionData.difficulty, questionData.type, quiz.quiz_id);
 
             // Prepare the options
             const optionsData = [];
@@ -105,9 +91,7 @@ export async function create_one(req: Request, res: Response) {
 
             // Save options to database
             for (const option of optionsData) {
-                await prisma.options.create({
-                    data: option,
-                });
+                persist_option(option);
             }
         }
 
@@ -130,18 +114,14 @@ export async function reset_quiz(req: Request, res: Response) {
 
     try {
         // Verify if quiz exists
-        const quiz = await prisma.quizzes.findUnique({
-            where: { quiz_id },
-        });
+        const quiz = await get_quiz(quiz_id);
 
         if (!quiz) {
             return res.status(404).json({ error: 'Quiz not found' });
         }
 
         // Get the total number of questions in the quiz
-        const totalQuestions = await prisma.questions.count({
-            where: { quizzesQuiz_id: quiz_id },
-        });
+        const totalQuestions = await get_total_questions(quiz_id);
 
         // Verify if the quiz is not finished yet
         if (quiz.current_question_index < totalQuestions) {
@@ -149,13 +129,7 @@ export async function reset_quiz(req: Request, res: Response) {
         }
 
         // Reset quiz
-        await prisma.quizzes.update({
-            where: { quiz_id },
-            data: {
-                score: 0,
-                current_question_index: 0,
-            },
-        });
+        await persist_quiz_update(quiz_id, 0, 0);
 
         res.status(200).json({ message: 'The quiz has been reset' });
     } catch (error) {
