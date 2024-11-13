@@ -1,15 +1,11 @@
-import { prisma } from '../db'
 import { Request, Response } from 'express';
 import { UUID } from '../Validation/quiz';
 import { assert } from 'superstruct';
 import { QuestionAnswerData } from '../Validation/question';
+import { get_quiz, persist_quiz_update } from '../Repositories/quizzesRepository';
+import { get_all_questions, get_current_question, get_total_questions } from '../Repositories/questionsRepository';
+import { DifficultyPoints } from '../Repositories/difficultiesRepository';
 
-
-const difficultyPoints: { [key: string]: number } = {
-    'easy': 1,
-    'medium': 2,
-    'hard': 3,
-};
 
 
 
@@ -26,20 +22,14 @@ export async function get_one(req: Request, res: Response) {
 
     try {
         // Find quiz by id
-        const quiz = await prisma.quizzes.findUnique({
-            where: { quiz_id },
-        });
+        const quiz = await get_quiz(quiz_id);
 
         if (!quiz) {
             return res.status(404).json({ error: 'Quiz not found' });
         }
 
         // Count the number of questions
-        const nb_questions_total = await prisma.questions.count({
-            where: {
-                quizzesQuiz_id: quiz_id,
-            },
-        });
+        const nb_questions_total = await get_total_questions(quiz_id);
 
 
         // Verify if the quiz is finished
@@ -53,15 +43,7 @@ export async function get_one(req: Request, res: Response) {
         }
 
         // Find actual question
-        const question = await prisma.questions.findFirst({
-            where: {
-                quizzesQuiz_id: quiz_id,
-                question_index: quiz.current_question_index,
-            },
-            include: {
-                options: true,
-            },
-        });
+        const question = await get_current_question(quiz_id, quiz.current_question_index);
 
         if (!question) {
             return res.status(404).json({ error: 'Question not found' });
@@ -115,9 +97,7 @@ export async function send_answer(req: Request, res: Response) {
 
     try {
         // Find the quiz by his id
-        const quiz = await prisma.quizzes.findUnique({
-            where: { quiz_id },
-        });
+        const quiz = await get_quiz(quiz_id);
 
         if (!quiz) {
             return res.status(404).json({ error: 'Quiz not found' });
@@ -129,26 +109,14 @@ export async function send_answer(req: Request, res: Response) {
         }
 
         // Count the number of questions
-        const nb_questions_total = await prisma.questions.count({
-            where: {
-                quizzesQuiz_id: quiz_id,
-            },
-        });
+        const nb_questions_total = get_total_questions(quiz_id);
 
         if (question_index >= nb_questions_total) {
             return res.status(400).json({ error: 'Quiz is finished' });
         }
 
         // Find corresponding question
-        const question = await prisma.questions.findFirst({
-            where: {
-                quizzesQuiz_id: quiz_id,
-                question_index: question_index,
-            },
-            include: {
-                options: true,
-            },
-        });
+        const question = await get_current_question(quiz_id, question_index);
 
         if (!question) {
             return res.status(404).json({ error: 'Question not found' });
@@ -181,18 +149,12 @@ export async function send_answer(req: Request, res: Response) {
         let updatedScore = quiz.score;
         if (isCorrect) {
             const difficulty = question.question_difficulty.toLowerCase();
-            const points = difficultyPoints[difficulty] || 1; // 1 is the default value
+            const points = DifficultyPoints[difficulty] || 1; // 1 is the default value
             updatedScore += points;
         }
 
         // Update quiz in DB
-        await prisma.quizzes.update({
-            where: { quiz_id },
-            data: {
-                score: updatedScore,
-                current_question_index: quiz.current_question_index + 1,
-            },
-        });
+        await persist_quiz_update(quiz_id, updatedScore, quiz.current_question_index + 1);
 
         // Build the response
         res.status(200).json({
@@ -209,13 +171,11 @@ export async function send_answer(req: Request, res: Response) {
 async function calculateMaxScore(quiz_id: string): Promise<number> {
     let maxScore = 0;
 
-    const questions = await prisma.questions.findMany({
-        where: { quizzesQuiz_id: quiz_id },
-    });
+    const questions = await get_all_questions(quiz_id);
 
     for (const question of questions) {
         const difficulty = question.question_difficulty.toLowerCase();
-        const points = difficultyPoints[difficulty] || 1;
+        const points = DifficultyPoints[difficulty] || 1;
         maxScore += points;
     }
 
