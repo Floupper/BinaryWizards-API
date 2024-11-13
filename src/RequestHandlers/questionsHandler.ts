@@ -4,6 +4,16 @@ import { UUID } from '../Validation/quiz';
 import { assert } from 'superstruct';
 import { QuestionAnswerData } from '../Validation/question';
 
+
+const difficultyPoints: { [key: string]: number } = {
+    'easy': 1,
+    'medium': 2,
+    'hard': 3,
+};
+
+
+
+
 export async function get_one(req: Request, res: Response) {
     const { quiz_id } = req.params;
 
@@ -34,9 +44,11 @@ export async function get_one(req: Request, res: Response) {
 
         // Verify if the quiz is finished
         if (quiz.current_question_index >= nb_questions_total) {
+
             return res.status(200).json({
                 quizz_finished: true,
                 score: quiz.score,
+                max_score: await calculateMaxScore(quiz_id)
             });
         }
 
@@ -62,6 +74,7 @@ export async function get_one(req: Request, res: Response) {
 
         // Build the response
         res.status(200).json({
+            quizz_finished: false,
             question_text: question.question_text,
             options: options,
             question_index: question.question_index + 1,
@@ -123,10 +136,7 @@ export async function send_answer(req: Request, res: Response) {
         });
 
         if (question_index >= nb_questions_total) {
-            return res.status(200).json({
-                quizz_finished: true,
-                score: quiz.score,
-            });
+            return res.status(400).json({ error: 'Quiz is finished' });
         }
 
         // Find corresponding question
@@ -168,12 +178,6 @@ export async function send_answer(req: Request, res: Response) {
         const correctOptionIndex = correctOption.option_index;
 
         // Update quiz score
-        const difficultyPoints: { [key: string]: number } = {
-            'easy': 1,
-            'medium': 2,
-            'hard': 3,
-        };
-
         let updatedScore = quiz.score;
         if (isCorrect) {
             const difficulty = question.question_difficulty.toLowerCase();
@@ -199,4 +203,21 @@ export async function send_answer(req: Request, res: Response) {
         console.error(error);
         res.status(500).json({ error: 'Internal server error' });
     }
+}
+
+
+async function calculateMaxScore(quiz_id: string): Promise<number> {
+    let maxScore = 0;
+
+    const questions = await prisma.questions.findMany({
+        where: { quizzesQuiz_id: quiz_id },
+    });
+
+    for (const question of questions) {
+        const difficulty = question.question_difficulty.toLowerCase();
+        const points = difficultyPoints[difficulty] || 1;
+        maxScore += points;
+    }
+
+    return maxScore;
 }
