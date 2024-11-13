@@ -1,30 +1,31 @@
 import express, { Request, Response, NextFunction } from 'express';
+import cors from 'cors';
+
+import * as quizzesHandler from './RequestHandlers/quizzesHandler';
+import * as categoriesHandler from './RequestHandlers/categoriesHandler';
+import * as difficultiesHandler from './RequestHandlers/difficultiesHandler';
+import * as questionsHandler from './RequestHandlers/questionsHandler';
+
+const config = require('./Data/config.json');
 
 const app = express();
-const port = 3000;
+const port = config[0].port;
 
-app.post('/quiz', (req: Request, res: Response) => {
-  res.status(201).json({ "quizz créé": "true" });
+app.use(cors());
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.header('Access-Control-Expose-Headers', 'Count');
+  next();
 });
+app.use(express.json());
 
-app.get('/quiz/:quiz_id/question', (req: Request, res: Response) => {
-  res.status(200).json({
-    "question": {
-      "question_id": "aaaaa-bbbb-cccc-dddd",
-      "text": "Quelle est la capitale de la France ?",
-      "options": ["Paris", "Londres", "Rome", "Berlin"]
-    }
-  });
-});
+app.post('/quiz', quizzesHandler.create_one as (req: Request, res: Response) => Promise<void>);
 
-app.post('/quiz/:quiz_id/:question_id', (req: Request, res: Response) => {
-  res.status(200).json({
-    "correct": 1,
-    "score": "10",
-    "answer": 2
-  });
-});
+app.get('/categories', categoriesHandler.get_all);
+app.get('/difficulties', difficultiesHandler.get_all);
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+app.get('/quiz/:quiz_id/question', questionsHandler.get_one as (req: Request, res: Response) => Promise<void>);
+app.post('/quiz/:quiz_id/:question_id', questionsHandler.send_answer as (req: Request, res: Response) => Promise<void>);
+
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server is running on http://0.0.0.0:${port}`);
 });
