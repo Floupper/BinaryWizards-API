@@ -86,10 +86,10 @@ export async function create_one(req: Request, res: Response) {
             });
 
             // Add incorrect answers
-            incorrectAnswers.forEach((incorrectAnswer: string, idx: number) => {
+            incorrectAnswers.forEach((incorrectAnswer: string, index: number) => {
                 optionsData.push({
                     option_text: incorrectAnswer,
-                    option_index: idx + 1,
+                    option_index: index + 1,
                     is_correct_answer: false,
                     questionsQuestion_id: question.question_id,
                 });
@@ -99,8 +99,8 @@ export async function create_one(req: Request, res: Response) {
             optionsData.sort(() => Math.random() - 0.5);
 
             // Update option_index after random
-            optionsData.forEach((option, idx) => {
-                option.option_index = idx;
+            optionsData.forEach((option, index) => {
+                option.option_index = index;
             });
 
             // Save options to database
