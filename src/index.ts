@@ -14,21 +14,24 @@ const https = require('https');
 const app = express();
 const port = config[0].port;
 
-let sslOptions = {}
-try {
-  sslOptions = {
-    key: fs.readFileSync('/home/container/certificat.key'),
-    cert: fs.readFileSync('/home/container/certificat-privkey.cert')
-  };
-}
-catch (err) {
-  console.log(err);
-}
+if (process.env.APP_ENV === 'server') {
+  let sslOptions = {}
+  try {
+    sslOptions = {
+      key: fs.readFileSync('/home/container/certificat.key'),
+      cert: fs.readFileSync('/home/container/certificat-privkey.cert')
+    };
+  }
+  catch (err) {
+    console.log(err);
+  }
 
-// Create HTTPS server and listen on secure port (ex. 33012)
-https.createServer(sslOptions, app).listen(33012, () => {
-  console.log('HTTPS Server running on port 33012');
-});
+  // Create HTTPS server and listen on secure port (ex. 33012)
+  https.createServer(sslOptions, app).listen(33012, () => {
+    console.log('HTTPS Server running on port 33012');
+  });
+
+}
 
 app.use(cors());
 app.use((req: Request, res: Response, next: NextFunction) => {
