@@ -8,7 +8,7 @@ export async function calculate_score(quiz_id: string) {
         let totalScore = 0;
 
         for (const answer of correctAnswers) {
-            const difficulty = answer.Questions?.question_difficulty.toLowerCase();
+            const difficulty = answer.Questions.question_difficulty.toLowerCase();
             const points = DifficultyPoints[difficulty] || 1; // Default to 1 if difficulty is unknown
             totalScore += points;
         }
