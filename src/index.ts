@@ -14,14 +14,20 @@ const https = require('https');
 const app = express();
 const port = config[0].port;
 
-const sslOptions = {
-  key: fs.readFileSync('/home/container/certificat.key'),
-  cert: fs.readFileSync('/home/container/certificat-privkey.cert')
-};
+let sslOptions = {}
+try {
+  sslOptions = {
+    key: fs.readFileSync('/home/container/certificat.key'),
+    cert: fs.readFileSync('/home/container/certificat-privkey.cert')
+  };
+}
+catch (err) {
+  console.log(err);
+}
 
-// Créer le serveur HTTPS et écouter sur un port sécurisé (ex. 33012)
+// Create HTTPS server and listen on secure port (ex. 33012)
 https.createServer(sslOptions, app).listen(33012, () => {
-  console.log('Serveur HTTPS lancé sur le port 33012');
+  console.log('HTTPS Server running on port 33012');
 });
 
 app.use(cors());
