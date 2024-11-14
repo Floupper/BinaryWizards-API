@@ -14,10 +14,10 @@ model Quizzes {
   quiz_id                String      @id @default(uuid())
   category               Int
   difficulty             String
-  score                  Int
   current_question_index Int
   questions              Questions[]
   created_at             DateTime    @default(now())
+  answers                Answers[]
 }
 
 model Questions {
@@ -30,6 +30,7 @@ model Questions {
   Quizzes             Quizzes?  @relation(fields: [quizzesQuiz_id], references: [quiz_id])
   quizzesQuiz_id      String?
   options             Options[]
+  answers             Answers[]
 }
 
 model Options {
@@ -39,4 +40,15 @@ model Options {
   is_correct_answer    Boolean
   Questions            Questions? @relation(fields: [questionsQuestion_id], references: [question_id])
   questionsQuestion_id String?
+  answers              Answers[]
+}
+
+model Answers {
+  answer_id            String    @id @default(uuid())
+  Quizzes              Quizzes   @relation(fields: [quizzesQuiz_id], references: [quiz_id])
+  quizzesQuiz_id       String
+  Options              Options   @relation(fields: [optionsOption_id], references: [option_id])
+  optionsOption_id     String
+  Questions            Questions @relation(fields: [questionsQuestion_id], references: [question_id])
+  questionsQuestion_id String
 }

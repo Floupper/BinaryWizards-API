@@ -8,20 +8,36 @@ import * as questionsHandler from './RequestHandlers/questionsHandler';
 
 const config = require('./Data/config.json');
 
+const fs = require('fs');
+const https = require('https');
+
 const app = express();
 const port = config[0].port;
 
-app.use((req: Request, res: Response, next: NextFunction) => {
-  if (req.header('x-forwarded-proto') === 'https') {
-    const httpUrl = `http://${req.header('host')}${req.url}`;
-    res.redirect(301, httpUrl);
-  } else {
-    next();
+if (process.env.APP_ENV === 'server') {
+  let sslOptions = {}
+  try {
+    sslOptions = {
+      key: fs.readFileSync('/home/container/certificat.key'),
+      cert: fs.readFileSync('/home/container/certificat-privkey.cert')
+    };
   }
-});
+  catch (err) {
+    console.error(err);
+  }
+
+  // Create HTTPS server and listen on secure port (ex. 33012)
+  https.createServer(sslOptions, app).listen(33012, () => {
+    console.log('HTTPS Server running on port 33012');
+  });
+
+}
 
 app.use(cors());
 app.use((req: Request, res: Response, next: NextFunction) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, UPDATE, PUT, DELETE, PATCH");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.header('Access-Control-Expose-Headers', 'Count');
   next();
 });
