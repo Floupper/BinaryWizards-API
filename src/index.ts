@@ -15,8 +15,8 @@ const app = express();
 const port = config[0].port;
 
 const sslOptions = {
-  key: fs.readFileSync('../../certificat.key'),
-  cert: fs.readFileSync('../../certificat-privkey.cert')
+  key: fs.readFileSync('/home/container/certificat.key'),
+  cert: fs.readFileSync('/home/container/certificat-privkey.cert')
 };
 
 // Créer le serveur HTTPS et écouter sur un port sécurisé (ex. 33012)
