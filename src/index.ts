@@ -23,7 +23,7 @@ if (process.env.APP_ENV === 'server') {
     };
   }
   catch (err) {
-    console.log(err);
+    console.error(err);
   }
 
   // Create HTTPS server and listen on secure port (ex. 33012)
