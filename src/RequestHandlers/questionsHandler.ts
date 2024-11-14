@@ -5,8 +5,8 @@ import { QuestionAnswerData } from '../Validation/question';
 import { get_quiz, persist_quiz_update } from '../Repositories/quizzesRepository';
 import { get_current_question } from '../Repositories/questionsRepository';
 import { persist_answer } from '../Repositories/answersRepository';
-import { calculate_max_score, get_total_questions_count } from '../Helpers/questionsHelper';
-import { calculate_score, get_correct_answers_count } from '../Helpers/answersHelper';
+import { get_total_questions_count } from '../Helpers/questionsHelper';
+import { get_correct_answers_count } from '../Helpers/answersHelper';
 
 
 export async function get_one(req: Request, res: Response) {
@@ -36,8 +36,6 @@ export async function get_one(req: Request, res: Response) {
 
             return res.status(200).json({
                 quiz_finished: true,
-                score: await calculate_score(quiz_id),
-                max_score: await calculate_max_score(quiz_id),
                 correct_answers_nb: await get_correct_answers_count(quiz_id),
                 nb_questions_total: nb_questions_total
             });
@@ -62,7 +60,7 @@ export async function get_one(req: Request, res: Response) {
             options: options,
             question_index: question.question_index + 1,
             nb_questions_total: nb_questions_total,
-            score: await calculate_score(quiz_id),
+            correct_answers_nb: await get_correct_answers_count(quiz_id),
             question_type: question.question_type,
             question_difficulty: question.question_difficulty,
             question_category: question.question_category,
