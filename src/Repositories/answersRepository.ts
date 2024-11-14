@@ -1,11 +1,12 @@
 import { prisma } from '../db'
 
-export async function persist_answer(quizzesQuiz_id: string, questionsQuestion_id: string, optionsOption_id: string) {
+export async function persist_answer(quizzesQuiz_id: string, questionsQuestion_id: string, optionsOption_id: string, gamesGame_id: string) {
     return await prisma.answers.create({
         data: {
             quizzesQuiz_id,
             questionsQuestion_id,
             optionsOption_id,
+            gamesGame_id
         },
     });
 }

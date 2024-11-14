@@ -11,13 +11,18 @@ datasource db {
 }
 
 model Quizzes {
-  quiz_id                String      @id @default(uuid())
-  category               Int
+  quiz_id                String   @id @default(uuid())
+  title                  String
   difficulty             String
   current_question_index Int
-  questions              Questions[]
-  created_at             DateTime    @default(now())
-  answers                Answers[]
+  is_public              Boolean  @default(false)
+  created_at             DateTime @default(now())
+
+  questions   Questions[]
+  games       Games[]
+  Answers     Answers[]
+  User        User?       @relation(fields: [userUser_id], references: [user_id])
+  userUser_id String?
 }
 
 model Questions {
@@ -27,19 +32,19 @@ model Questions {
   question_category   String
   question_difficulty String
   question_type       String
-  Quizzes             Quizzes?  @relation(fields: [quizzesQuiz_id], references: [quiz_id])
-  quizzesQuiz_id      String?
+  Quizzes             Quizzes   @relation(fields: [quizzesQuiz_id], references: [quiz_id])
+  quizzesQuiz_id      String
   options             Options[]
   answers             Answers[]
 }
 
 model Options {
-  option_id            String     @id @default(uuid())
+  option_id            String    @id @default(uuid())
   option_text          String
   option_index         Int
   is_correct_answer    Boolean
-  Questions            Questions? @relation(fields: [questionsQuestion_id], references: [question_id])
-  questionsQuestion_id String?
+  Questions            Questions @relation(fields: [questionsQuestion_id], references: [question_id])
+  questionsQuestion_id String
   answers              Answers[]
 }
 
@@ -51,4 +56,28 @@ model Answers {
   optionsOption_id     String
   Questions            Questions @relation(fields: [questionsQuestion_id], references: [question_id])
   questionsQuestion_id String
+  Games                Games     @relation(fields: [gamesGame_id], references: [game_id])
+  gamesGame_id         String
+}
+
+model User {
+  user_id    String    @id @default(uuid())
+  email      String?   @unique
+  username   String?
+  password   String
+  quizzes    Quizzes[]
+  games      Games[]
+  created_at DateTime  @default(now())
+}
+
+model Games {
+  game_id                String    @id @default(uuid())
+  current_question_index Int
+  score                  Int
+  created_at             DateTime  @default(now())
+  answers                Answers[]
+  Quizzes                Quizzes   @relation(fields: [quizzesQuiz_id], references: [quiz_id])
+  quizzesQuiz_id         String
+  User                   User?     @relation(fields: [userUser_id], references: [user_id])
+  userUser_id            String?
 }
