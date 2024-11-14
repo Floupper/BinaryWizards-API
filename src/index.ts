@@ -1,11 +1,24 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 
-import * as quizHandler from './RequestHandlers/quizHandler';
+import * as quizzesHandler from './RequestHandlers/quizzesHandler';
 import * as categoriesHandler from './RequestHandlers/categoriesHandler';
+import * as difficultiesHandler from './RequestHandlers/difficultiesHandler';
+import * as questionsHandler from './RequestHandlers/questionsHandler';
+
+const config = require('./Data/config.json');
 
 const app = express();
-const port = 3000;
+const port = config[0].port;
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (req.header('x-forwarded-proto') === 'https') {
+    const httpUrl = `http://${req.header('host')}${req.url}`;
+    res.redirect(301, httpUrl);
+  } else {
+    next();
+  }
+});
 
 app.use(cors());
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -14,30 +27,14 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 app.use(express.json());
 
-app.post('/quiz', quizHandler.create_one as (req: Request, res: Response) => Promise<void>);
+app.post('/quiz', quizzesHandler.create_one as (req: Request, res: Response) => Promise<void>);
+app.put('/quiz/:quiz_id', quizzesHandler.reset_quiz as (req: Request, res: Response) => Promise<void>);
 
 app.get('/categories', categoriesHandler.get_all);
+app.get('/difficulties', difficultiesHandler.get_all);
 
-app.get('/quiz/:quiz_id/question', (req: Request, res: Response) => {
-  res.status(200).json({
-    "question_text": "Quelle est la capitale de la France ?",
-    "options": ["Paris", "Londres", "Rome", "Berlin"],
-    "question_index": 1,
-    "nb_questions_total": 20,
-    "score": 10,
-    "question_type": "multiple",// ou "boolean"
-    "question_difficulty": "easy",
-    "question_category": "Geography"
-  });
-});
-
-app.post('/quiz/:quiz_id/:question_id', (req: Request, res: Response) => {
-  res.status(200).json({
-    "correct": 1,
-    "score_updated": 11,
-    "answer_index": 0
-  });
-});
+app.get('/quiz/:quiz_id/question', questionsHandler.get_one as (req: Request, res: Response) => Promise<void>);
+app.post('/quiz/:quiz_id/:question_id', questionsHandler.send_answer as (req: Request, res: Response) => Promise<void>);
 
 app.listen(port, '0.0.0.0', () => {
   console.log(`Server is running on http://0.0.0.0:${port}`);

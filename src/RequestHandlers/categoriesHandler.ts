@@ -1,23 +1,12 @@
 import { Request, Response } from 'express';
-import fs from 'fs';
-import path from 'path';
+import { get_all_categories } from '../Repositories/categoriesRepository';
+
 
 export async function get_all(req: Request, res: Response) {
-    const filePath = path.join(__dirname, '../Data/categories.json');
+    const categories = await get_all_categories();
 
-    fs.readFile(filePath, 'utf8', (err, data) => {
-        if (err) {
-            console.error('Error reading file categories.json:', err);
-            res.status(500).json({ error: 'Error while retrieving categories.' });
-            return;
-        }
-
-        try {
-            const categories = JSON.parse(data);
-            res.json(categories);
-        } catch (parseError) {
-            console.error('Error while parsing file categories.json:', parseError);
-            res.status(500).json({ error: 'Error processing categories.' });
-        }
-    });
+    if (categories)
+        res.json(categories);
+    else
+        res.status(404).json({ message: 'Error while finding categories.' });
 }

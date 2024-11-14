@@ -17,6 +17,7 @@ model Quizzes {
   score                  Int
   current_question_index Int
   questions              Questions[]
+  created_at             DateTime    @default(now())
 }
 
 model Questions {
