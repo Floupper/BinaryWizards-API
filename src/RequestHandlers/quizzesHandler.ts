@@ -12,7 +12,7 @@ export async function create_one(req: Request, res: Response) {
     try {
         assert(req.body, QuizCreationData);
     } catch (error) {
-        res.status(400).json({ message: 'Data is invalid: \n- category is optional and must be a number between 9 and 32\n- difficulty is optional too and must be a string\n- amount must be a number between 1 and 50' });
+        res.status(400).json({ message: 'Data is invalid: \n- category must be a number between 9 and 32\n- difficulty must be a string\n- amount must be a number between 1 and 50' });
         return;
     }
 
