@@ -5,6 +5,7 @@ import * as quizzesHandler from './RequestHandlers/quizzesHandler';
 import * as categoriesHandler from './RequestHandlers/categoriesHandler';
 import * as difficultiesHandler from './RequestHandlers/difficultiesHandler';
 import * as questionsHandler from './RequestHandlers/questionsHandler';
+import * as gamesHandler from './RequestHandlers/gamesHandler';
 
 const config = require('./Data/config.json');
 
@@ -44,7 +45,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use(express.json());
 
 app.post('/quiz', quizzesHandler.create_one as (req: Request, res: Response) => Promise<void>);
-app.put('/quiz/:quiz_id', quizzesHandler.reset_quiz as (req: Request, res: Response) => Promise<void>);
+app.put('/quiz/:quiz_id', gamesHandler.reset_game as (req: Request, res: Response) => Promise<void>);
 
 app.get('/categories', categoriesHandler.get_all);
 app.get('/difficulties', difficultiesHandler.get_all);

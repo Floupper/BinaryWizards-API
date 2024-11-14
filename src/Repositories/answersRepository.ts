@@ -1,21 +1,20 @@
 import { prisma } from '../db'
 
-export async function persist_answer(quizzesQuiz_id: string, questionsQuestion_id: string, optionsOption_id: string, gamesGame_id: string) {
+export async function persist_answer(gamesGame_id: string, questionsQuestion_id: string, optionsOption_id: string) {
     return await prisma.answers.create({
         data: {
-            quizzesQuiz_id,
+            gamesGame_id,
             questionsQuestion_id,
             optionsOption_id,
-            gamesGame_id
         },
     });
 }
 
-export async function count_correct_answers(quiz_id: string): Promise<number> {
+export async function count_correct_answers(gamesGame_id: string): Promise<number> {
     const correctAnswersCount = await prisma.answers.count({
         where: {
-            quizzesQuiz_id: quiz_id,
-            Options: {
+            gamesGame_id,
+            options: {
                 is_correct_answer: true,
             },
         },
@@ -24,17 +23,17 @@ export async function count_correct_answers(quiz_id: string): Promise<number> {
 }
 
 
-export async function get_correct_answers(quiz_id: string) {
+export async function get_correct_answers(gamesGame_id: string) {
     return await prisma.answers.findMany({
         where: {
-            quizzesQuiz_id: quiz_id,
-            Options: {
+            gamesGame_id,
+            options: {
                 is_correct_answer: true
             }
         },
         include: {
-            Options: true,
-            Questions: true
+            options: true,
+            questions: true
         }
     });
 }

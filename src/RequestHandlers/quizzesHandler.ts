@@ -5,19 +5,18 @@ import axios from 'axios';
 import he from 'he';
 import { persist_question } from '../Repositories/questionsRepository';
 import { persist_option } from '../Repositories/optionsRepository';
-import { get_quiz, persist_quiz, persist_quiz_update } from '../Repositories/quizzesRepository';
-import { get_total_questions_count } from '../Helpers/questionsHelper';
+import { persist_quiz } from '../Repositories/quizzesRepository';
 
 export async function create_one(req: Request, res: Response) {
     try {
         assert(req.body, QuizCreationData);
     } catch (error) {
-        res.status(400).json({ message: 'Data is invalid: \n- category must be a number between 9 and 32\n- difficulty must be a string\n- amount must be a number between 1 and 50' });
+        res.status(400).json({ message: 'Data is invalid: \n- category must be a number between 9 and 32\n- difficulty must be a string\n- amount must be a number between 1 and 50\n- title is optional and must be a string' });
         return;
     }
 
     try {
-        const { category, difficulty, amount } = req.body;
+        const { category, difficulty, amount, title } = req.body;
 
         // Build object params
         const params: any = { amount };
@@ -47,7 +46,7 @@ export async function create_one(req: Request, res: Response) {
         }
 
         // Create quiz
-        const quiz = await persist_quiz(category, difficulty, 0);
+        const quiz = await persist_quiz(difficulty, title || "");
 
         // Browsing questions and options
         for (let index = 0; index < results.length; index++) {
@@ -103,39 +102,4 @@ export async function create_one(req: Request, res: Response) {
     }
 }
 
-
-export async function reset_quiz(req: Request, res: Response) {
-    const { quiz_id } = req.params;
-    try {
-        assert(quiz_id, UUID);
-    } catch (error) {
-        res.status(400).json({ message: 'The quiz id is invalid' });
-        return;
-    }
-
-    try {
-        // Verify if quiz exists
-        const quiz = await get_quiz(quiz_id);
-
-        if (!quiz) {
-            return res.status(404).json({ error: 'Quiz not found' });
-        }
-
-        // Get the total number of questions in the quiz
-        const totalQuestions = await get_total_questions_count(quiz_id);
-
-        // Verify if the quiz is not finished yet
-        if (quiz.current_question_index < totalQuestions) {
-            return res.status(400).json({ error: 'The quiz have to be finished to be reset' });
-        }
-
-        // Reset quiz
-        await persist_quiz_update(quiz_id, 0);
-
-        res.status(200).json({ message: 'The quiz has been reset' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-}
 

@@ -8,6 +8,7 @@ export const QuizCreationData = object({
     category: Category,
     difficulty: string(),
     amount: size(number(), 1, 50),
+    title: optional(string())
 });
 
 

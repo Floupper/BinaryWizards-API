@@ -1,24 +1,16 @@
 import { prisma } from "../db";
 
 
-export async function persist_quiz(category: number | undefined, difficulty: string | undefined, current_question_index: number) {
+export async function persist_quiz(difficulty: string, title: string) {
     return await prisma.quizzes.create({
         data: {
-            category: category || 0,
-            difficulty: difficulty || "Any",
-            current_question_index,
+            difficulty: difficulty,
+            title: title
         },
     });
 }
 
-export async function persist_quiz_update(quiz_id: string, current_question_index: number) {
-    await prisma.quizzes.update({
-        where: { quiz_id },
-        data: {
-            current_question_index,
-        },
-    });
-}
+
 
 
 export async function get_quiz(quiz_id: string) {

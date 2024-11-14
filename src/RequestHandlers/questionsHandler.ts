@@ -2,47 +2,47 @@ import { Request, Response } from 'express';
 import { UUID } from '../Validation/quiz';
 import { assert } from 'superstruct';
 import { QuestionAnswerData } from '../Validation/question';
-import { get_quiz, persist_quiz_update } from '../Repositories/quizzesRepository';
 import { get_current_question } from '../Repositories/questionsRepository';
 import { persist_answer } from '../Repositories/answersRepository';
 import { get_total_questions_count } from '../Helpers/questionsHelper';
 import { get_correct_answers_count } from '../Helpers/answersHelper';
+import { get_game, persist_game_update } from '../Repositories/gamesRepository';
 
 
 export async function get_one(req: Request, res: Response) {
-    const { quiz_id } = req.params;
+    const { game_id } = req.params;
 
     try {
-        assert(quiz_id, UUID);
+        assert(game_id, UUID);
     } catch (error) {
-        res.status(400).json({ message: 'The quiz id is invalid' });
+        res.status(400).json({ message: 'The game id is invalid' });
         return;
     }
 
     try {
         // Find quiz by id
-        const quiz = await get_quiz(quiz_id);
+        const game = await get_game(game_id);
 
-        if (!quiz) {
-            return res.status(404).json({ error: 'Quiz not found' });
+        if (!game) {
+            return res.status(404).json({ error: 'Game not found' });
         }
 
         // Count the number of questions
-        const nb_questions_total = await get_total_questions_count(quiz_id);
+        const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
 
 
-        // Verify if the quiz is finished
-        if (quiz.current_question_index >= nb_questions_total) {
+        // Verify if the game is finished
+        if (game.current_question_index >= nb_questions_total) {
 
             return res.status(200).json({
-                quiz_finished: true,
-                correct_answers_nb: await get_correct_answers_count(quiz_id),
+                game_finished: true,
+                correct_answers_nb: await get_correct_answers_count(game_id),
                 nb_questions_total: nb_questions_total
             });
         }
 
         // Find actual question
-        const question = await get_current_question(quiz_id, quiz.current_question_index);
+        const question = await get_current_question(game.quizzesQuiz_id, game.current_question_index);
 
         if (!question) {
             return res.status(404).json({ error: 'Question not found' });
@@ -55,12 +55,12 @@ export async function get_one(req: Request, res: Response) {
 
         // Build the response
         res.status(200).json({
-            quiz_finished: false,
+            game_finished: false,
             question_text: question.question_text,
             options: options,
             question_index: question.question_index + 1,
             nb_questions_total: nb_questions_total,
-            correct_answers_nb: await get_correct_answers_count(quiz_id),
+            correct_answers_nb: await get_correct_answers_count(game_id),
             question_type: question.question_type,
             question_difficulty: question.question_difficulty,
             question_category: question.question_category,
@@ -73,11 +73,11 @@ export async function get_one(req: Request, res: Response) {
 
 
 export async function send_answer(req: Request, res: Response) {
-    const { quiz_id } = req.params;
+    const { game_id } = req.params;
     try {
-        assert(quiz_id, UUID);
+        assert(game_id, UUID);
     } catch (error) {
-        res.status(400).json({ message: 'The quiz id is invalid' });
+        res.status(400).json({ message: 'The game id is invalid' });
         return;
     }
 
@@ -95,27 +95,27 @@ export async function send_answer(req: Request, res: Response) {
     question_index--;
 
     try {
-        // Find the quiz by his id
-        const quiz = await get_quiz(quiz_id);
+        // Find the game by his id
+        const game = await get_game(game_id);
 
-        if (!quiz) {
-            return res.status(404).json({ error: 'Quiz not found' });
+        if (!game) {
+            return res.status(404).json({ error: 'Game not found' });
         }
 
         // Verify that there in no desynchronization
-        if (question_index !== quiz.current_question_index) {
+        if (question_index !== game.current_question_index) {
             return res.status(400).json({ error: 'Question\'s index invalid' });
         }
 
         // Count the number of questions
-        const nb_questions_total = await get_total_questions_count(quiz_id);
+        const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
 
         if (question_index >= nb_questions_total) {
             return res.status(400).json({ error: 'Quiz is finished' });
         }
 
         // Find corresponding question
-        const question = await get_current_question(quiz_id, question_index);
+        const question = await get_current_question(game.quizzesQuiz_id, question_index);
 
         if (!question) {
             return res.status(404).json({ error: 'Question not found' });
@@ -144,11 +144,11 @@ export async function send_answer(req: Request, res: Response) {
 
         const correctOptionIndex = correctOption.option_index;
 
-        // Update quiz in DB
-        await persist_quiz_update(quiz_id, quiz.current_question_index + 1);
+        // Update game in DB
+        await persist_game_update(game_id, game.current_question_index + 1);
 
         // Add answer
-        await persist_answer(quiz_id, question.question_id, chosenOption.option_id);
+        await persist_answer(game_id, question.question_id, chosenOption.option_id,);
 
         // Build the response
         res.status(200).json({
