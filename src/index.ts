@@ -8,16 +8,20 @@ import * as questionsHandler from './RequestHandlers/questionsHandler';
 
 const config = require('./Data/config.json');
 
+const fs = require('fs');
+const https = require('https');
+
 const app = express();
 const port = config[0].port;
 
-app.use((req: Request, res: Response, next: NextFunction) => {
-  if (req.header('x-forwarded-proto') === 'https') {
-    const httpUrl = `http://${req.header('host')}${req.url}`;
-    res.redirect(301, httpUrl);
-  } else {
-    next();
-  }
+const sslOptions = {
+  key: fs.readFileSync('certificat.key'),
+  cert: fs.readFileSync('certificat-privkey.cert')
+};
+
+// Créer le serveur HTTPS et écouter sur un port sécurisé (ex. 33012)
+https.createServer(sslOptions, app).listen(33012, () => {
+  console.log('Serveur HTTPS lancé sur le port 33012');
 });
 
 app.use(cors());
