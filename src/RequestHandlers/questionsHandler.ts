@@ -3,11 +3,10 @@ import { UUID } from '../Validation/quiz';
 import { assert } from 'superstruct';
 import { QuestionAnswerData } from '../Validation/question';
 import { get_quiz, persist_quiz_update } from '../Repositories/quizzesRepository';
-import { get_all_questions, get_current_question, get_total_questions } from '../Repositories/questionsRepository';
-import { DifficultyPoints } from '../Repositories/difficultiesRepository';
-
-
-
+import { get_current_question } from '../Repositories/questionsRepository';
+import { persist_answer } from '../Repositories/answersRepository';
+import { calculate_max_score, get_total_questions_count } from '../Helpers/questionsHelper';
+import { calculate_score, get_correct_answers_count } from '../Helpers/answersHelper';
 
 
 export async function get_one(req: Request, res: Response) {
@@ -29,7 +28,7 @@ export async function get_one(req: Request, res: Response) {
         }
 
         // Count the number of questions
-        const nb_questions_total = await get_total_questions(quiz_id);
+        const nb_questions_total = await get_total_questions_count(quiz_id);
 
 
         // Verify if the quiz is finished
@@ -37,8 +36,10 @@ export async function get_one(req: Request, res: Response) {
 
             return res.status(200).json({
                 quiz_finished: true,
-                score: quiz.score,
-                max_score: await calculateMaxScore(quiz_id)
+                score: await calculate_score(quiz_id),
+                max_score: await calculate_max_score(quiz_id),
+                correct_answers_nb: await get_correct_answers_count(quiz_id),
+                nb_questions_total: nb_questions_total
             });
         }
 
@@ -61,14 +62,14 @@ export async function get_one(req: Request, res: Response) {
             options: options,
             question_index: question.question_index + 1,
             nb_questions_total: nb_questions_total,
-            score: quiz.score,
+            score: await calculate_score(quiz_id),
             question_type: question.question_type,
             question_difficulty: question.question_difficulty,
             question_category: question.question_category,
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Intern server error' });
+        res.status(500).json({ error: 'Internal server error' });
     }
 }
 
@@ -109,7 +110,7 @@ export async function send_answer(req: Request, res: Response) {
         }
 
         // Count the number of questions
-        const nb_questions_total = get_total_questions(quiz_id);
+        const nb_questions_total = await get_total_questions_count(quiz_id);
 
         if (question_index >= nb_questions_total) {
             return res.status(400).json({ error: 'Quiz is finished' });
@@ -145,16 +146,11 @@ export async function send_answer(req: Request, res: Response) {
 
         const correctOptionIndex = correctOption.option_index;
 
-        // Update quiz score
-        let updatedScore = quiz.score;
-        if (isCorrect) {
-            const difficulty = question.question_difficulty.toLowerCase();
-            const points = DifficultyPoints[difficulty] || 1; // 1 is the default value
-            updatedScore += points;
-        }
-
         // Update quiz in DB
-        await persist_quiz_update(quiz_id, updatedScore, quiz.current_question_index + 1);
+        await persist_quiz_update(quiz_id, quiz.current_question_index + 1);
+
+        // Add answer
+        await persist_answer(quiz_id, question.question_id, chosenOption.option_id);
 
         // Build the response
         res.status(200).json({
@@ -168,16 +164,3 @@ export async function send_answer(req: Request, res: Response) {
 }
 
 
-async function calculateMaxScore(quiz_id: string): Promise<number> {
-    let maxScore = 0;
-
-    const questions = await get_all_questions(quiz_id);
-
-    for (const question of questions) {
-        const difficulty = question.question_difficulty.toLowerCase();
-        const points = DifficultyPoints[difficulty] || 1;
-        maxScore += points;
-    }
-
-    return maxScore;
-}

@@ -3,9 +3,10 @@ import { QuizCreationData, UUID } from '../Validation/quiz';
 import { assert } from 'superstruct';
 import axios from 'axios';
 import he from 'he';
-import { get_total_questions, persist_question } from '../Repositories/questionsRepository';
+import { persist_question } from '../Repositories/questionsRepository';
 import { persist_option } from '../Repositories/optionsRepository';
 import { get_quiz, persist_quiz, persist_quiz_update } from '../Repositories/quizzesRepository';
+import { get_total_questions_count } from '../Helpers/questionsHelper';
 
 export async function create_one(req: Request, res: Response) {
     try {
@@ -46,7 +47,7 @@ export async function create_one(req: Request, res: Response) {
         }
 
         // Create quiz
-        const quiz = await persist_quiz(category, difficulty, 0, 0);
+        const quiz = await persist_quiz(category, difficulty, 0);
 
         // Browsing questions and options
         for (let index = 0; index < results.length; index++) {
@@ -121,7 +122,7 @@ export async function reset_quiz(req: Request, res: Response) {
         }
 
         // Get the total number of questions in the quiz
-        const totalQuestions = await get_total_questions(quiz_id);
+        const totalQuestions = await get_total_questions_count(quiz_id);
 
         // Verify if the quiz is not finished yet
         if (quiz.current_question_index < totalQuestions) {
@@ -129,7 +130,7 @@ export async function reset_quiz(req: Request, res: Response) {
         }
 
         // Reset quiz
-        await persist_quiz_update(quiz_id, 0, 0);
+        await persist_quiz_update(quiz_id, 0);
 
         res.status(200).json({ message: 'The quiz has been reset' });
     } catch (error) {
