@@ -16,3 +16,14 @@ export async function persist_game_update(game_id: string, current_question_inde
         },
     });
 }
+
+
+export async function persist_game(quiz_id: string) {
+    return await prisma.games.create({
+        data: {
+            quizzesQuiz_id: quiz_id,
+            current_question_index: 0,
+            score: 0,
+        },
+    })
+};
