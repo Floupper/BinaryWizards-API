@@ -7,6 +7,7 @@ import { persist_question } from '../Repositories/questionsRepository';
 import { persist_option } from '../Repositories/optionsRepository';
 import { get_quiz, persist_quiz, persist_quiz_update } from '../Repositories/quizzesRepository';
 import { get_total_questions_count } from '../Helpers/questionsHelper';
+import { reset_answers } from '../Repositories/answersRepository';
 
 export async function create_one(req: Request, res: Response) {
     try {
@@ -131,6 +132,7 @@ export async function reset_quiz(req: Request, res: Response) {
 
         // Reset quiz
         await persist_quiz_update(quiz_id, 0);
+        await reset_answers(quiz_id);
 
         res.status(200).json({ message: 'The quiz has been reset' });
     } catch (error) {
