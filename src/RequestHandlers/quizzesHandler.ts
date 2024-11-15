@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { QuizCreationData, UUID } from '../Validation/quiz';
+import { QuizCreationData } from '../Validation/quiz';
 import { assert } from 'superstruct';
 import axios from 'axios';
 import he from 'he';

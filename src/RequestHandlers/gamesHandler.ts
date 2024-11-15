@@ -1,14 +1,14 @@
 import { Request, Response } from 'express';
-import { UUID } from '../Validation/quiz';
 import { assert } from 'superstruct';
 import { get_game, persist_game_update, persist_game } from '../Repositories/gamesRepository';
 import { get_total_questions_count } from '../Helpers/questionsHelper';
 import { get_public_quiz, get_quiz } from '../Repositories/quizzesRepository';
+import { GAMEID } from '../Validation/game';
 
 export async function reset_game(req: Request, res: Response) {
     const { game_id } = req.params;
     try {
-        assert(game_id, UUID);
+        assert(game_id, GAMEID);
     } catch (error) {
         res.status(400).json({ message: 'The game id is invalid' });
         return;
@@ -57,7 +57,7 @@ export async function create_game(req: Request, res: Response) {
 
         const newGame = await persist_game(quiz_id);
 
-        res.status(201).json({ message: 'Game created', game_id: newGame.quizzesQuiz_id });
+        res.status(201).json({ message: 'Game created', game_id: newGame.game_id });
     } catch (error) {
         console.error('Error while creating game :', error);
         res.status(500).json({ error: 'Internal server error' });

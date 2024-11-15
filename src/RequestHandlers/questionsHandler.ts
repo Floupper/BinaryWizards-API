@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { UUID } from '../Validation/quiz';
 import { assert } from 'superstruct';
 import { QuestionAnswerData } from '../Validation/question';
 import { get_current_question } from '../Repositories/questionsRepository';
@@ -7,13 +6,14 @@ import { persist_answer } from '../Repositories/answersRepository';
 import { get_total_questions_count } from '../Helpers/questionsHelper';
 import { get_correct_answers_count } from '../Helpers/answersHelper';
 import { get_game, persist_game_update } from '../Repositories/gamesRepository';
+import { GAMEID } from '../Validation/game';
 
 
 export async function get_one(req: Request, res: Response) {
     const { game_id } = req.params;
 
     try {
-        assert(game_id, UUID);
+        assert(game_id, GAMEID);
     } catch (error) {
         res.status(400).json({ message: 'The game id is invalid' });
         return;
@@ -64,6 +64,7 @@ export async function get_one(req: Request, res: Response) {
             question_type: question.question_type,
             question_difficulty: question.question_difficulty,
             question_category: question.question_category,
+            quiz_id: game.quizzesQuiz_id,
         });
     } catch (error) {
         console.error(error);
@@ -75,7 +76,7 @@ export async function get_one(req: Request, res: Response) {
 export async function send_answer(req: Request, res: Response) {
     const { game_id } = req.params;
     try {
-        assert(game_id, UUID);
+        assert(game_id, GAMEID);
     } catch (error) {
         res.status(400).json({ message: 'The game id is invalid' });
         return;
