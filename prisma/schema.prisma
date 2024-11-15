@@ -59,7 +59,7 @@ model Answers {
 model User {
   user_id    String    @id @default(uuid())
   email      String?   @unique
-  username   String?
+  username   String    @unique
   password   String
   quizzes    Quizzes[]
   games      Games[]
