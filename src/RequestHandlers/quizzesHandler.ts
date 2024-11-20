@@ -46,7 +46,7 @@ export async function create_one(req: Request, res: Response) {
         }
 
         // Create quiz
-        const quiz = await persist_quiz(difficulty, title || "");
+        const quiz = await persist_quiz(difficulty, title || "", true);
 
         // Browsing questions and options
         for (let index = 0; index < results.length; index++) {
@@ -102,4 +102,15 @@ export async function create_one(req: Request, res: Response) {
     }
 }
 
+export async function init_one(req: Request, res: Response) {
+    try {
+        // Create quiz
+        const quiz = await persist_quiz("easy", "", false);
 
+        res.status(201).json({ message: 'Quiz initialized', quiz_id: quiz.quiz_id });
+    }
+    catch (error: any) {
+        console.error('Erreur while initializing quiz:', error);
+        res.status(500).json({ error: 'Erreur while initializing quiz', details: error.message });
+    }
+}

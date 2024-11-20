@@ -2,13 +2,13 @@ import { prisma } from "../db";
 import { generate_quiz_id } from "../Helpers/quizzesHelper";
 
 
-export async function persist_quiz(difficulty: string, title: string) {
+export async function persist_quiz(difficulty: string, title: string, is_public: boolean) {
     return await prisma.quizzes.create({
         data: {
             quiz_id: await generate_quiz_id(),
             difficulty: difficulty,
             title: title,
-            is_public: true //TODO: make this configurable
+            is_public: is_public
         },
     });
 }
