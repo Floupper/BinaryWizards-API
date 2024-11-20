@@ -38,3 +38,26 @@ export async function get_total_questions(quiz_id: string) {
         where: { quizzesQuiz_id: quiz_id },
     });
 }
+
+
+
+export async function get_question_informations(question_id: string) {
+    return await prisma.questions.findUnique({
+        where: { question_id },
+        select: {
+            question_id: true,
+            question_index: true,
+            question_text: true,
+            question_difficulty: true,
+            question_category: true,
+            question_type: true,
+            options: {
+                select: {
+                    option_text: true,
+                    option_index: true,
+                    is_correct_answer: true,
+                },
+            },
+        },
+    });
+}

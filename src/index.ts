@@ -49,7 +49,7 @@ app.post('/quiz/init', quizzesHandler.init_one as (req: Request, res: Response) 
 app.post('/quiz/:quiz_id/import_questions', questionsHandler.import_questions as (req: Request, res: Response) => Promise<void>);
 app.get('/quiz/:quiz_id', quizzesHandler.get_informations as (req: Request, res: Response) => Promise<void>);
 
-
+app.get('/quiz/:quiz_id/:question_id', questionsHandler.get_informations as (req: Request, res: Response) => Promise<void>);
 
 app.post('/game/:quiz_id/reset', gamesHandler.reset_game as (req: Request, res: Response) => Promise<void>);
 app.get('/game/:quiz_id/create', gamesHandler.create_game as (req: Request, res: Response) => Promise<void>);
