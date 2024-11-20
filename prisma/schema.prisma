@@ -19,7 +19,7 @@ model Quizzes {
 
   questions   Questions[]
   games       Games[]
-  user        User?       @relation(fields: [userUser_id], references: [user_id])
+  user        Users?      @relation(fields: [userUser_id], references: [user_id])
   userUser_id String?
 }
 
@@ -56,7 +56,7 @@ model Answers {
   gamesGame_id         String
 }
 
-model User {
+model Users {
   user_id    String    @id @default(uuid())
   email      String?   @unique
   username   String    @unique
@@ -74,6 +74,6 @@ model Games {
   answers                Answers[]
   quizzes                Quizzes   @relation(fields: [quizzesQuiz_id], references: [quiz_id])
   quizzesQuiz_id         String
-  user                   User?     @relation(fields: [userUser_id], references: [user_id])
+  user                   Users?    @relation(fields: [userUser_id], references: [user_id])
   userUser_id            String?
 }
