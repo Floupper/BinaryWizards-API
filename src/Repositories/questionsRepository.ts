@@ -27,6 +27,21 @@ export async function persist_question(question_index: number, question_text: st
 }
 
 
+export async function update_question(question_id: string, question_index: number, question_text: string, question_category: string, question_difficulty: string, question_type: string, quizzesQuiz_id: string) {
+    return await prisma.questions.update({
+        where: { question_id },
+        data: {
+            question_index,
+            question_text,
+            question_category,
+            question_difficulty,
+            question_type,
+            quizzesQuiz_id,
+        },
+    });
+}
+
+
 export async function get_all_questions(quizzesQuiz_id: string) {
     return await prisma.questions.findMany({
         where: { quizzesQuiz_id },
@@ -59,5 +74,12 @@ export async function get_question_informations(question_id: string) {
                 },
             },
         },
+    });
+}
+
+
+export async function delete_question(question_id: string) {
+    return await prisma.questions.delete({
+        where: { question_id },
     });
 }

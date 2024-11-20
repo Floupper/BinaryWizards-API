@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { assert } from 'superstruct';
 import { QuestionAnswerData, QuestionCreationData } from '../Validation/question';
-import { get_current_question, get_question_informations, persist_question } from '../Repositories/questionsRepository';
+import { delete_question, get_all_questions, get_current_question, get_question_informations, persist_question, update_question } from '../Repositories/questionsRepository';
 import { persist_answer } from '../Repositories/answersRepository';
 import { get_total_questions_count } from '../Helpers/questionsHelper';
 import { get_correct_answers_count } from '../Helpers/answersHelper';
@@ -374,4 +374,37 @@ export async function create_one(req: Request, res: Response) {
         console.error('Error creating question :', error);
         res.status(500).json({ error: 'Error creating question', details: error.message });
     }
+}
+
+
+
+export async function delete_one(req: Request, res: Response) {
+    const { quiz_id, question_id } = req.params;
+
+    try {
+        assert(quiz_id, QUIZID);
+    } catch (error) {
+        res.status(400).json({ message: 'The quiz id is invalid' });
+        return;
+    }
+
+    try {
+        await delete_question(question_id);
+
+        const remainingQuestions = await get_all_questions(quiz_id);
+
+        for (let i = 0; i < remainingQuestions.length; i++)
+            await update_question(remainingQuestions[i].question_id, i, remainingQuestions[i].question_text, remainingQuestions[i].question_category, remainingQuestions[i].question_difficulty, remainingQuestions[i].question_type, quiz_id);
+
+        res.status(200).json({ message: 'Question deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting question:', error);
+
+        if (error instanceof Error && (error as any).code === 'P2025') {
+            res.status(404).json({ message: 'Question not found' });
+        } else {
+            res.status(500).json({ message: 'Error while deleting question' });
+        }
+    }
+
 }
