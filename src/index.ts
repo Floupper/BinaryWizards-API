@@ -5,6 +5,7 @@ import * as quizzesHandler from './RequestHandlers/quizzesHandler';
 import * as categoriesHandler from './RequestHandlers/categoriesHandler';
 import * as difficultiesHandler from './RequestHandlers/difficultiesHandler';
 import * as questionsHandler from './RequestHandlers/questionsHandler';
+import * as gamesHandler from './RequestHandlers/gamesHandler';
 
 const config = require('./Data/config.json');
 
@@ -44,13 +45,18 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use(express.json());
 
 app.post('/quiz', quizzesHandler.create_one as (req: Request, res: Response) => Promise<void>);
-app.put('/quiz/:quiz_id', quizzesHandler.reset_quiz as (req: Request, res: Response) => Promise<void>);
+app.post('/quiz/init', quizzesHandler.init_one as (req: Request, res: Response) => Promise<void>);
+
+
+
+app.post('/game/:quiz_id/reset', gamesHandler.reset_game as (req: Request, res: Response) => Promise<void>);
+app.get('/game/:quiz_id/create', gamesHandler.create_game as (req: Request, res: Response) => Promise<void>);
+app.get('/game/:game_id/question', questionsHandler.get_one as (req: Request, res: Response) => Promise<void>);
+app.post('/game/:game_id/question', questionsHandler.send_answer as (req: Request, res: Response) => Promise<void>);
+
 
 app.get('/categories', categoriesHandler.get_all);
 app.get('/difficulties', difficultiesHandler.get_all);
-
-app.get('/quiz/:quiz_id/question', questionsHandler.get_one as (req: Request, res: Response) => Promise<void>);
-app.post('/quiz/:quiz_id/:question_id', questionsHandler.send_answer as (req: Request, res: Response) => Promise<void>);
 
 app.listen(port, '0.0.0.0', () => {
   console.log(`Server is running on http://0.0.0.0:${port}`);

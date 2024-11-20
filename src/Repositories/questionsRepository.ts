@@ -1,10 +1,10 @@
 import { prisma } from '../db'
 
 
-export async function get_current_question(quizzesQuiz_id: string, question_index: number) {
+export async function get_current_question(quiz_id: string, question_index: number) {
     return await prisma.questions.findFirst({
         where: {
-            quizzesQuiz_id,
+            quizzesQuiz_id: quiz_id,
             question_index: question_index,
         },
         include: {
