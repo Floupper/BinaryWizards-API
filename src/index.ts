@@ -6,6 +6,7 @@ import * as categoriesHandler from './RequestHandlers/categoriesHandler';
 import * as difficultiesHandler from './RequestHandlers/difficultiesHandler';
 import * as questionsHandler from './RequestHandlers/questionsHandler';
 import * as gamesHandler from './RequestHandlers/gamesHandler';
+import * as usersHandler from './RequestHandlers/usersHandler';
 
 const config = require('./Data/config.json');
 
@@ -54,9 +55,12 @@ app.post('/quiz/:quiz_id/:question_id', questionsHandler.update_one as (req: Req
 app.delete('/quiz/:quiz_id/:question_id', questionsHandler.delete_one as (req: Request, res: Response) => Promise<void>);
 app.post('/quiz/:quiz_id/create_question', questionsHandler.create_one as (req: Request, res: Response) => Promise<void>);
 
-app.get('/game/:quiz_id/create', gamesHandler.create_game as (req: Request, res: Response) => Promise<void>);
+app.get('/game/:quiz_id/create', gamesHandler.create_one as (req: Request, res: Response) => Promise<void>);
 app.get('/game/:game_id/question', questionsHandler.get_one as (req: Request, res: Response) => Promise<void>);
 app.post('/game/:game_id/question', questionsHandler.send_answer as (req: Request, res: Response) => Promise<void>);
+
+app.post('/user/create', usersHandler.create_one as (req: Request, res: Response) => Promise<void>);
+
 
 
 app.get('/categories', categoriesHandler.get_all);

@@ -5,7 +5,7 @@ import { get_quiz } from '../Repositories/quizzesRepository';
 import { QUIZID } from '../Validation/quiz';
 
 
-export async function create_game(req: Request, res: Response) {
+export async function create_one(req: Request, res: Response) {
     const { quiz_id } = req.params;
     try {
         assert(quiz_id, QUIZID);
