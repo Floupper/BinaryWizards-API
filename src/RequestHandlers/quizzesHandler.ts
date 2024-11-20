@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { QuizCreationData } from '../Validation/quiz';
+import { QuestionImportData, QuizCreationData } from '../Validation/quiz';
 import { assert } from 'superstruct';
 import axios from 'axios';
 import he from 'he';
@@ -114,3 +114,8 @@ export async function init_one(req: Request, res: Response) {
         res.status(500).json({ error: 'Erreur while initializing quiz', details: error.message });
     }
 }
+
+
+
+
+
