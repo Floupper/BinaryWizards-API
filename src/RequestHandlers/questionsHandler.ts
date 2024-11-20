@@ -56,7 +56,10 @@ export async function get_one(req: Request, res: Response) {
         }
 
         // Find all options for questions
-        const options = question.options.map((option) => option.option_text);
+        const options = question.options.map((option, index) => ({
+            option_index: index,
+            option_text: option.option_text
+        }));
 
 
 
