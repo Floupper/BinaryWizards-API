@@ -11,6 +11,12 @@ export const QuizCreationData = object({
     title: optional(string())
 });
 
+export const QuestionImportData = object({
+    category: Category,
+    difficulty: string(),
+    amount: size(number(), 1, 50)
+});
+
 
 export const QUIZID = pattern(
     string(),
