@@ -22,10 +22,15 @@ export async function persist_game_update(game_id: string, current_question_inde
 export async function persist_game(quiz_id: string) {
     return await prisma.games.create({
         data: {
-            game_id: generate_game_id(),
+            game_id: await generate_game_id(),
             quizzesQuiz_id: quiz_id,
             current_question_index: 0,
             score: 0,
         },
     })
 };
+
+
+export async function game_id_exists(game_id: string) {
+    return await prisma.games.count({ where: { game_id } }) > 0;
+}
