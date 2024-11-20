@@ -8,6 +8,18 @@ import * as questionsHandler from './RequestHandlers/questionsHandler';
 import * as gamesHandler from './RequestHandlers/gamesHandler';
 import * as usersHandler from './RequestHandlers/usersHandler';
 
+import { verifyJwtToken } from './Middlewares/authMiddleware';
+
+declare module 'express' {
+  interface Request {
+    user?: {
+      user_id: string;
+      username: string;
+    };
+  }
+}
+
+
 const config = require('./Data/config.json');
 
 const fs = require('fs');
@@ -15,6 +27,8 @@ const https = require('https');
 
 const app = express();
 const port = config[0].port;
+
+
 
 if (process.env.APP_ENV === 'server') {
   let sslOptions = {}
@@ -45,6 +59,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 app.use(express.json());
 
+// Use authentication middleware on all routes
+app.use(verifyJwtToken);
+
 app.post('/quiz', quizzesHandler.create_one as (req: Request, res: Response) => Promise<void>);
 app.post('/quiz/init', quizzesHandler.init_one as (req: Request, res: Response) => Promise<void>);
 app.post('/quiz/:quiz_id/import_questions', questionsHandler.import_questions as (req: Request, res: Response) => Promise<void>);
@@ -59,8 +76,9 @@ app.get('/game/:quiz_id/create', gamesHandler.create_one as (req: Request, res: 
 app.get('/game/:game_id/question', questionsHandler.get_one as (req: Request, res: Response) => Promise<void>);
 app.post('/game/:game_id/question', questionsHandler.send_answer as (req: Request, res: Response) => Promise<void>);
 
-app.post('/user/create', usersHandler.create_one as (req: Request, res: Response) => Promise<void>);
+app.post('/user/signup', usersHandler.create_one as (req: Request, res: Response) => Promise<void>);
 app.post('/user/username_avaible', usersHandler.username_avaible as (req: Request, res: Response) => Promise<void>);
+app.post('/user/signin', usersHandler.sign_in as (req: Request, res: Response) => Promise<void>);
 
 
 
