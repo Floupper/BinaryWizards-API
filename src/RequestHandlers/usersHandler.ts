@@ -28,3 +28,21 @@ export async function create_one(req: Request, res: Response) {
         res.status(500).json({ error: 'Internal server error' });
     }
 }
+
+
+export async function username_avaible(req: Request, res: Response) {
+    const { username } = req.body;
+
+    if (!username) {
+        res.status(400).json({ message: 'Username is required' });
+    }
+
+    try {
+        const is_available = await is_username_avaible(username);
+        res.json({ is_available });
+    }
+    catch (error) {
+        console.error('Error checking username availability:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}

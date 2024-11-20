@@ -60,6 +60,7 @@ app.get('/game/:game_id/question', questionsHandler.get_one as (req: Request, re
 app.post('/game/:game_id/question', questionsHandler.send_answer as (req: Request, res: Response) => Promise<void>);
 
 app.post('/user/create', usersHandler.create_one as (req: Request, res: Response) => Promise<void>);
+app.post('/user/username_avaible', usersHandler.username_avaible as (req: Request, res: Response) => Promise<void>);
 
 
 
