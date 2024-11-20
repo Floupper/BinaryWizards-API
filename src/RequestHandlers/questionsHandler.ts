@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { assert } from 'superstruct';
 import { QuestionAnswerData } from '../Validation/question';
-import { get_current_question, persist_question } from '../Repositories/questionsRepository';
+import { get_current_question, get_question_informations, persist_question } from '../Repositories/questionsRepository';
 import { persist_answer } from '../Repositories/answersRepository';
 import { get_total_questions_count } from '../Helpers/questionsHelper';
 import { get_correct_answers_count } from '../Helpers/answersHelper';
@@ -12,6 +12,7 @@ import { get_quiz } from '../Repositories/quizzesRepository';
 import axios from 'axios';
 import he from 'he';
 import { persist_option } from '../Repositories/optionsRepository';
+import { UUID } from '../Validation/uuid';
 
 
 export async function get_one(req: Request, res: Response) {
@@ -272,3 +273,33 @@ export async function import_questions(req: Request, res: Response) {
     }
 }
 
+export async function get_informations(req: Request, res: Response) {
+    const { quiz_id, question_id } = req.params;
+
+    try {
+        assert(quiz_id, QUIZID);
+    } catch (error) {
+        res.status(400).json({ message: 'The quiz id is invalid' });
+        return;
+    }
+
+    try {
+        assert(question_id, UUID);
+    } catch (error) {
+        res.status(400).json({ message: 'The question id is invalid' });
+        return;
+    }
+
+    try {
+        const question = await get_question_informations(question_id);
+
+        if (!question) {
+            return res.status(404).json({ error: 'Question not found' });
+        }
+
+        res.status(201).json({ message: 'Question found', question });
+    } catch (error: any) {
+        console.error('Error while retrieving question :', error);
+        res.status(500).json({ error: 'Error while retrieving question', details: error.message });
+    }
+}
