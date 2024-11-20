@@ -25,7 +25,9 @@ export async function create_one(req: Request, res: Response) {
             return res.status(403).json({ error: 'The quiz is private' });
         }
 
-        const newGame = await persist_game(quiz_id);
+        const user_id = req.user?.user_id || null;
+
+        const newGame = await persist_game(quiz_id, user_id);
 
         res.status(201).json({ message: 'Game created', game_id: newGame.game_id });
     } catch (error) {

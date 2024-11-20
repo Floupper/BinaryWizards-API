@@ -45,8 +45,10 @@ export async function create_one(req: Request, res: Response) {
             return res.status(400).json({ error: 'Error retrieving questions from the API.' });
         }
 
+        const user_id = req.user?.user_id || null;
+
         // Create quiz
-        const quiz = await persist_quiz(difficulty, title || "", true);
+        const quiz = await persist_quiz(difficulty, title || "", true, user_id);
 
         // Browsing questions and options
         for (let index = 0; index < results.length; index++) {
@@ -104,8 +106,10 @@ export async function create_one(req: Request, res: Response) {
 
 export async function init_one(req: Request, res: Response) {
     try {
+        const user_id = req.user?.user_id || null;
+
         // Create quiz
-        const quiz = await persist_quiz("easy", "", false);
+        const quiz = await persist_quiz("easy", "", false, user_id);
 
         res.status(201).json({ message: 'Quiz initialized', quiz_id: quiz.quiz_id });
     }

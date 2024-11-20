@@ -1,7 +1,7 @@
 import { object, string } from 'superstruct';
 
 
-export const UserCreationData = object({
+export const UserData = object({
     username: string(),
     password: string()
 });
