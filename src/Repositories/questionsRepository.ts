@@ -66,6 +66,7 @@ export async function get_question_informations(question_id: string) {
             question_difficulty: true,
             question_category: true,
             question_type: true,
+            quizzesQuiz_id: true,
             options: {
                 select: {
                     option_text: true,

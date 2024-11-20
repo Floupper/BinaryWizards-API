@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { assert } from 'superstruct';
-import { QuestionAnswerData, QuestionCreationData } from '../Validation/question';
+import { QuestionAnswerData, QuestionCreationData, QuestionUpdateData } from '../Validation/question';
 import { delete_question, get_all_questions, get_current_question, get_question_informations, persist_question, update_question } from '../Repositories/questionsRepository';
 import { persist_answer } from '../Repositories/answersRepository';
 import { get_total_questions_count } from '../Helpers/questionsHelper';
@@ -11,7 +11,7 @@ import { QuestionImportData, QUIZID } from '../Validation/quiz';
 import { get_quiz } from '../Repositories/quizzesRepository';
 import axios from 'axios';
 import he from 'he';
-import { persist_option } from '../Repositories/optionsRepository';
+import { delete_from_question, persist_option } from '../Repositories/optionsRepository';
 import { UUID } from '../Validation/uuid';
 
 
@@ -407,5 +407,73 @@ export async function delete_one(req: Request, res: Response) {
             res.status(500).json({ message: 'Error while deleting question' });
         }
     }
+}
 
+
+export async function update_one(req: Request, res: Response) {
+    const { quiz_id, question_id } = req.params;
+
+    try {
+        assert(quiz_id, QUIZID);
+    } catch (error) {
+        res.status(400).json({ message: 'The quiz id is invalid' });
+        return;
+    }
+    try {
+        assert(req.body, QuestionUpdateData);
+    } catch (error) {
+        res.status(400).json({ message: 'Data is invalid' });
+        return;
+    }
+
+    try {
+        const existingQuestion = await get_question_informations(question_id);
+
+        if (!existingQuestion) {
+            res.status(404).json({ message: 'Question not found' });
+            return;
+        }
+
+        const updateData = req.body;
+        const { options, ...questionFields } = updateData;
+
+        await update_question(
+            question_id,
+            questionFields.question_index ?? existingQuestion.question_index,
+            questionFields.question_text ?? existingQuestion.question_text,
+            questionFields.question_category ?? existingQuestion.question_category,
+            questionFields.question_difficulty ?? existingQuestion.question_difficulty,
+            questionFields.question_type ?? existingQuestion.question_type,
+            existingQuestion.quizzesQuiz_id
+        );
+
+
+
+        // if options are provided, delete existing options and create new ones
+        if (options) {
+            await delete_from_question(question_id);
+
+            const optionsData = options.map((option: any, index: number) => ({
+                option_text: option.option_text,
+                option_index: index,
+                is_correct_answer: option.is_correct_answer,
+                questionsQuestion_id: question_id,
+            }));
+
+
+            for (const option of optionsData) {
+                persist_option(option);
+            }
+        }
+
+        res.status(200).json({ message: 'Question updated successfully' });
+    } catch (error) {
+        console.error('Error deleting question:', error);
+
+        if (error instanceof Error && (error as any).code === 'P2025') {
+            res.status(404).json({ message: 'Question not found' });
+        } else {
+            res.status(500).json({ message: 'Error while deleting question' });
+        }
+    }
 }

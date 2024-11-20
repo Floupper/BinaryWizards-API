@@ -50,6 +50,7 @@ app.post('/quiz/:quiz_id/import_questions', questionsHandler.import_questions as
 app.get('/quiz/:quiz_id', quizzesHandler.get_informations as (req: Request, res: Response) => Promise<void>);
 
 app.get('/quiz/:quiz_id/:question_id', questionsHandler.get_informations as (req: Request, res: Response) => Promise<void>);
+app.post('/quiz/:quiz_id/:question_id', questionsHandler.update_one as (req: Request, res: Response) => Promise<void>);
 app.delete('/quiz/:quiz_id/:question_id', questionsHandler.delete_one as (req: Request, res: Response) => Promise<void>);
 app.post('/quiz/:quiz_id/create_question', questionsHandler.create_one as (req: Request, res: Response) => Promise<void>);
 
