@@ -267,8 +267,8 @@ export async function import_questions(req: Request, res: Response) {
 
         res.status(201).json({ message: 'Questions added' });
     } catch (error: any) {
-        console.error('Erreur while importing questions:', error);
-        res.status(500).json({ error: 'Erreur while importing questions', details: error.message });
+        console.error('Error while importing questions:', error);
+        res.status(500).json({ error: 'Error while importing questions', details: error.message });
     }
 }
 

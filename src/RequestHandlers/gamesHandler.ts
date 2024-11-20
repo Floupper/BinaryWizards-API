@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { assert } from 'superstruct';
 import { get_game, persist_game_update, persist_game } from '../Repositories/gamesRepository';
 import { get_total_questions_count } from '../Helpers/questionsHelper';
-import { get_public_quiz, get_quiz } from '../Repositories/quizzesRepository';
+import { get_quiz } from '../Repositories/quizzesRepository';
 import { GAMEID } from '../Validation/game';
 
 export async function reset_game(req: Request, res: Response) {
