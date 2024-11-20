@@ -7,3 +7,10 @@ export async function persist_option(option: Prisma.OptionsCreateInput) {
         data: option,
     });
 }
+
+
+export async function delete_from_question(question_id: string) {
+    await prisma.options.deleteMany({
+        where: { questionsQuestion_id: question_id },
+    });
+}
