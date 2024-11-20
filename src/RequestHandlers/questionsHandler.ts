@@ -43,7 +43,8 @@ export async function get_one(req: Request, res: Response) {
             return res.status(200).json({
                 game_finished: true,
                 correct_answers_nb: await get_correct_answers_count(game_id),
-                nb_questions_total: nb_questions_total
+                nb_questions_total: nb_questions_total,
+                quiz_id: game.quizzesQuiz_id
             });
         }
 
