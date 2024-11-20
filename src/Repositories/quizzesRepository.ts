@@ -29,3 +29,24 @@ export async function get_public_quiz(quiz_id: string) {
 export async function quiz_id_exists(quiz_id: string) {
     return await prisma.quizzes.count({ where: { quiz_id } }) > 0;
 }
+
+
+export async function get_quiz_informations(quiz_id: string) {
+    return await prisma.quizzes.findUnique({
+        where: { quiz_id },
+        select: {
+            title: true,
+            difficulty: true,
+            is_public: true,
+            questions: {
+                select: {
+                    question_id: true,
+                    question_index: true,
+                    question_text: true,
+                    question_difficulty: true,
+                    question_category: true,
+                },
+            },
+        },
+    });
+}

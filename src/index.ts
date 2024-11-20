@@ -47,6 +47,7 @@ app.use(express.json());
 app.post('/quiz', quizzesHandler.create_one as (req: Request, res: Response) => Promise<void>);
 app.post('/quiz/init', quizzesHandler.init_one as (req: Request, res: Response) => Promise<void>);
 app.post('/quiz/:quiz_id/import_questions', questionsHandler.import_questions as (req: Request, res: Response) => Promise<void>);
+app.get('/quiz/:quiz_id', quizzesHandler.get_informations as (req: Request, res: Response) => Promise<void>);
 
 
 

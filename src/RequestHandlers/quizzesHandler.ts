@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
-import { QuestionImportData, QuizCreationData } from '../Validation/quiz';
+import { QuizCreationData, QUIZID } from '../Validation/quiz';
 import { assert } from 'superstruct';
 import axios from 'axios';
 import he from 'he';
 import { persist_question } from '../Repositories/questionsRepository';
 import { persist_option } from '../Repositories/optionsRepository';
-import { persist_quiz } from '../Repositories/quizzesRepository';
+import { get_quiz_informations, persist_quiz } from '../Repositories/quizzesRepository';
 
 export async function create_one(req: Request, res: Response) {
     try {
@@ -115,6 +115,31 @@ export async function init_one(req: Request, res: Response) {
     }
 }
 
+
+
+export async function get_informations(req: Request, res: Response) {
+    const { quiz_id } = req.params;
+
+    try {
+        assert(quiz_id, QUIZID);
+    } catch (error) {
+        res.status(400).json({ message: 'The quiz id is invalid' });
+        return;
+    }
+
+    try {
+        const quiz = await get_quiz_informations(quiz_id);
+
+        if (!quiz) {
+            return res.status(404).json({ error: 'Quiz not found' });
+        }
+
+        res.status(201).json({ message: 'Quiz found', quiz });
+    } catch (error: any) {
+        console.error('Error while retrieving quiz :', error);
+        res.status(500).json({ error: 'Error while retrieving quiz', details: error.message });
+    }
+}
 
 
 
