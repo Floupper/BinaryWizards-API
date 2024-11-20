@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { assert } from 'superstruct';
-import { QuestionAnswerData } from '../Validation/question';
+import { QuestionAnswerData, QuestionCreationData } from '../Validation/question';
 import { get_current_question, get_question_informations, persist_question } from '../Repositories/questionsRepository';
 import { persist_answer } from '../Repositories/answersRepository';
 import { get_total_questions_count } from '../Helpers/questionsHelper';
@@ -301,5 +301,77 @@ export async function get_informations(req: Request, res: Response) {
     } catch (error: any) {
         console.error('Error while retrieving question :', error);
         res.status(500).json({ error: 'Error while retrieving question', details: error.message });
+    }
+}
+
+
+
+export async function create_one(req: Request, res: Response) {
+    const { quiz_id } = req.params;
+
+    try {
+        assert(quiz_id, QUIZID);
+    } catch (error) {
+        res.status(400).json({ message: 'The quiz id is invalid' });
+        return;
+    }
+
+    try {
+        assert(req.body, QuestionCreationData);
+    } catch (error) {
+        res.status(400).json({ message: 'Data is invalid' });
+        return;
+    }
+
+    try {
+        const quiz = await get_quiz(quiz_id);
+
+        if (!quiz) {
+            return res.status(404).json({ error: 'Quiz not found' });
+        }
+
+        const {
+            question_text,
+            question_difficulty,
+            question_category,
+            question_type,
+            options,
+        } = req.body;
+
+        // Verify that there is a correct answer
+        const correctOptions = options.filter((option) => option.is_correct_answer === true);
+        if (correctOptions.length != 1) {
+            return res.status(400).json({ error: 'There must be a correct answer' });
+        }
+
+
+        const question_index = await get_total_questions_count(quiz_id);
+
+        const question = await persist_question(question_index, question_text, question_category, question_difficulty, question_type, quiz.quiz_id);
+
+        const optionsData = options.map((option: any, index: number) => ({
+            option_text: option.option_text,
+            option_index: index,
+            is_correct_answer: option.is_correct_answer,
+            questionsQuestion_id: question.question_id,
+        }));
+
+        // Sort questions randomly
+        optionsData.sort(() => Math.random() - 0.5);
+
+        // Update option_index after random
+        optionsData.forEach((option, index) => {
+            option.option_index = index;
+        });
+
+        // Save options to database
+        for (const option of optionsData) {
+            persist_option(option);
+        }
+
+        res.status(201).json({ message: 'Question created' })
+    } catch (error: any) {
+        console.error('Error creating question :', error);
+        res.status(500).json({ error: 'Error creating question', details: error.message });
     }
 }
