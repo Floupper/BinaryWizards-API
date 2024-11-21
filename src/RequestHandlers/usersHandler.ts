@@ -4,6 +4,8 @@ import { UserData } from '../Validation/user';
 import { is_username_avaible } from '../Helpers/usersHelper';
 import { create_user, get_user } from '../Repositories/usersRepository';
 import { get_token } from '../Helpers/tokensHelper';
+import { get_user_quizzes } from '../Repositories/quizzesRepository';
+import { get_correct_answers_count } from '../Helpers/answersHelper';
 
 
 export async function create_one(req: Request, res: Response) {
@@ -78,3 +80,55 @@ export async function sign_in(req: Request, res: Response) {
         res.status(500).json({ error: 'Internal server error' });
     }
 }
+
+
+
+export const get_quizzes = async (req: Request, res: Response) => {
+    const user_id = req.user?.user_id || null;
+
+    if (!user_id) {
+        res.status(401).json({ error: 'No user connected' });
+        return;
+    }
+
+    try {
+        const quizzes = await get_user_quizzes(user_id);
+
+        // Build response
+        const quizzesWithStats = await Promise.all(quizzes.map(async quiz => {
+            const nb_questions = quiz.questions.length;
+            const nb_played = quiz.games.length;
+
+            // Calculate average score
+            const scores = await Promise.all(quiz.games.map(async (game) => {
+                return await get_correct_answers_count(game.game_id);
+            }));
+            const average_score = scores.length > 0 ? (scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+
+            // Stats by question : nb of answers per question
+            const questionsStats = quiz.questions.map(question => {
+                const totalAnswers = question.answers.length;
+                return {
+                    question_id: question.question_id,
+                    question_text: question.question_text,
+                    totalAnswers
+                };
+            });
+
+            return {
+                id: quiz.quiz_id,
+                title: quiz.title,
+                difficulty: quiz.difficulty,
+                nb_questions,
+                nb_played,
+                average_score,
+                questionsStats
+            };
+        }));
+
+        res.status(200).json(quizzesWithStats);
+    } catch (error) {
+        console.error('Error fetching quizzes for user:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};

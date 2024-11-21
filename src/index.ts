@@ -62,23 +62,28 @@ app.use(express.json());
 // Use authentication middleware on all routes
 app.use(verifyJwtToken);
 
+// Quizzes creation and management
 app.post('/quiz', quizzesHandler.create_one as (req: Request, res: Response) => Promise<void>);
 app.post('/quiz/init', quizzesHandler.init_one as (req: Request, res: Response) => Promise<void>);
-app.post('/quiz/:quiz_id/import_questions', questionsHandler.import_questions as (req: Request, res: Response) => Promise<void>);
 app.get('/quiz/:quiz_id', quizzesHandler.get_informations as (req: Request, res: Response) => Promise<void>);
 
+// Quizzes questions
+app.post('/quiz/:quiz_id/import_questions', questionsHandler.import_questions as (req: Request, res: Response) => Promise<void>);
 app.get('/quiz/:quiz_id/:question_id', questionsHandler.get_informations as (req: Request, res: Response) => Promise<void>);
 app.post('/quiz/:quiz_id/:question_id', questionsHandler.update_one as (req: Request, res: Response) => Promise<void>);
 app.delete('/quiz/:quiz_id/:question_id', questionsHandler.delete_one as (req: Request, res: Response) => Promise<void>);
 app.post('/quiz/:quiz_id/create_question', questionsHandler.create_one as (req: Request, res: Response) => Promise<void>);
 
+// Games questions
 app.get('/game/:quiz_id/create', gamesHandler.create_one as (req: Request, res: Response) => Promise<void>);
 app.get('/game/:game_id/question', questionsHandler.get_one as (req: Request, res: Response) => Promise<void>);
 app.post('/game/:game_id/question', questionsHandler.send_answer as (req: Request, res: Response) => Promise<void>);
 
+// Users
 app.post('/user/signup', usersHandler.create_one as (req: Request, res: Response) => Promise<void>);
 app.post('/user/username_avaible', usersHandler.username_avaible as (req: Request, res: Response) => Promise<void>);
 app.post('/user/signin', usersHandler.sign_in as (req: Request, res: Response) => Promise<void>);
+app.get('/user/quizzes', usersHandler.get_quizzes as (req: Request, res: Response) => Promise<void>);
 
 
 
