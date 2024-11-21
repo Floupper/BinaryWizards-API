@@ -35,8 +35,7 @@ if (process.env.APP_ENV === 'server') {
   try {
     sslOptions = {
       key: fs.readFileSync('/home/container/certificat.key'),
-      cert: fs.readFileSync('/home/container/certificat-privkey.cert'),
-      secureOptions: https.constants.SSL_OP_NO_TLSv1 | https.constants.SSL_OP_NO_TLSv1_1
+      cert: fs.readFileSync('/home/container/certificat-privkey.cert')
     };
   }
   catch (err) {
