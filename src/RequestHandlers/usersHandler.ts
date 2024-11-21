@@ -63,11 +63,11 @@ export async function sign_in(req: Request, res: Response) {
         const user = await get_user(username);
 
         if (!user) {
-            return res.status(401).json({ error: 'Invalid username or password' });
+            return res.status(400).json({ error: 'Invalid username or password' });
         }
 
         if (user.password !== password) {
-            return res.status(401).json({ error: 'Invalid username or password' });
+            return res.status(400).json({ error: 'Invalid username or password' });
         }
         const token = get_token(user.user_id, username);
         res.status(200).json({ token });

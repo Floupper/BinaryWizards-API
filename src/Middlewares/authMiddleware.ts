@@ -6,13 +6,13 @@ export const verifyJwtToken = (req: Request, res: Response, next: NextFunction) 
     const authHeader = req.headers.authorization;
 
     if (authHeader) {
-        const token = authHeader.split(' ')[1]; // Suposing format is "Bearer token"
+        const token = authHeader.split(' ')[1]; // Format is "Bearer token"
 
         // Vérifier le token
         jwt.verify(token, process.env.JWT_SECRET as string, (err, user) => {
             if (err) {
-                // If token is invalid, continue without authentication
-                return next();
+                // If token is invalid, inform the client
+                return res.status(401).json({ error: 'Token is invalid or expired' });
             }
 
             // Attach users informations to the request
