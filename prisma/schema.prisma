@@ -69,7 +69,6 @@ model Users {
 model Games {
   game_id                String    @id
   current_question_index Int
-  score                  Int
   created_at             DateTime  @default(now())
   answers                Answers[]
   quizzes                Quizzes   @relation(fields: [quizzesQuiz_id], references: [quiz_id])

@@ -35,7 +35,8 @@ if (process.env.APP_ENV === 'server') {
   try {
     sslOptions = {
       key: fs.readFileSync('/home/container/certificat.key'),
-      cert: fs.readFileSync('/home/container/certificat-privkey.cert')
+      cert: fs.readFileSync('/home/container/certificat-privkey.cert'),
+      secureOptions: https.constants.SSL_OP_NO_TLSv1 | https.constants.SSL_OP_NO_TLSv1_1
     };
   }
   catch (err) {
@@ -84,6 +85,7 @@ app.post('/user/signup', usersHandler.create_one as (req: Request, res: Response
 app.post('/user/username_avaible', usersHandler.username_avaible as (req: Request, res: Response) => Promise<void>);
 app.post('/user/signin', usersHandler.sign_in as (req: Request, res: Response) => Promise<void>);
 app.get('/user/quizzes', usersHandler.get_quizzes as (req: Request, res: Response) => Promise<void>);
+app.get('/user/played_games', usersHandler.get_games as (req: Request, res: Response) => Promise<void>);
 
 
 

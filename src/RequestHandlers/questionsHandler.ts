@@ -126,6 +126,17 @@ export async function send_answer(req: Request, res: Response) {
             return res.status(404).json({ error: 'Game not found' });
         }
 
+        const user = req.user;
+
+        if (game.userUser_id) {
+            if (!user) {
+                return res.status(401).json({ error: 'Authentication required to access this game' });
+            }
+            if (game.userUser_id !== user.user_id) {
+                return res.status(403).json({ error: 'You are not authorized to access this game' });
+            }
+        }
+
         // Verify that there in no desynchronization
         if (question_index !== game.current_question_index) {
             return res.status(400).json({ error: 'Question\'s index invalid' });

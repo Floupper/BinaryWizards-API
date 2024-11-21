@@ -25,7 +25,6 @@ export async function persist_game(quiz_id: string, user_id: string | null) {
             game_id: await generate_game_id(),
             quizzesQuiz_id: quiz_id,
             current_question_index: 0,
-            score: 0,
             userUser_id: user_id
         },
     })
