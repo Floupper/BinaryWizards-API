@@ -18,3 +18,15 @@ export async function create_user(username: string, password: string) {
         },
     });
 }
+
+
+export async function get_games_by_user(user_id: string) {
+    return await prisma.games.findMany({
+        where: {
+            userUser_id: user_id
+        },
+        include: {
+            quizzes: true
+        }
+    });
+}

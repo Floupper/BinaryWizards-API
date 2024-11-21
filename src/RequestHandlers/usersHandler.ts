@@ -2,10 +2,11 @@ import { assert } from 'superstruct';
 import { Request, Response } from 'express';
 import { UserData } from '../Validation/user';
 import { is_username_avaible } from '../Helpers/usersHelper';
-import { create_user, get_user } from '../Repositories/usersRepository';
+import { create_user, get_games_by_user, get_user } from '../Repositories/usersRepository';
 import { get_token } from '../Helpers/tokensHelper';
 import { get_user_quizzes } from '../Repositories/quizzesRepository';
 import { get_correct_answers_count } from '../Helpers/answersHelper';
+import { get_total_questions_count } from '../Helpers/questionsHelper';
 
 
 export async function create_one(req: Request, res: Response) {
@@ -130,6 +131,41 @@ export const get_quizzes = async (req: Request, res: Response) => {
         res.status(200).json(quizzesWithStats);
     } catch (error) {
         console.error('Error fetching quizzes for user:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+
+export const get_games = async (req: Request, res: Response) => {
+    const user_id = req.user?.user_id || null;
+
+    if (!user_id) {
+        res.status(401).json({ error: 'No user connected' });
+        return;
+    }
+
+    try {
+        const games = await get_games_by_user(user_id);
+
+        // Build response
+        const playedGames = await Promise.all(games.map(async (game) => {
+            const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
+            const correct_answers_nb = await get_correct_answers_count(game.game_id);
+
+            return {
+                game_id: game.game_id,
+                quiz_id: game.quizzesQuiz_id,
+                quiz_title: game.quizzes.title,
+                date_game_creation: game.created_at,
+                current_question_index: game.current_question_index,
+                nb_questions_total,
+                correct_answers_nb
+            };
+        }));
+
+        res.status(200).json(playedGames);
+    } catch (error) {
+        console.error('Error fetching played games for user:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
