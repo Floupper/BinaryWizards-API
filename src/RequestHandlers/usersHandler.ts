@@ -24,7 +24,8 @@ export async function create_one(req: Request, res: Response) {
 
         const user = await create_user(req.body.username, req.body.password);
 
-        res.status(201).json({ user_id: user.user_id });
+        const token = get_token(user.user_id, req.body.username);
+        res.status(200).json({ token });
     }
     catch (error) {
         console.error('Error creating user:', error);
