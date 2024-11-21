@@ -33,6 +33,19 @@ export async function get_one(req: Request, res: Response) {
             return res.status(404).json({ error: 'Game not found' });
         }
 
+
+        const user = req.user;
+
+        if (game.userUser_id) {
+            if (!user) {
+                return res.status(401).json({ error: 'Authentication required to access this game' });
+            }
+            if (game.userUser_id !== user.user_id) {
+                return res.status(403).json({ error: 'You are not authorized to access this game' });
+            }
+        }
+
+
         // Count the number of questions
         const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
 
