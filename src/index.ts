@@ -67,6 +67,7 @@ app.use(verifyJwtToken);
 app.post('/quiz/init', quizzesHandler.init_one as (req: Request, res: Response) => Promise<void>);
 app.get('/quiz/search', quizzesHandler.get_publics_with_title as (req: Request, res: Response) => Promise<void>);
 app.get('/quiz/:quiz_id', quizzesHandler.get_informations as (req: Request, res: Response) => Promise<void>);
+app.post('/quiz/:quiz_id', quizzesHandler.update_one as (req: Request, res: Response) => Promise<void>);
 
 // Quizzes questions
 app.post('/quiz/:quiz_id/import_questions', questionsHandler.import_questions as (req: Request, res: Response) => Promise<void>);
