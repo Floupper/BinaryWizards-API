@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npx prisma db push && ts-node ./src/index.ts",
+    "start": "npm install -g npm@10.9.1 && npm install && npx prisma db push && ts-node ./src/index.ts",
     "dev": "ts-node-dev src/index.ts",
     "build": "tsc"
   },
