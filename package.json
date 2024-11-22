@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
+    "postinstall": "npm install ts-node --save-dev && npm install typescript --save-dev && npm install @types/node --save-dev && npm install @types/express --save-dev && npm install @types/cors --save-dev && npm install @types/he --save-dev && npm install @types/jsonwebtoken --save-dev && npm install prisma --save-dev && npm install @prisma/client --save-dev && npm install axios --save && npm install cors --save && npm install express --save && npm install he --save && npm install jsonwebtoken --save && npm install nanoid --save && npm install superstruct --save && npm install typescript --save-dev",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npm install -g npm@10.9.1 && npx prisma db push && npm install && npx ts-node src/index.ts",
     "dev": "ts-node-dev src/index.ts",
@@ -13,6 +14,7 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@prisma/client": "^5.22.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/he": "^1.2.3",
@@ -21,24 +23,15 @@
     "prisma": "^5.22.0",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.6.3"
+    "typescript": "^5.7.2"
   },
   "dependencies": {
-    "@prisma/client": "^5.22.0",
-    "@types/cors": "^2.8.17",
-    "@types/express": "^5.0.0",
-    "@types/node": "^22.9.1",
-    "ts-node": "^10.9.2",
-    "@types/he": "^1.2.3",
-    "@types/jsonwebtoken": "^9.0.7",
     "axios": "^1.7.7",
     "cors": "^2.8.5",
     "express": "^5.0.1",
     "he": "^1.2.0",
     "jsonwebtoken": "^9.0.2",
     "nanoid": "^3.3.7",
-    "prisma": "^5.22.0",
-    "superstruct": "^2.0.2",
-    "typescript": "^5.6.3"
+    "superstruct": "^2.0.2"
   }
 }
