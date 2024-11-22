@@ -8,6 +8,7 @@ import { get_user_quizzes } from '../Repositories/quizzesRepository';
 import { get_correct_answers_count } from '../Helpers/answersHelper';
 import { get_total_questions_count } from '../Helpers/questionsHelper';
 
+const bcrypt = require('bcrypt');
 
 export async function create_one(req: Request, res: Response) {
     try {
@@ -23,7 +24,9 @@ export async function create_one(req: Request, res: Response) {
             return res.status(409).json({ error: 'Username already exists' });
         }
 
-        const user = await create_user(req.body.username, req.body.password);
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
+        const user = await create_user(req.body.username, hashedPassword);
 
         const token = get_token(user.user_id, req.body.username);
         res.status(200).json({ token });
@@ -70,9 +73,11 @@ export async function sign_in(req: Request, res: Response) {
             return res.status(400).json({ error: 'Invalid username or password' });
         }
 
-        if (user.password !== password) {
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) {
             return res.status(400).json({ error: 'Invalid username or password' });
         }
+
         const token = get_token(user.user_id, username);
         res.status(200).json({ token });
     }
