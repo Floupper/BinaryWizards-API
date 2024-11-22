@@ -71,3 +71,27 @@ export async function get_user_quizzes(user_id: string) {
         }
     });
 }
+
+export async function find_quizzes_by_title(title: string, skip: number, limit: number) {
+    return await prisma.quizzes.findMany({
+        where: {
+            is_public: true,
+            title: {
+                contains: title,
+            },
+        },
+        select: {
+            quiz_id: true,
+            title: true,
+            difficulty: true,
+            created_at: true,
+            questions: {
+                select: {
+                    question_id: true,
+                },
+            },
+        },
+        skip: skip,
+        take: limit,
+    });
+}

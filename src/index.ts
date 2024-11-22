@@ -63,8 +63,9 @@ app.use(express.json());
 app.use(verifyJwtToken);
 
 // Quizzes creation and management
-app.post('/quiz', quizzesHandler.create_one as (req: Request, res: Response) => Promise<void>);
+/*used for development and tests*/ app.post('/quiz', quizzesHandler.create_one as (req: Request, res: Response) => Promise<void>);
 app.post('/quiz/init', quizzesHandler.init_one as (req: Request, res: Response) => Promise<void>);
+app.get('/quiz/search', quizzesHandler.get_publics_with_title as (req: Request, res: Response) => Promise<void>);
 app.get('/quiz/:quiz_id', quizzesHandler.get_informations as (req: Request, res: Response) => Promise<void>);
 
 // Quizzes questions
