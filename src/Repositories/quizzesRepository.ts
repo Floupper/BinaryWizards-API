@@ -40,6 +40,9 @@ export async function get_quiz_informations(quiz_id: string) {
             difficulty: true,
             is_public: true,
             questions: {
+                orderBy: {
+                    question_index: 'asc'
+                },
                 select: {
                     question_id: true,
                     question_index: true,
