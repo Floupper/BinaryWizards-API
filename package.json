@@ -4,7 +4,7 @@
   "main": "index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npm install -g npm@10.9.1 && npx prisma db push && npm install && ts-node src/index.ts",
+    "start": "npm install -g npm@10.9.1 && npx prisma db push && npm install && npm install ts-node --save && npx ts-node src/index.ts",
     "dev": "ts-node-dev src/index.ts",
     "build": "tsc"
   },
@@ -24,21 +24,20 @@
     "typescript": "^5.6.3"
   },
   "dependencies": {
-    "ts-node": "^10.9.2",
+    "@prisma/client": "^5.22.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/he": "^1.2.3",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.9.0",
-    "prisma": "^5.22.0",
-    "typescript": "^5.6.3",
-    "@prisma/client": "^5.22.0",
     "axios": "^1.7.7",
     "cors": "^2.8.5",
     "express": "^5.0.1",
     "he": "^1.2.0",
     "jsonwebtoken": "^9.0.2",
     "nanoid": "^3.3.7",
-    "superstruct": "^2.0.2"
+    "prisma": "^5.22.0",
+    "superstruct": "^2.0.2",
+    "typescript": "^5.6.3"
   }
 }
