@@ -4,7 +4,7 @@
   "main": "index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npm install -g npm@10.9.1 && npx prisma db push && npm install && npm install ts-node --save && npm i --save @types/node && npx ts-node src/index.ts",
+    "start": "npm install -g npm@10.9.1 && npx prisma db push && npm install && npx ts-node src/index.ts",
     "dev": "ts-node-dev src/index.ts",
     "build": "tsc"
   },
@@ -27,6 +27,8 @@
     "@prisma/client": "^5.22.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
+    "@types/node": "^22.9.1",
+    "ts-node": "^10.9.2",
     "@types/he": "^1.2.3",
     "@types/jsonwebtoken": "^9.0.7",
     "axios": "^1.7.7",
