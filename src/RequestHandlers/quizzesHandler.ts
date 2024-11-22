@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
-import { QuizCreationData, QUIZID } from '../Validation/quiz';
+import { QuizCreationData, QUIZID, QuizUpdateData } from '../Validation/quiz';
 import { assert } from 'superstruct';
 import axios from 'axios';
 import he from 'he';
 import { persist_question } from '../Repositories/questionsRepository';
 import { persist_option } from '../Repositories/optionsRepository';
-import { find_quizzes_by_title, get_quiz_informations, persist_quiz } from '../Repositories/quizzesRepository';
+import { find_quizzes_by_title, get_quiz, get_quiz_informations, persist_quiz, quiz_id_exists, update_quiz } from '../Repositories/quizzesRepository';
 
 export async function create_one(req: Request, res: Response) {
     try {
@@ -177,3 +177,35 @@ export async function get_publics_with_title(req: Request, res: Response) {
 
 
 
+export async function update_one(req: Request, res: Response) {
+    const { quiz_id } = req.params;
+
+    try {
+        assert(quiz_id, QUIZID);
+    } catch (error) {
+        res.status(400).json({ message: 'The quiz id is invalid' });
+        return;
+    }
+    try {
+        assert(req.body, QuizUpdateData);
+    } catch (error) {
+        res.status(400).json({ message: 'Data is invalid' });
+        return;
+    }
+
+    try {
+        const existingQuiz = await quiz_id_exists(quiz_id);
+
+        if (!existingQuiz) {
+            res.status(404).json({ message: 'Quiz not found' });
+            return;
+        }
+
+        await update_quiz(quiz_id, req.body);
+
+        res.status(200).json({ message: 'Quiz updated successfully' });
+    } catch (error) {
+        console.error('Error updating quiz:', error);
+        res.status(500).json({ message: 'An error occurred while updating the quiz' });
+    }
+}

@@ -95,3 +95,11 @@ export async function find_quizzes_by_title(title: string, skip: number, limit: 
         take: limit,
     });
 }
+
+
+export async function update_quiz(quiz_id: string, updateData: any) {
+    return await prisma.quizzes.update({
+        where: { quiz_id },
+        data: updateData
+    });
+}
