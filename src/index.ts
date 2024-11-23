@@ -19,14 +19,11 @@ declare module 'express' {
   }
 }
 
-
-const config = require('./Data/config.json');
-
 const fs = require('fs');
 const https = require('https');
 
 const app = express();
-const port = config[0].port;
+const port = Number(process.env.API_PORT) || 3000;
 
 
 
