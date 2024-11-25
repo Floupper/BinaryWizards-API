@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "engines": {
-    "node": ">=20.10.0, <20.10.1",
-    "npm": ">=10.9.1, <10.9.2"
+    "node": "20.10.0",
+    "npm": "10.9.1"
   },
   "scripts": {
-    "build": "npm install typescript && tsc",
+    "build": "npm install --omit=dev=false && tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npx prisma db push && node dist/index.js",
     "dev": "ts-node-dev src/index.ts"
