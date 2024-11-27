@@ -101,9 +101,10 @@ export const get_quizzes = async (req: Request, res: Response) => {
 
     try {
         const quizzes = await get_user_quizzes(user_id);
+        console.log(quizzes);
 
         // Build response
-        const quizzesWithStats = quizzes.map(async quiz => {
+        const quizzesWithStats = quizzes.map(quiz => {
             return {
                 id: quiz.quiz_id,
                 title: quiz.title,
