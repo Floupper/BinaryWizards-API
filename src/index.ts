@@ -100,6 +100,7 @@ app.post('/user/username_avaible', usersHandler.username_avaible as (req: Reques
 app.post('/user/signin', usersHandler.sign_in as (req: Request, res: Response) => Promise<void>);
 app.get('/user/quizzes', usersHandler.get_quizzes as (req: Request, res: Response) => Promise<void>);
 app.get('/user/:quiz_id', usersHandler.get_quiz as (req: Request, res: Response) => Promise<void>);
+app.get('/user/:quiz_id/:question_id', usersHandler.get_question as (req: Request, res: Response) => Promise<void>);
 app.get('/user/played_games', usersHandler.get_games as (req: Request, res: Response) => Promise<void>);
 
 
