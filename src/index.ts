@@ -24,19 +24,17 @@ const config = require('./Data/config.json');
 
 const fs = require('fs');
 const https = require('https');
-const http = require('http');
 
 const app = express();
 
 const httpsPort = config[0].httpsPort || 33012;
-const httpPort = config[0].httpPort || 8080;
 
-let sslOptions: { key?: Buffer; cert?: Buffer } = {};
+let sslOptions = {};
 if (process.env.APP_ENV === 'server') {
   try {
     sslOptions = {
-      key: fs.readFileSync('/home/container/certificat.key'),
-      cert: fs.readFileSync('/home/container/certificat-privkey.cert'),
+      key: fs.readFileSync(process.env.key),
+      cert: fs.readFileSync(process.env.cert),
     };
     console.log('Certificats SSL chargés avec succès.');
   } catch (err) {
@@ -45,21 +43,9 @@ if (process.env.APP_ENV === 'server') {
 }
 
 if (process.env.APP_ENV === 'server') {
-  http.createServer((req: { headers: { host: string; }; url: any; }, res: { writeHead: (arg0: number, arg1: { Location: string; }) => void; end: () => void; }) => {
-    const httpsUrl = `https://${req.headers.host?.replace(`:${httpPort}`, `:${httpsPort}`)}${req.url}`;
-    res.writeHead(301, { Location: httpsUrl });
-    res.end();
-  }).listen(httpPort, () => {
-    console.log(`Redirection HTTP → HTTPS en cours sur le port ${httpPort}`);
-  });
-}
-
-if (sslOptions.key && sslOptions.cert) {
   https.createServer(sslOptions, app).listen(httpsPort, () => {
-    console.log(`Serveur HTTPS démarré sur le port ${httpsPort}`);
+    console.log(`🚀 Server running on https://localhost:${httpsPort}`);
   });
-} else {
-  console.error('Certificats SSL manquants. HTTPS ne sera pas démarré.');
 }
 
 app.use(cors());
@@ -106,10 +92,3 @@ app.get('/user/played_games', usersHandler.get_games as (req: Request, res: Resp
 
 app.get('/categories', categoriesHandler.get_all);
 app.get('/difficulties', difficultiesHandler.get_all);
-
-if (!sslOptions.key || !sslOptions.cert) {
-  const httpOnlyPort = config[0].port || 8080;
-  app.listen(httpOnlyPort, '0.0.0.0', () => {
-    console.log(`Serveur HTTP uniquement démarré sur le port ${httpOnlyPort}`);
-  });
-}
