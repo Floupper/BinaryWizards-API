@@ -15,5 +15,5 @@ Once the *.env* file is created and filled out, you can install the dependencies
 npm install
 npx prisma db push
 npx prisma generate
-npx expo start
+npm start
 ```
