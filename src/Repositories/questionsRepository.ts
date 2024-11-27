@@ -116,3 +116,15 @@ export async function get_user_question(question_id: string) {
         }
     });
 }
+
+
+export async function get_quiz_id_by_question_id(question_id: string) {
+    return await prisma.questions.findUnique({
+        where: {
+            question_id: question_id
+        },
+        select: {
+            quizzesQuiz_id: true
+        }
+    }).then(question => question?.quizzesQuiz_id);
+}

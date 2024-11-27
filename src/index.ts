@@ -8,10 +8,19 @@ import * as questionsHandler from './RequestHandlers/questionsHandler';
 import * as gamesHandler from './RequestHandlers/gamesHandler';
 import * as usersHandler from './RequestHandlers/usersHandler';
 
+import { validateGameId, checkGameAccess } from './Middlewares/gamesMiddleware';
+import { validateQuizId, checkQuizAccess, } from './Middlewares/quizzesMiddleware';
+import { validateQuestionId } from './Middlewares/questionsMiddleware';
+import { checkAuthentication } from './Middlewares/usersMiddleware';
+
 import { verifyJwtToken } from './Middlewares/authMiddleware';
+
+import { Quizzes, Games } from '@prisma/client';
 
 declare module 'express' {
   interface Request {
+    quiz?: Quizzes;
+    game?: Games;
     user?: {
       user_id: string;
       username: string;
@@ -71,32 +80,32 @@ app.use(express.json());
 app.use(verifyJwtToken);
 
 // Quizzes creation and management
-/*used for development and tests*/ app.post('/quiz', quizzesHandler.create_one as (req: Request, res: Response) => Promise<void>);
-app.post('/quiz/init', quizzesHandler.init_one as (req: Request, res: Response) => Promise<void>);
-app.get('/quiz/search', quizzesHandler.get_publics_with_title as (req: Request, res: Response) => Promise<void>);
-app.get('/quiz/:quiz_id', quizzesHandler.get_informations as (req: Request, res: Response) => Promise<void>);
-app.post('/quiz/:quiz_id', quizzesHandler.update_one as (req: Request, res: Response) => Promise<void>);
+/*used for development and tests*/ app.post('/quiz', quizzesHandler.create_one);
+app.post('/quiz/init', quizzesHandler.init_one);
+app.get('/quiz/search', quizzesHandler.get_publics_with_title);
+app.get('/quiz/:quiz_id', validateQuizId, quizzesHandler.get_informations);
+app.post('/quiz/:quiz_id', validateQuizId, checkQuizAccess, quizzesHandler.update_one);
 
 // Quizzes questions
-app.post('/quiz/:quiz_id/import_questions', questionsHandler.import_questions as (req: Request, res: Response) => Promise<void>);
-app.get('/quiz/:quiz_id/:question_id', questionsHandler.get_informations as (req: Request, res: Response) => Promise<void>);
-app.post('/quiz/:quiz_id/:question_id', questionsHandler.update_one as (req: Request, res: Response) => Promise<void>);
-app.delete('/quiz/:quiz_id/:question_id', questionsHandler.delete_one as (req: Request, res: Response) => Promise<void>);
-app.post('/quiz/:quiz_id/create_question', questionsHandler.create_one as (req: Request, res: Response) => Promise<void>);
+app.post('/quiz/:quiz_id/import_questions', validateQuizId, checkQuizAccess, questionsHandler.import_questions);
+app.get('/quiz/:quiz_id/:question_id', validateQuizId, validateQuestionId, checkQuizAccess, questionsHandler.get_informations);
+app.post('/quiz/:quiz_id/create_question', validateQuizId, checkQuizAccess, questionsHandler.create_one);
+app.post('/quiz/:quiz_id/:question_id', validateQuizId, validateQuestionId, checkQuizAccess, questionsHandler.update_one);
+app.delete('/quiz/:quiz_id/:question_id', validateQuizId, validateQuestionId, checkQuizAccess, questionsHandler.delete_one);
 
 // Games questions
-app.get('/game/:quiz_id/create', gamesHandler.create_one as (req: Request, res: Response) => Promise<void>);
-app.get('/game/:game_id/question', questionsHandler.get_one as (req: Request, res: Response) => Promise<void>);
-app.post('/game/:game_id/question', questionsHandler.send_answer as (req: Request, res: Response) => Promise<void>);
+app.get('/game/:quiz_id/create', validateQuizId, gamesHandler.create_one);
+app.get('/game/:game_id/question', validateGameId, checkGameAccess, questionsHandler.get_one);
+app.post('/game/:game_id/question', validateGameId, checkGameAccess, questionsHandler.send_answer);
 
 // Users
-app.post('/user/signup', usersHandler.create_one as (req: Request, res: Response) => Promise<void>);
-app.post('/user/username_avaible', usersHandler.username_avaible as (req: Request, res: Response) => Promise<void>);
-app.post('/user/signin', usersHandler.sign_in as (req: Request, res: Response) => Promise<void>);
-app.get('/user/quizzes', usersHandler.get_quizzes as (req: Request, res: Response) => Promise<void>);
-app.get('/user/played_games', usersHandler.get_games as (req: Request, res: Response) => Promise<void>);
-app.get('/user/:quiz_id/:question_id', usersHandler.get_question as (req: Request, res: Response) => Promise<void>);
-app.get('/user/:quiz_id', usersHandler.get_quiz as (req: Request, res: Response) => Promise<void>);
+app.post('/user/signup', usersHandler.create_one);
+app.post('/user/username_avaible', usersHandler.username_avaible);
+app.post('/user/signin', usersHandler.sign_in);
+app.get('/user/quizzes', checkAuthentication, usersHandler.get_quizzes);
+app.get('/user/played_games', checkAuthentication, usersHandler.get_games);
+app.get('/user/:quiz_id/:question_id', checkAuthentication, validateQuizId, validateQuestionId, usersHandler.get_question);
+app.get('/user/:quiz_id', checkAuthentication, validateQuizId, usersHandler.get_quiz);
 
 
 

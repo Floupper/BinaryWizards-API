@@ -7,22 +7,18 @@ import { QUIZID } from '../Validation/quiz';
 
 export async function create_one(req: Request, res: Response) {
     const { quiz_id } = req.params;
-    try {
-        assert(quiz_id, QUIZID);
-    } catch (error) {
-        res.status(400).json({ message: 'The quiz id is invalid' });
-        return;
-    }
 
     try {
         const quiz = await get_quiz(quiz_id);
 
         if (!quiz) {
-            return res.status(404).json({ error: 'Quiz not found' });
+            res.status(404).json({ error: 'Quiz not found' });
+            return;
         }
 
         if (!quiz.is_public) {
-            return res.status(403).json({ error: 'The quiz is private' });
+            res.status(403).json({ error: 'The quiz is private' });
+            return;
         }
 
         const user_id = req.user?.user_id || null;
