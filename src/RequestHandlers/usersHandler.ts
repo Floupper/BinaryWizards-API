@@ -103,7 +103,7 @@ export const get_quizzes = async (req: Request, res: Response) => {
         const quizzes = await get_user_quizzes(user_id);
 
         // Build response
-        const quizzesWithStats = quizzes.map(async quiz => {
+        const quizzesWithStats = quizzes.map(quiz => {
             return {
                 id: quiz.quiz_id,
                 title: quiz.title,
