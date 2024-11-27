@@ -1,7 +1,7 @@
-import { object, string } from 'superstruct';
+import { object, size, string } from 'superstruct';
 
 
 export const UserData = object({
     username: string(),
-    password: string()
+    password: size(string(), 8, 64),
 });

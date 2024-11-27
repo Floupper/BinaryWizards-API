@@ -66,7 +66,7 @@ export async function get_user_quizzes(user_id: string) {
 
 
 export async function get_user_quiz(user_id: string, quiz_id: string) {
-    return await prisma.quizzes.findMany({
+    return await prisma.quizzes.findFirst({
         where: {
             userUser_id: user_id,
             quiz_id: quiz_id,
@@ -103,6 +103,18 @@ export async function find_quizzes_by_title(title: string, skip: number, limit: 
         },
         skip: skip,
         take: limit,
+    });
+}
+
+
+export async function count_quizzes_by_title(title: string) {
+    return await prisma.quizzes.count({
+        where: {
+            is_public: true,
+            title: {
+                contains: title,
+            },
+        },
     });
 }
 

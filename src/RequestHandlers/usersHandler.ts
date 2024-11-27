@@ -7,6 +7,7 @@ import { get_token } from '../Helpers/tokensHelper';
 import { get_user_quiz, get_user_quizzes } from '../Repositories/quizzesRepository';
 import { get_correct_answers_count } from '../Helpers/answersHelper';
 import { get_total_questions_count } from '../Helpers/questionsHelper';
+import { get_user_question } from '../Repositories/questionsRepository';
 
 const bcrypt = require('bcrypt');
 
@@ -136,42 +137,116 @@ export const get_quiz = async (req: Request, res: Response) => {
     try {
         const quiz = await get_user_quiz(user_id, quiz_id);
 
+        if (!quiz) {
+            res.status(404).json({ message: 'Quiz not found' });
+            return;
+        }
+
         // Build response
-        const quizWithStats = await Promise.all(quiz.map(async (quiz) => {
-            const nb_questions = quiz.questions.length;
-            const nb_played = quiz.games.length;
+        const nb_questions = quiz.questions.length;
+        const nb_played = quiz.games.length;
 
-            // Calculate average score
-            const scores = await Promise.all(quiz.games.map(async (game) => {
-                return await get_correct_answers_count(game.game_id);
-            }));
-
-            const average_score = scores.length > 0 ? (scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
-
-            // Stats by question: number of answers per question
-            const questions = quiz.questions.map((question) => {
-                const total_answers = question.answers.length;
-                return {
-                    question_id: question.question_id,
-                    question_text: question.question_text,
-                    total_answers
-                };
-            });
-
-            return {
-                id: quiz.quiz_id,
-                title: quiz.title,
-                difficulty: quiz.difficulty,
-                nb_questions,
-                nb_played,
-                average_score,
-                questions
-            };
+        // Calculate average score
+        const scores = await Promise.all(quiz.games.map(async (game) => {
+            return await get_correct_answers_count(game.game_id);
         }));
+
+        const average_score = scores.length > 0 ? (scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+
+        // Stats by question: number of answers per question
+        const questions = quiz.questions.map((question) => {
+            const total_answers = question.answers.length;
+            return {
+                question_id: question.question_id,
+                question_text: question.question_text,
+                question_category: question.question_category,
+                question_difficulty: question.question_difficulty,
+                total_answers
+            };
+        });
+
+        const quizWithStats = {
+            id: quiz.quiz_id,
+            title: quiz.title,
+            difficulty: quiz.difficulty,
+            nb_questions,
+            nb_played,
+            average_score,
+            questions
+        };
 
         res.status(200).json(quizWithStats);
     } catch (error) {
-        console.error('Error fetching quizzes for user:', error);
+        console.error('Error fetching quiz for user:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+
+export const get_question = async (req: Request, res: Response) => {
+    const user_id = req.user?.user_id || null;
+
+    if (!user_id) {
+        res.status(401).json({ error: 'No user connected' });
+        return;
+    }
+
+    const quiz_id = req.params.quiz_id;
+
+    if (!quiz_id) {
+        res.status(400).json({ message: 'Quiz id is required' });
+        return;
+    }
+
+    const question_id = req.params.question_id;
+    if (!question_id) {
+        res.status(400).json({ message: 'Question id is required' });
+        return;
+    }
+
+    try {
+        const question = await get_user_question(question_id);
+
+        if (!question) {
+            res.status(404).json({ message: 'Question not found' });
+            return;
+        }
+
+        /** Calcul statistics **/
+        const total_answers = question.answers.length;
+
+        // Number of correct answers
+        const correct_answers_count = question.answers.filter(answer => answer.options.is_correct_answer).length;
+
+        // Percent of correct answers
+        const accuracy_rate = total_answers > 0 ? (correct_answers_count / total_answers) * 100 : 0;
+
+        // Percent of selected answers
+        const option_selection_stats = question.options.map(option => {
+            const selected_count = question.answers.filter(answer => answer.options.option_id === option.option_id).length;
+            const selection_percentage = total_answers > 0 ? (selected_count / total_answers) * 100 : 0;
+            return {
+                option_id: option.option_id,
+                option_text: option.option_text,
+                is_correct_answer: option.is_correct_answer,
+                selection_percentage
+            };
+        });
+
+        // Response building
+        const questionWithStats = {
+            question_id: question.question_id,
+            question_text: question.question_text,
+            question_category: question.question_category,
+            question_difficulty: question.question_difficulty,
+            total_answers,
+            accuracy_rate,
+            option_selection_stats
+        };
+
+        res.status(200).json(questionWithStats);
+    } catch (error) {
+        console.error('Error fetching question for user:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };

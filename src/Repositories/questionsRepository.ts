@@ -84,3 +84,35 @@ export async function delete_question(question_id: string) {
         where: { question_id },
     });
 }
+
+
+export async function get_user_question(question_id: string) {
+    return await prisma.questions.findUnique({
+        where: {
+            question_id: question_id,
+        },
+        include: {
+            options: {
+                select: {
+                    option_id: true,
+                    option_text: true,
+                    option_index: true,
+                    is_correct_answer: true
+                }
+            },
+            answers: {
+                select: {
+                    answer_id: true,
+                    gamesGame_id: true,
+                    options: {
+                        select: {
+                            option_id: true,
+                            option_text: true,
+                            is_correct_answer: true
+                        }
+                    }
+                }
+            }
+        }
+    });
+}

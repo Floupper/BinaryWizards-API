@@ -5,7 +5,7 @@ import axios from 'axios';
 import he from 'he';
 import { persist_question } from '../Repositories/questionsRepository';
 import { persist_option } from '../Repositories/optionsRepository';
-import { find_quizzes_by_title, get_quiz, get_quiz_informations, persist_quiz, quiz_id_exists, update_quiz } from '../Repositories/quizzesRepository';
+import { count_quizzes_by_title, find_quizzes_by_title, get_quiz, get_quiz_informations, persist_quiz, quiz_id_exists, update_quiz } from '../Repositories/quizzesRepository';
 
 export async function create_one(req: Request, res: Response) {
     try {
@@ -154,6 +154,7 @@ export async function get_publics_with_title(req: Request, res: Response) {
     const skip = (page - 1) * pageSize; // Calculate number of elements to skip
 
     try {
+        const totalQuizzes = await count_quizzes_by_title(title.toLowerCase());
         const quizzes = await find_quizzes_by_title(title.toLowerCase(), skip, pageSize);
 
         const quizzesWithQuestionCount = quizzes.map((quiz: any) => ({
