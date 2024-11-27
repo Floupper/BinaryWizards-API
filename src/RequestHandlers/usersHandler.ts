@@ -103,13 +103,16 @@ export const get_quizzes = async (req: Request, res: Response) => {
         const quizzes = await get_user_quizzes(user_id);
 
         // Build response
-        const quizzesWithStats = quizzes.map(quiz => {
-            return {
-                id: quiz.quiz_id,
-                title: quiz.title,
-                difficulty: quiz.difficulty,
-            };
-        });
+        const quizzesWithStats = await Promise.all(
+            quizzes.map(async quiz => {
+                return {
+                    id: quiz.quiz_id,
+                    title: quiz.title,
+                    difficulty: quiz.difficulty,
+                    total_questions: await get_total_questions_count(quiz.quiz_id)
+                };
+            })
+        );
 
         res.status(200).json(quizzesWithStats);
     } catch (error) {
