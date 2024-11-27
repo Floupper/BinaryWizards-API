@@ -5,7 +5,7 @@ import axios from 'axios';
 import he from 'he';
 import { persist_question } from '../Repositories/questionsRepository';
 import { persist_option } from '../Repositories/optionsRepository';
-import { count_quizzes_by_title, find_quizzes_by_title, get_quiz, get_quiz_informations, persist_quiz, quiz_id_exists, update_quiz } from '../Repositories/quizzesRepository';
+import { count_quizzes_by_title, find_quizzes_by_title, get_quiz_informations, persist_quiz, quiz_id_exists, update_quiz } from '../Repositories/quizzesRepository';
 
 export async function create_one(req: Request, res: Response) {
     try {
@@ -42,7 +42,8 @@ export async function create_one(req: Request, res: Response) {
         const { response_code, results } = apiResponse.data;
 
         if (response_code !== 0) {
-            return res.status(400).json({ error: 'Error retrieving questions from the API.' });
+            res.status(400).json({ error: 'Error retrieving questions from the API.' });
+            return;
         }
 
         const user_id = req.user?.user_id || null;
@@ -125,17 +126,11 @@ export async function get_informations(req: Request, res: Response) {
     const { quiz_id } = req.params;
 
     try {
-        assert(quiz_id, QUIZID);
-    } catch (error) {
-        res.status(400).json({ message: 'The quiz id is invalid' });
-        return;
-    }
-
-    try {
         const quiz = await get_quiz_informations(quiz_id);
 
         if (!quiz) {
-            return res.status(404).json({ error: 'Quiz not found' });
+            res.status(404).json({ error: 'Quiz not found' });
+            return;
         }
 
         res.status(201).json({ message: 'Quiz found', quiz });
@@ -154,7 +149,7 @@ export async function get_publics_with_title(req: Request, res: Response) {
     const skip = (page - 1) * pageSize; // Calculate number of elements to skip
 
     try {
-        const totalQuizzes = await count_quizzes_by_title(title.toLowerCase());
+        const total_quizzes = await count_quizzes_by_title(title.toLowerCase());
         const quizzes = await find_quizzes_by_title(title.toLowerCase(), skip, pageSize);
 
         const quizzesWithQuestionCount = quizzes.map((quiz: any) => ({
@@ -162,7 +157,8 @@ export async function get_publics_with_title(req: Request, res: Response) {
             title: quiz.title,
             difficulty: quiz.difficulty,
             created_at: quiz.created_at,
-            nb_questions: quiz.questions.length
+            nb_questions: quiz.questions.length,
+            total_quizzes
         }));
 
         res.status(200).json({
@@ -182,12 +178,6 @@ export async function update_one(req: Request, res: Response) {
     const { quiz_id } = req.params;
 
     try {
-        assert(quiz_id, QUIZID);
-    } catch (error) {
-        res.status(400).json({ message: 'The quiz id is invalid' });
-        return;
-    }
-    try {
         assert(req.body, QuizUpdateData);
     } catch (error) {
         res.status(400).json({ message: 'Data is invalid' });
@@ -195,12 +185,6 @@ export async function update_one(req: Request, res: Response) {
     }
 
     try {
-        const existingQuiz = await quiz_id_exists(quiz_id);
-
-        if (!existingQuiz) {
-            res.status(404).json({ message: 'Quiz not found' });
-            return;
-        }
 
         await update_quiz(quiz_id, req.body);
 

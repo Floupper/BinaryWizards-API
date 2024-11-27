@@ -19,10 +19,10 @@ export async function create_one(req: Request, res: Response) {
         return;
     }
 
-
     try {
         if (!(await is_username_avaible(req.body.username))) {
-            return res.status(409).json({ error: 'Username already exists' });
+            res.status(409).json({ error: 'Username already exists' });
+            return;
         }
 
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
@@ -71,12 +71,14 @@ export async function sign_in(req: Request, res: Response) {
         const user = await get_user(username);
 
         if (!user) {
-            return res.status(400).json({ error: 'Invalid username or password' });
+            res.status(400).json({ error: 'Invalid username or password' });
+            return;
         }
 
         const match = await bcrypt.compare(password, user.password);
         if (!match) {
-            return res.status(400).json({ error: 'Invalid username or password' });
+            res.status(400).json({ error: 'Invalid username or password' });
+            return;
         }
 
         const token = get_token(user.user_id, username);
@@ -92,29 +94,24 @@ export async function sign_in(req: Request, res: Response) {
 
 
 export const get_quizzes = async (req: Request, res: Response) => {
-    const user_id = req.user?.user_id || null;
-
-    if (!user_id) {
-        res.status(401).json({ error: 'No user connected' });
-        return;
-    }
-
     try {
-        const quizzes = await get_user_quizzes(user_id);
+        if (req.user?.user_id) { // User is not null because middleware is verifying it, adding condition cause of ts errors
+            const quizzes = await get_user_quizzes(req.user.user_id);
 
-        // Build response
-        const quizzesWithStats = await Promise.all(
-            quizzes.map(async quiz => {
-                return {
-                    id: quiz.quiz_id,
-                    title: quiz.title,
-                    difficulty: quiz.difficulty,
-                    total_questions: await get_total_questions_count(quiz.quiz_id)
-                };
-            })
-        );
+            // Build response
+            const quizzesWithStats = await Promise.all(
+                quizzes.map(async quiz => {
+                    return {
+                        id: quiz.quiz_id,
+                        title: quiz.title,
+                        difficulty: quiz.difficulty,
+                        total_questions: await get_total_questions_count(quiz.quiz_id)
+                    };
+                })
+            );
 
-        res.status(200).json(quizzesWithStats);
+            res.status(200).json(quizzesWithStats);
+        }
     } catch (error) {
         console.error('Error fetching quizzes for user:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -123,62 +120,53 @@ export const get_quizzes = async (req: Request, res: Response) => {
 
 
 export const get_quiz = async (req: Request, res: Response) => {
-    const user_id = req.user?.user_id || null;
-
-    if (!user_id) {
-        res.status(401).json({ error: 'No user connected' });
-        return;
-    }
 
     const quiz_id = req.params.quiz_id;
 
-    if (!quiz_id) {
-        res.status(400).json({ message: 'Quiz id is required' });
-        return;
-    }
-
     try {
-        const quiz = await get_user_quiz(user_id, quiz_id);
+        if (req.user?.user_id) { // User is not null because middleware is verifying it, adding condition cause of ts errors
+            const quiz = await get_user_quiz(req.user.user_id, quiz_id);
 
-        if (!quiz) {
-            res.status(404).json({ message: 'Quiz not found' });
-            return;
-        }
+            if (!quiz) {
+                res.status(404).json({ message: 'Quiz not found' });
+                return;
+            }
 
-        // Build response
-        const nb_questions = quiz.questions.length;
-        const nb_played = quiz.games.length;
+            // Build response
+            const nb_questions = quiz.questions.length;
+            const nb_played = quiz.games.length;
 
-        // Calculate average score
-        const scores = await Promise.all(quiz.games.map(async (game) => {
-            return await get_correct_answers_count(game.game_id);
-        }));
+            // Calculate average score
+            const scores = await Promise.all(quiz.games.map(async (game) => {
+                return await get_correct_answers_count(game.game_id);
+            }));
 
-        const average_score = scores.length > 0 ? (scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+            const average_score = scores.length > 0 ? (scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
 
-        // Stats by question: number of answers per question
-        const questions = quiz.questions.map((question) => {
-            const total_answers = question.answers.length;
-            return {
-                question_id: question.question_id,
-                question_text: question.question_text,
-                question_category: question.question_category,
-                question_difficulty: question.question_difficulty,
-                total_answers
+            // Stats by question: number of answers per question
+            const questions = quiz.questions.map((question) => {
+                const total_answers = question.answers.length;
+                return {
+                    question_id: question.question_id,
+                    question_text: question.question_text,
+                    question_category: question.question_category,
+                    question_difficulty: question.question_difficulty,
+                    total_answers
+                };
+            });
+
+            const quizWithStats = {
+                id: quiz.quiz_id,
+                title: quiz.title,
+                difficulty: quiz.difficulty,
+                nb_questions,
+                nb_played,
+                average_score,
+                questions
             };
-        });
 
-        const quizWithStats = {
-            id: quiz.quiz_id,
-            title: quiz.title,
-            difficulty: quiz.difficulty,
-            nb_questions,
-            nb_played,
-            average_score,
-            questions
-        };
-
-        res.status(200).json(quizWithStats);
+            res.status(200).json(quizWithStats);
+        }
     } catch (error) {
         console.error('Error fetching quiz for user:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -187,31 +175,16 @@ export const get_quiz = async (req: Request, res: Response) => {
 
 
 export const get_question = async (req: Request, res: Response) => {
-    const user_id = req.user?.user_id || null;
-
-    if (!user_id) {
-        res.status(401).json({ error: 'No user connected' });
-        return;
-    }
-
-    const quiz_id = req.params.quiz_id;
-
-    if (!quiz_id) {
-        res.status(400).json({ message: 'Quiz id is required' });
-        return;
-    }
-
-    const question_id = req.params.question_id;
-    if (!question_id) {
-        res.status(400).json({ message: 'Question id is required' });
-        return;
-    }
-
     try {
-        const question = await get_user_question(question_id);
+        const question = await get_user_question(req.params.question_id);
 
         if (!question) {
             res.status(404).json({ message: 'Question not found' });
+            return;
+        }
+
+        if (question.quizzesQuiz_id !== req.params.quiz_id) {
+            res.status(404).json({ error: 'Question does not belong to the provided quiz' });
             return;
         }
 
@@ -256,33 +229,29 @@ export const get_question = async (req: Request, res: Response) => {
 
 
 export const get_games = async (req: Request, res: Response) => {
-    const user_id = req.user?.user_id || null;
-
-    if (!user_id) {
-        res.status(401).json({ error: 'No user connected' });
-        return;
-    }
 
     try {
-        const games = await get_games_by_user(user_id);
+        if (req.user?.user_id) { // User is not null because middleware is verifying it, adding condition cause of ts errors
+            const games = await get_games_by_user(req.user.user_id);
 
-        // Build response
-        const played_games = await Promise.all(games.map(async (game) => {
-            const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
-            const correct_answers_nb = await get_correct_answers_count(game.game_id);
+            // Build response
+            const played_games = await Promise.all(games.map(async (game) => {
+                const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
+                const correct_answers_nb = await get_correct_answers_count(game.game_id);
 
-            return {
-                game_id: game.game_id,
-                quiz_id: game.quizzesQuiz_id,
-                quiz_title: game.quizzes.title,
-                date_game_creation: game.created_at,
-                current_question_index: game.current_question_index + 1,
-                nb_questions_total,
-                correct_answers_nb
-            };
-        }));
+                return {
+                    game_id: game.game_id,
+                    quiz_id: game.quizzesQuiz_id,
+                    quiz_title: game.quizzes.title,
+                    date_game_creation: game.created_at,
+                    current_question_index: game.current_question_index + 1,
+                    nb_questions_total,
+                    correct_answers_nb
+                };
+            }));
 
-        res.status(200).json(played_games);
+            res.status(200).json(played_games);
+        }
     } catch (error) {
         console.error('Error fetching played games for user:', error);
         res.status(500).json({ error: 'Internal server error' });
