@@ -60,6 +60,16 @@ export async function get_user_quizzes(user_id: string) {
     return await prisma.quizzes.findMany({
         where: {
             userUser_id: user_id
+        }
+    });
+}
+
+
+export async function get_user_quiz(user_id: string, quiz_id: string) {
+    return await prisma.quizzes.findMany({
+        where: {
+            userUser_id: user_id,
+            quiz_id: quiz_id,
         },
         include: {
             questions: {
