@@ -40,6 +40,9 @@ export async function get_quiz_informations(quiz_id: string) {
             difficulty: true,
             is_public: true,
             questions: {
+                orderBy: {
+                    question_index: 'asc'
+                },
                 select: {
                     question_id: true,
                     question_index: true,
@@ -57,6 +60,16 @@ export async function get_user_quizzes(user_id: string) {
     return await prisma.quizzes.findMany({
         where: {
             userUser_id: user_id
+        }
+    });
+}
+
+
+export async function get_user_quiz(user_id: string, quiz_id: string) {
+    return await prisma.quizzes.findMany({
+        where: {
+            userUser_id: user_id,
+            quiz_id: quiz_id,
         },
         include: {
             questions: {
@@ -66,5 +79,37 @@ export async function get_user_quizzes(user_id: string) {
             },
             games: true
         }
+    });
+}
+
+export async function find_quizzes_by_title(title: string, skip: number, limit: number) {
+    return await prisma.quizzes.findMany({
+        where: {
+            is_public: true,
+            title: {
+                contains: title,
+            },
+        },
+        select: {
+            quiz_id: true,
+            title: true,
+            difficulty: true,
+            created_at: true,
+            questions: {
+                select: {
+                    question_id: true,
+                },
+            },
+        },
+        skip: skip,
+        take: limit,
+    });
+}
+
+
+export async function update_quiz(quiz_id: string, updateData: any) {
+    return await prisma.quizzes.update({
+        where: { quiz_id },
+        data: updateData
     });
 }
