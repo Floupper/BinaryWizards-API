@@ -24,29 +24,42 @@ const config = require('./Data/config.json');
 
 const fs = require('fs');
 const https = require('https');
+const http = require('http');
 
 const app = express();
-const port = config[0].port;
 
+const httpsPort = config[0].httpsPort || 33012;
+const httpPort = config[0].httpPort || 8080;
 
-
+let sslOptions: { key?: Buffer; cert?: Buffer } = {};
 if (process.env.APP_ENV === 'server') {
-  let sslOptions = {}
   try {
     sslOptions = {
       key: fs.readFileSync('/home/container/certificat.key'),
-      cert: fs.readFileSync('/home/container/certificat-privkey.cert')
+      cert: fs.readFileSync('/home/container/certificat-privkey.cert'),
     };
+    console.log('Certificats SSL chargés avec succès.');
+  } catch (err) {
+    console.error('Erreur lors du chargement des certificats SSL :', err);
   }
-  catch (err) {
-    console.error(err);
-  }
+}
 
-  // Create HTTPS server and listen on secure port (ex. 33012)
-  https.createServer(sslOptions, app).listen(33012, () => {
-    console.log('HTTPS Server running on port 33012');
+if (process.env.APP_ENV === 'server') {
+  http.createServer((req: { headers: { host: string; }; url: any; }, res: { writeHead: (arg0: number, arg1: { Location: string; }) => void; end: () => void; }) => {
+    const httpsUrl = `https://${req.headers.host?.replace(`:${httpPort}`, `:${httpsPort}`)}${req.url}`;
+    res.writeHead(301, { Location: httpsUrl });
+    res.end();
+  }).listen(httpPort, () => {
+    console.log(`Redirection HTTP → HTTPS en cours sur le port ${httpPort}`);
   });
+}
 
+if (sslOptions.key && sslOptions.cert) {
+  https.createServer(sslOptions, app).listen(httpsPort, () => {
+    console.log(`Serveur HTTPS démarré sur le port ${httpsPort}`);
+  });
+} else {
+  console.error('Certificats SSL manquants. HTTPS ne sera pas démarré.');
 }
 
 app.use(cors());
@@ -91,6 +104,9 @@ app.get('/user/played_games', usersHandler.get_games as (req: Request, res: Resp
 app.get('/categories', categoriesHandler.get_all);
 app.get('/difficulties', difficultiesHandler.get_all);
 
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server is running on http://0.0.0.0:${port}`);
-});
+if (!sslOptions.key || !sslOptions.cert) {
+  const httpOnlyPort = config[0].port || 8080;
+  app.listen(httpOnlyPort, '0.0.0.0', () => {
+    console.log(`Serveur HTTP uniquement démarré sur le port ${httpOnlyPort}`);
+  });
+}
