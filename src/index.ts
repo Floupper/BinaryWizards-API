@@ -29,6 +29,7 @@ const app = express();
 
 const httpsPort = config[0].httpsPort || 33012;
 
+
 let sslOptions = {};
 if (process.env.APP_ENV === 'server') {
   try {
@@ -47,6 +48,14 @@ if (process.env.APP_ENV === 'server') {
     console.log(`🚀 Server running on https://localhost:${httpsPort}`);
   });
 }
+else {
+  app.listen(httpsPort, '0.0.0.0', () => {
+    console.log(`Server is running on http://0.0.0.0:${httpsPort}`);
+  });
+}
+
+
+
 
 app.use(cors());
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -85,9 +94,9 @@ app.post('/user/signup', usersHandler.create_one as (req: Request, res: Response
 app.post('/user/username_avaible', usersHandler.username_avaible as (req: Request, res: Response) => Promise<void>);
 app.post('/user/signin', usersHandler.sign_in as (req: Request, res: Response) => Promise<void>);
 app.get('/user/quizzes', usersHandler.get_quizzes as (req: Request, res: Response) => Promise<void>);
-app.get('/user/:quiz_id', usersHandler.get_quiz as (req: Request, res: Response) => Promise<void>);
-app.get('/user/:quiz_id/:question_id', usersHandler.get_question as (req: Request, res: Response) => Promise<void>);
 app.get('/user/played_games', usersHandler.get_games as (req: Request, res: Response) => Promise<void>);
+app.get('/user/:quiz_id/:question_id', usersHandler.get_question as (req: Request, res: Response) => Promise<void>);
+app.get('/user/:quiz_id', usersHandler.get_quiz as (req: Request, res: Response) => Promise<void>);
 
 
 
