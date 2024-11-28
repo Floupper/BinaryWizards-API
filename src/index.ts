@@ -94,6 +94,7 @@ app.post('/quiz/:quiz_id/:question_id', validateQuizId, validateQuestionId, chec
 app.delete('/quiz/:quiz_id/:question_id', validateQuizId, validateQuestionId, checkQuizAccess, questionsHandler.delete_one);
 
 // Games questions
+app.get('/game/user/started_games', checkAuthentication, gamesHandler.get_started_by_user);
 app.get('/game/:quiz_id/create', validateQuizId, gamesHandler.create_one);
 app.get('/game/:game_id/question', validateGameId, checkGameAccess, questionsHandler.get_one);
 app.post('/game/:game_id/question', validateGameId, checkGameAccess, questionsHandler.send_answer);
