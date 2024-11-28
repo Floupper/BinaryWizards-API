@@ -21,7 +21,8 @@ export const QuestionImportData = object({
 export const QuizUpdateData = object({
     difficulty: optional(enums(['easy', 'medium', 'hard'])),
     title: optional(string()),
-    type: optional(number())
+    type: optional(number()),
+    description: optional(string())
 });
 
 export const QUIZID = pattern(
