@@ -18,7 +18,7 @@ export async function create_one(req: Request, res: Response) {
             return;
         }
 
-        if (quiz.type != 2) {
+        if (quiz.type == 0) {
             res.status(403).json({ error: 'The quiz is private' });
             return;
         }
