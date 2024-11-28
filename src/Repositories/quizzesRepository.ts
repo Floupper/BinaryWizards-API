@@ -2,13 +2,14 @@ import { prisma } from "../db";
 import { generate_quiz_id } from "../Helpers/quizzesHelper";
 
 
-export async function persist_quiz(difficulty: string, title: string, is_public: boolean, user_id: string | null) {
+export async function persist_quiz(difficulty: string, title: string, type: number, user_id: string | null, description: string) {
     return await prisma.quizzes.create({
         data: {
             quiz_id: await generate_quiz_id(),
             difficulty: difficulty,
             title: title,
-            is_public: is_public,
+            description: description,
+            type: type,
             userUser_id: user_id,
         },
     });
@@ -23,7 +24,7 @@ export async function get_quiz(quiz_id: string) {
 export async function get_public_quiz(quiz_id: string) {
     return await prisma.quizzes.findUnique({
         where: { quiz_id },
-        select: { is_public: true },
+        select: { type: true },
     });
 }
 
@@ -38,7 +39,7 @@ export async function get_quiz_informations(quiz_id: string) {
         select: {
             title: true,
             difficulty: true,
-            is_public: true,
+            type: true,
             questions: {
                 orderBy: {
                     question_index: 'asc'
@@ -82,13 +83,22 @@ export async function get_user_quiz(user_id: string, quiz_id: string) {
     });
 }
 
-export async function find_quizzes_by_title(title: string, skip: number, limit: number) {
+export async function find_quizzes_by_title(searchTerm: string, skip: number, limit: number) {
     return await prisma.quizzes.findMany({
         where: {
-            is_public: true,
-            title: {
-                contains: title,
-            },
+            type: 1,
+            OR: [
+                {
+                    title: {
+                        contains: searchTerm
+                    },
+                },
+                {
+                    description: {
+                        contains: searchTerm
+                    },
+                }
+            ],
         },
         select: {
             quiz_id: true,
@@ -107,13 +117,22 @@ export async function find_quizzes_by_title(title: string, skip: number, limit: 
 }
 
 
-export async function count_quizzes_by_title(title: string) {
+export async function count_quizzes_by_title(searchTerm: string) {
     return await prisma.quizzes.count({
         where: {
-            is_public: true,
-            title: {
-                contains: title,
-            },
+            type: 1,
+            OR: [
+                {
+                    title: {
+                        contains: searchTerm
+                    },
+                },
+                {
+                    description: {
+                        contains: searchTerm
+                    },
+                }
+            ],
         },
     });
 }

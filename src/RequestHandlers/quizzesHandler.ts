@@ -49,7 +49,7 @@ export async function create_one(req: Request, res: Response) {
         const user_id = req.user?.user_id || null;
 
         // Create quiz
-        const quiz = await persist_quiz(difficulty, title?.toLowerCase() || "", true, user_id);
+        const quiz = await persist_quiz(difficulty, title?.toLowerCase() || "", 2, user_id, "");
 
         // Browsing questions and options
         for (let index = 0; index < results.length; index++) {
@@ -110,7 +110,7 @@ export async function init_one(req: Request, res: Response) {
         const user_id = req.user?.user_id || null;
 
         // Create quiz
-        const quiz = await persist_quiz("easy", "", false, user_id);
+        const quiz = await persist_quiz("easy", "", 0, user_id, "");
 
         res.status(201).json({ message: 'Quiz initialized', quiz_id: quiz.quiz_id });
     }
@@ -157,14 +157,14 @@ export async function get_publics_with_title(req: Request, res: Response) {
             title: quiz.title,
             difficulty: quiz.difficulty,
             created_at: quiz.created_at,
-            nb_questions: quiz.questions.length,
-            total_quizzes
+            nb_questions: quiz.questions.length
         }));
 
         res.status(200).json({
-            currentPage: page,
+            nextPage: page + 1,
             pageSize: pageSize,
-            quizzes: quizzesWithQuestionCount
+            quizzes: quizzesWithQuestionCount,
+            total_quizzes
         });
     } catch (error) {
         console.error('Error searching public quizzes:', error);
@@ -187,6 +187,8 @@ export async function update_one(req: Request, res: Response) {
     try {
 
         await update_quiz(quiz_id, req.body);
+
+
 
         res.status(200).json({ message: 'Quiz updated successfully' });
     } catch (error) {

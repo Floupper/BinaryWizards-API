@@ -11,11 +11,12 @@ datasource db {
 }
 
 model Quizzes {
-  quiz_id    String   @id
-  title      String
-  difficulty String
-  is_public  Boolean  @default(false)
-  created_at DateTime @default(now())
+  quiz_id     String   @id
+  title       String
+  description String
+  difficulty  String
+  type        Int      @default(0)
+  created_at  DateTime @default(now())
 
   questions   Questions[]
   games       Games[]
