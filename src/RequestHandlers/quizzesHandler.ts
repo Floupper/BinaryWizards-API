@@ -5,7 +5,7 @@ import axios from 'axios';
 import he from 'he';
 import { persist_question } from '../Repositories/questionsRepository';
 import { persist_option } from '../Repositories/optionsRepository';
-import { count_quizzes_by_title, find_quizzes_by_title, get_quiz_informations, persist_quiz, quiz_id_exists, update_quiz } from '../Repositories/quizzesRepository';
+import { count_quizzes_with_filters, find_quizzes_with_filters, get_quiz_informations, persist_quiz, quiz_id_exists, update_quiz } from '../Repositories/quizzesRepository';
 
 export async function create_one(req: Request, res: Response) {
     try {
@@ -49,7 +49,7 @@ export async function create_one(req: Request, res: Response) {
         const user_id = req.user?.user_id || null;
 
         // Create quiz
-        const quiz = await persist_quiz(difficulty, title?.toLowerCase() || "", true, user_id);
+        const quiz = await persist_quiz(difficulty, title?.toLowerCase() || "", 2, user_id, "");
 
         // Browsing questions and options
         for (let index = 0; index < results.length; index++) {
@@ -110,7 +110,7 @@ export async function init_one(req: Request, res: Response) {
         const user_id = req.user?.user_id || null;
 
         // Create quiz
-        const quiz = await persist_quiz("easy", "", false, user_id);
+        const quiz = await persist_quiz("easy", "", 0, user_id, "");
 
         res.status(201).json({ message: 'Quiz initialized', quiz_id: quiz.quiz_id });
     }
@@ -141,31 +141,41 @@ export async function get_informations(req: Request, res: Response) {
 }
 
 
-export async function get_publics_with_title(req: Request, res: Response) {
-    const title = req.query.title as string;
-    const page = parseInt(req.query.page as string) || 1; // Actual page, default 1
-    const pageSize = parseInt(req.query.pageSize as string) || 10; // Number of quizzes per page, default 10
+export async function get_publics_with_params(req: Request, res: Response) {
+    const text = req.query.text as string || '';
+    const page = parseInt(req.query.page as string) || 1;
+    const pageSize = parseInt(req.query.pageSize as string) || 10;
+    const difficulty = req.query.difficulty as string | undefined;
+    const minQuestions = parseInt(req.query.minQuestions as string) || 0;
+    const maxQuestions = parseInt(req.query.maxQuestions as string) || Infinity;
 
-    const skip = (page - 1) * pageSize; // Calculate number of elements to skip
+
+    const skip = (page - 1) * pageSize;
 
     try {
-        const total_quizzes = await count_quizzes_by_title(title.toLowerCase());
-        const quizzes = await find_quizzes_by_title(title.toLowerCase(), skip, pageSize);
+        const total_quizzes = await count_quizzes_with_filters(skip, pageSize, text.toLowerCase(), difficulty, minQuestions, maxQuestions);
+        const quizzes = await find_quizzes_with_filters(text.toLowerCase(), skip, pageSize, difficulty, minQuestions, maxQuestions);
 
         const quizzesWithQuestionCount = quizzes.map((quiz: any) => ({
             quiz_id: quiz.quiz_id,
             title: quiz.title,
             difficulty: quiz.difficulty,
             created_at: quiz.created_at,
-            nb_questions: quiz.questions.length,
-            total_quizzes
+            nb_questions: quiz._count.questions
         }));
 
-        res.status(200).json({
-            currentPage: page,
+        const response: any = {
             pageSize: pageSize,
-            quizzes: quizzesWithQuestionCount
-        });
+            quizzes: quizzesWithQuestionCount,
+            total_quizzes: total_quizzes
+        };
+
+        const totalPages = Math.ceil(total_quizzes / pageSize);
+        if (page < totalPages) {
+            response.nextPage = page + 1;
+        }
+
+        res.status(200).json(response);
     } catch (error) {
         console.error('Error searching public quizzes:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -187,6 +197,8 @@ export async function update_one(req: Request, res: Response) {
     try {
 
         await update_quiz(quiz_id, req.body);
+
+
 
         res.status(200).json({ message: 'Quiz updated successfully' });
     } catch (error) {

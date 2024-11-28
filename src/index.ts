@@ -86,7 +86,7 @@ app.use(verifyJwtToken);
 // Quizzes creation and management
 /*used for development and tests*/ app.post('/quiz', quizzesHandler.create_one);
 app.post('/quiz/init', quizzesHandler.init_one);
-app.get('/quiz/search', quizzesHandler.get_publics_with_title);
+app.get('/quiz/search', quizzesHandler.get_publics_with_params);
 app.get('/quiz/:quiz_id', validateQuizId, quizzesHandler.get_informations);
 app.post('/quiz/:quiz_id', validateQuizId, checkQuizAccess, quizzesHandler.update_one);
 
