@@ -126,8 +126,8 @@ export async function find_quizzes_with_filters(searchTerm: string, skip: number
 }
 
 
-export async function count_quizzes_by_title(searchTerm: string) {
-    return await prisma.quizzes.count({
+export async function count_quizzes_with_filters(skip: number, limit: number, searchTerm: string, difficulty?: string, minQuestions: number = 0, maxQuestions: number = Infinity) {
+    const quizzes = await prisma.quizzes.findMany({
         where: {
             type: 1,
             OR: [
@@ -142,8 +142,30 @@ export async function count_quizzes_by_title(searchTerm: string) {
                     },
                 }
             ],
+            ...(difficulty ? { difficulty: { equals: difficulty } } : {}),
         },
+        include: {
+            _count: {
+                select: {
+                    questions: true
+                }
+            },
+            questions: {
+                select: {
+                    question_id: true,
+                },
+            },
+        },
+        skip: skip,
+        take: limit,
+        orderBy: {
+            created_at: 'desc',
+        }
     });
+
+    return quizzes.filter(quiz =>
+        quiz._count.questions >= minQuestions && quiz._count.questions <= maxQuestions
+    ).length;
 }
 
 

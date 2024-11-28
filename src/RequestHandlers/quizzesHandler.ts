@@ -5,7 +5,7 @@ import axios from 'axios';
 import he from 'he';
 import { persist_question } from '../Repositories/questionsRepository';
 import { persist_option } from '../Repositories/optionsRepository';
-import { find_quizzes_with_filters, get_quiz_informations, persist_quiz, quiz_id_exists, update_quiz } from '../Repositories/quizzesRepository';
+import { count_quizzes_with_filters, find_quizzes_with_filters, get_quiz_informations, persist_quiz, quiz_id_exists, update_quiz } from '../Repositories/quizzesRepository';
 
 export async function create_one(req: Request, res: Response) {
     try {
@@ -149,9 +149,11 @@ export async function get_publics_with_params(req: Request, res: Response) {
     const minQuestions = parseInt(req.query.minQuestions as string) || 0;
     const maxQuestions = parseInt(req.query.maxQuestions as string) || Infinity;
 
+
     const skip = (page - 1) * pageSize;
 
     try {
+        const total_quizzes = await count_quizzes_with_filters(skip, pageSize, text.toLowerCase(), difficulty, minQuestions, maxQuestions);
         const quizzes = await find_quizzes_with_filters(text.toLowerCase(), skip, pageSize, difficulty, minQuestions, maxQuestions);
 
         const quizzesWithQuestionCount = quizzes.map((quiz: any) => ({
@@ -162,11 +164,18 @@ export async function get_publics_with_params(req: Request, res: Response) {
             nb_questions: quiz._count.questions
         }));
 
-        res.status(200).json({
-            nextPage: page + 1,
+        const response: any = {
             pageSize: pageSize,
-            quizzes: quizzesWithQuestionCount
-        });
+            quizzes: quizzesWithQuestionCount,
+            total_quizzes: total_quizzes
+        };
+
+        const totalPages = Math.ceil(total_quizzes / pageSize);
+        if (page < totalPages) {
+            response.nextPage = page + 1;
+        }
+
+        res.status(200).json(response);
     } catch (error) {
         console.error('Error searching public quizzes:', error);
         res.status(500).json({ error: 'Internal server error' });
