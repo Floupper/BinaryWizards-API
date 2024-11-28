@@ -16,6 +16,7 @@ import { checkAuthentication } from './Middlewares/usersMiddleware';
 import { verifyJwtToken } from './Middlewares/authMiddleware';
 
 import { Quizzes, Games } from '@prisma/client';
+import { requestLogger } from './Middlewares/logsMiddleware';
 
 declare module 'express' {
   interface Request {
@@ -75,6 +76,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 app.use(express.json());
+
+// Add a logs on all requests
+app.use(requestLogger);
 
 // Use authentication middleware on all routes
 app.use(verifyJwtToken);
