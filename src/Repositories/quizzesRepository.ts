@@ -126,7 +126,7 @@ export async function find_quizzes_with_filters(searchTerm: string, skip: number
 }
 
 
-export async function count_quizzes_with_filters(skip: number, limit: number, searchTerm: string, difficulty?: string, minQuestions: number = 0, maxQuestions: number = Infinity) {
+export async function count_quizzes_with_filters(searchTerm: string, difficulty?: string, minQuestions: number = 0, maxQuestions: number = Infinity) {
     const quizzes = await prisma.quizzes.findMany({
         where: {
             type: 1,
@@ -156,8 +156,6 @@ export async function count_quizzes_with_filters(skip: number, limit: number, se
                 },
             },
         },
-        skip: skip,
-        take: limit,
         orderBy: {
             created_at: 'desc',
         }

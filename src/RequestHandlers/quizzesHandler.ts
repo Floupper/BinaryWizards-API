@@ -153,7 +153,7 @@ export async function get_publics_with_params(req: Request, res: Response) {
     const skip = (page - 1) * pageSize;
 
     try {
-        const total_quizzes = await count_quizzes_with_filters(skip, pageSize, text.toLowerCase(), difficulty, minQuestions, maxQuestions);
+        const total_quizzes = await count_quizzes_with_filters(text.toLowerCase(), difficulty, minQuestions, maxQuestions);
         const quizzes = await find_quizzes_with_filters(text.toLowerCase(), skip, pageSize, difficulty, minQuestions, maxQuestions);
 
         const quizzesWithQuestionCount = quizzes.map((quiz: any) => ({
