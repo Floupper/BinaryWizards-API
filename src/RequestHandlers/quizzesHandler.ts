@@ -5,7 +5,7 @@ import axios from 'axios';
 import he from 'he';
 import { persist_question } from '../Repositories/questionsRepository';
 import { persist_option } from '../Repositories/optionsRepository';
-import { count_quizzes_by_title, find_quizzes_by_title, get_quiz_informations, persist_quiz, quiz_id_exists, update_quiz } from '../Repositories/quizzesRepository';
+import { find_quizzes_with_filters, get_quiz_informations, persist_quiz, quiz_id_exists, update_quiz } from '../Repositories/quizzesRepository';
 
 export async function create_one(req: Request, res: Response) {
     try {
@@ -141,30 +141,31 @@ export async function get_informations(req: Request, res: Response) {
 }
 
 
-export async function get_publics_with_title(req: Request, res: Response) {
-    const title = req.query.title as string;
-    const page = parseInt(req.query.page as string) || 1; // Actual page, default 1
-    const pageSize = parseInt(req.query.pageSize as string) || 10; // Number of quizzes per page, default 10
+export async function get_publics_with_params(req: Request, res: Response) {
+    const text = req.query.text as string || '';
+    const page = parseInt(req.query.page as string) || 1;
+    const pageSize = parseInt(req.query.pageSize as string) || 10;
+    const difficulty = req.query.difficulty as string | undefined;
+    const minQuestions = parseInt(req.query.minQuestions as string) || 0;
+    const maxQuestions = parseInt(req.query.maxQuestions as string) || Infinity;
 
-    const skip = (page - 1) * pageSize; // Calculate number of elements to skip
+    const skip = (page - 1) * pageSize;
 
     try {
-        const total_quizzes = await count_quizzes_by_title(title.toLowerCase());
-        const quizzes = await find_quizzes_by_title(title.toLowerCase(), skip, pageSize);
+        const quizzes = await find_quizzes_with_filters(text.toLowerCase(), skip, pageSize, difficulty, minQuestions, maxQuestions);
 
         const quizzesWithQuestionCount = quizzes.map((quiz: any) => ({
             quiz_id: quiz.quiz_id,
             title: quiz.title,
             difficulty: quiz.difficulty,
             created_at: quiz.created_at,
-            nb_questions: quiz.questions.length
+            nb_questions: quiz._count.questions
         }));
 
         res.status(200).json({
             nextPage: page + 1,
             pageSize: pageSize,
-            quizzes: quizzesWithQuestionCount,
-            total_quizzes
+            quizzes: quizzesWithQuestionCount
         });
     } catch (error) {
         console.error('Error searching public quizzes:', error);

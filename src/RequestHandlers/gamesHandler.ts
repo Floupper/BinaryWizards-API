@@ -18,14 +18,22 @@ export async function create_one(req: Request, res: Response) {
             return;
         }
 
-        if (!quiz.is_public) {
+        if (quiz.type != 2) {
             res.status(403).json({ error: 'The quiz is private' });
             return;
         }
 
         const user_id = req.user?.user_id || null;
+        let newGame;
 
-        const newGame = await persist_game(quiz_id, user_id);
+        if (quiz.type == 2) {
+            newGame = await persist_game(quiz_id, null);
+        }
+        else {
+            newGame = await persist_game(quiz_id, user_id);
+
+        }
+
 
         res.status(201).json({ message: 'Game created', game_id: newGame.game_id });
     } catch (error) {

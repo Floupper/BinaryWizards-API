@@ -83,28 +83,30 @@ export async function get_user_quiz(user_id: string, quiz_id: string) {
     });
 }
 
-export async function find_quizzes_by_title(searchTerm: string, skip: number, limit: number) {
+export async function find_quizzes_with_filters(searchTerm: string, skip: number, limit: number, difficulty?: string, minQuestions: number = 0, maxQuestions: number = Infinity) {
     return await prisma.quizzes.findMany({
         where: {
             type: 1,
             OR: [
                 {
                     title: {
-                        contains: searchTerm
+                        contains: searchTerm,
                     },
                 },
                 {
                     description: {
-                        contains: searchTerm
+                        contains: searchTerm,
                     },
                 }
             ],
+            ...(difficulty ? { difficulty: { equals: difficulty } } : {}),
         },
-        select: {
-            quiz_id: true,
-            title: true,
-            difficulty: true,
-            created_at: true,
+        include: {
+            _count: {
+                select: {
+                    questions: true
+                }
+            },
             questions: {
                 select: {
                     question_id: true,
@@ -113,7 +115,14 @@ export async function find_quizzes_by_title(searchTerm: string, skip: number, li
         },
         skip: skip,
         take: limit,
-    });
+        orderBy: {
+            created_at: 'desc',
+        }
+    }).then(quizzes =>
+        quizzes.filter(quiz =>
+            quiz._count.questions >= minQuestions && quiz._count.questions <= maxQuestions
+        )
+    );
 }
 
 
