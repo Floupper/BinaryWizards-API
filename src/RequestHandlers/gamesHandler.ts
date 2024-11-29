@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
-import { assert } from 'superstruct';
 import { persist_game } from '../Repositories/gamesRepository';
 import { get_quiz } from '../Repositories/quizzesRepository';
-import { QUIZID } from '../Validation/quiz';
 import { get_games_by_user } from '../Repositories/usersRepository';
 import { get_total_questions_count } from '../Helpers/questionsHelper';
 

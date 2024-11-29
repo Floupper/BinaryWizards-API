@@ -10,7 +10,7 @@ export function validateQuizId(req: Request, res: Response, next: NextFunction) 
         assert(quiz_id, QUIZID);
         next();
     } catch (error) {
-        res.status(400).json({ message: 'The quiz id is invalid' });
+        res.status(400).json({ error: 'The quiz id is invalid' });
     }
 }
 

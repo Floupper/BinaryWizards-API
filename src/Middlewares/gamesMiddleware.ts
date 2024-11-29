@@ -10,7 +10,7 @@ export function validateGameId(req: Request, res: Response, next: NextFunction) 
         assert(game_id, GAMEID);
         next();
     } catch (error) {
-        res.status(400).json({ message: 'The game id is invalid' });
+        res.status(400).json({ error: 'The game id is invalid' });
     }
 }
 

@@ -7,5 +7,5 @@ export async function get_all(req: Request, res: Response) {
     if (difficulties)
         res.json(difficulties);
     else
-        res.status(404).json({ message: 'Error while finding difficulties.' });
+        res.status(404).json({ error: 'Error while finding difficulties.' });
 }
