@@ -93,12 +93,10 @@ describe('User Routes', () => {
                 .post('/user/signup')
                 .send({ username: uniqueUsername3, password: 'testpassword' });
             const token = signupResponse.body.token;
-            console.log(signupResponse.body);
 
             const response = await request(app)
                 .get('/user/quizzes')
                 .set('Authorization', `Bearer ${token}`);
-            console.log(response.body.error + "\n\n\n\n\n\n\n\n\n\n\n\n");
             expect(response.status).toBe(200);
             expect(Array.isArray(response.body)).toBe(true);
         });
