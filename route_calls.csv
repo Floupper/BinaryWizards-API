@@ -1,0 +1,12 @@
+
+POST /quiz,POST,1
+POST /quiz/init,POST,1
+GET /quiz/search?text=easy&page=1&pageSize=5,GET,1
+POST /user/signup,POST,6
+POST /user/username_avaible,POST,2
+GET /quiz/QUt3r5hl,GET,1
+GET /quiz/QUxxxxxx,GET,1
+POST /quiz/QUt3r5hl,POST,2
+POST /user/signin,POST,2
+GET /user/quizzes,GET,1
+GET /user/played_games,GET,1

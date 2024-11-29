@@ -33,23 +33,23 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
         routeCalls[route] = 1;
     }
 
-    console.log(`[${formatDate(new Date())}] ${req.method} ${req.originalUrl}`);
+    // console.log(`[${formatDate(new Date())}] ${req.method} ${req.originalUrl}`);
 
-    if (req.params && Object.keys(req.params).length > 0) {
-        console.log('Params:', req.params);
-    }
-    if (req.query && Object.keys(req.query).length > 0) {
-        console.log('Query:', req.query);
-    }
-    if (req.body && Object.keys(req.body).length > 0) {
-        console.log('Body:', req.body);
-    }
+    // if (req.params && Object.keys(req.params).length > 0) {
+    //     console.log('Params:', req.params);
+    // }
+    // if (req.query && Object.keys(req.query).length > 0) {
+    //     console.log('Query:', req.query);
+    // }
+    // if (req.body && Object.keys(req.body).length > 0) {
+    //     console.log('Body:', req.body);
+    // }
 
     next();
 
     res.on('finish', () => {
         const elapsedTime = Date.now() - startTime;
-        console.log(`[${formatDate(new Date())}] ${req.method} ${req.originalUrl} - Status: ${res.statusCode} - Time: ${elapsedTime} ms`);
+        //console.log(`[${formatDate(new Date())}] ${req.method} ${req.originalUrl} - Status: ${res.statusCode} - Time: ${elapsedTime} ms`);
 
         fs.readFile(logFilePath, 'utf8', (err, data) => {
             if (err) {
