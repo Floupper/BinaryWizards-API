@@ -2,7 +2,7 @@ import { assert } from 'superstruct';
 import { Request, Response } from 'express';
 import { UserData } from '../Validation/user';
 import { is_username_avaible } from '../Helpers/usersHelper';
-import { create_user, get_games_by_user_paginated, get_user } from '../Repositories/usersRepository';
+import { create_user, get_games_by_user, get_games_by_user_paginated, get_user } from '../Repositories/usersRepository';
 import { get_token } from '../Helpers/tokensHelper';
 import { get_user_quiz, get_user_quizzes } from '../Repositories/quizzesRepository';
 import { get_correct_answers_count } from '../Helpers/answersHelper';
@@ -232,7 +232,7 @@ export const get_games = async (req: Request, res: Response) => {
 
     try {
         if (req.user?.user_id) { // User is not null because middleware is verifying it, adding condition cause of ts errors
-            const games = await get_games_by_user_paginated(req.user.user_id, 1, Infinity);
+            const games = await get_games_by_user(req.user.user_id);
 
             // Build response
             const played_games = await Promise.all(games.map(async (game) => {

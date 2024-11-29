@@ -33,6 +33,17 @@ export async function get_games_by_user_paginated(user_id: string, skip: number,
     });
 }
 
+export async function get_games_by_user(user_id: string) {
+    return await prisma.games.findMany({
+        where: {
+            userUser_id: user_id
+        },
+        include: {
+            quizzes: true
+        }
+    });
+}
+
 
 export async function count_started_games_by_user(user_id: string) {
     return await prisma.games.count({
