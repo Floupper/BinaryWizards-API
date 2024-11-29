@@ -7,9 +7,6 @@ export async function get_total_questions_count(quiz_id: string) {
 
 
 export async function change_questions_indexes(quiz_id: string, currentIndex: number, newIndex: number) {
-    console.log("current index: " + currentIndex);
-    console.log("new index: " + newIndex);
-
     if (newIndex !== currentIndex) {
         if (newIndex < currentIndex) {
             await increment_questions_index(quiz_id, currentIndex, newIndex);
