@@ -8,5 +8,5 @@ export async function get_all(req: Request, res: Response) {
     if (response.data.trivia_categories)
         res.json(response.data.trivia_categories);
     else
-        res.status(404).json({ message: 'Error while finding categories.' });
+        res.status(404).json({ error: 'Error while finding categories.' });
 }

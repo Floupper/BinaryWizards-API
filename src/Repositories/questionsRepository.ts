@@ -45,6 +45,9 @@ export async function update_question(question_id: string, question_index: numbe
 export async function get_all_questions(quizzesQuiz_id: string) {
     return await prisma.questions.findMany({
         where: { quizzesQuiz_id },
+        orderBy: {
+            question_index: 'asc',
+        }
     });
 }
 
@@ -127,4 +130,41 @@ export async function get_quiz_id_by_question_id(question_id: string) {
             quizzesQuiz_id: true
         }
     }).then(question => question?.quizzesQuiz_id);
+}
+
+
+
+export async function increment_questions_index(quiz_id: string, currentIndex: number, newIndex: number) {
+    return await prisma.questions.updateMany({
+        where: {
+            quizzesQuiz_id: quiz_id,
+            question_index: {
+                gte: newIndex,
+                lt: currentIndex,
+            },
+        },
+        data: {
+            question_index: {
+                increment: 1,
+            },
+        },
+    });
+}
+
+
+export async function decrement_questions_index(quiz_id: string, currentIndex: number, newIndex: number) {
+    return await prisma.questions.updateMany({
+        where: {
+            quizzesQuiz_id: quiz_id,
+            question_index: {
+                gt: currentIndex,
+                lte: newIndex,
+            },
+        },
+        data: {
+            question_index: {
+                decrement: 1,
+            },
+        },
+    });
 }

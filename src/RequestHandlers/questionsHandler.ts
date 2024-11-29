@@ -3,15 +3,13 @@ import { assert } from 'superstruct';
 import { QuestionAnswerData, QuestionCreationData, QuestionUpdateData } from '../Validation/question';
 import { delete_question, get_all_questions, get_current_question, get_question_informations, persist_question, update_question } from '../Repositories/questionsRepository';
 import { persist_answer } from '../Repositories/answersRepository';
-import { get_total_questions_count } from '../Helpers/questionsHelper';
+import { change_questions_indexes, get_total_questions_count } from '../Helpers/questionsHelper';
 import { get_correct_answers_count } from '../Helpers/answersHelper';
-import { get_game, persist_game_update } from '../Repositories/gamesRepository';
-import { GAMEID } from '../Validation/game';
+import { persist_game_update } from '../Repositories/gamesRepository';
 import { QuestionImportData, QUIZID } from '../Validation/quiz';
 import axios from 'axios';
 import he from 'he';
 import { delete_from_question, persist_option } from '../Repositories/optionsRepository';
-import { UUID } from '../Validation/uuid';
 
 
 export async function get_one(req: Request, res: Response) {
@@ -84,7 +82,7 @@ export async function send_answer(req: Request, res: Response) {
     try {
         assert(req.body, QuestionAnswerData);
     } catch (error) {
-        res.status(400).json({ message: 'Data is invalid: \n- question_index must be between 1 and 50\n- option_index must be between 0 and 3' });
+        res.status(400).json({ error: 'Data is invalid: \n- question_index must be between 1 and 50\n- option_index must be between 0 and 3' });
         return;
     }
 
@@ -168,7 +166,7 @@ export async function import_questions(req: Request, res: Response) {
     try {
         assert(req.body, QuestionImportData);
     } catch (error) {
-        res.status(400).json({ message: 'Data is invalid: \n- category must be a number between 9 and 32\n- difficulty must be a string\n- amount must be a number between 1 and 50' });
+        res.status(400).json({ error: 'Data is invalid: \n- category must be a number between 9 and 32\n- difficulty must be a string\n- amount must be a number between 1 and 50' });
         return;
     }
 
@@ -199,6 +197,8 @@ export async function import_questions(req: Request, res: Response) {
             return;
         }
 
+        const total_questions = await get_total_questions_count(quiz_id);
+
         // Browsing questions and options
         for (let index = 0; index < results.length; index++) {
             const questionData = results[index];
@@ -208,8 +208,10 @@ export async function import_questions(req: Request, res: Response) {
             const correctAnswer = he.decode(questionData.correct_answer);
             const incorrectAnswers = questionData.incorrect_answers.map((ans: string) => he.decode(ans));
 
+
+
             // Create question
-            const question = await persist_question(index, questionText, questionData.category, questionData.difficulty, questionData.type, req.params.quiz_id);
+            const question = await persist_question(total_questions + index, questionText, questionData.category, questionData.difficulty, questionData.type, req.params.quiz_id);
 
             // Prepare the options
             const optionsData = [];
@@ -284,7 +286,7 @@ export async function create_one(req: Request, res: Response) {
     try {
         assert(req.body, QuestionCreationData);
     } catch (error) {
-        res.status(400).json({ message: 'Data is invalid' });
+        res.status(400).json({ error: 'Data is invalid' });
         return;
     }
 
@@ -361,14 +363,14 @@ export async function delete_one(req: Request, res: Response) {
         for (let i = 0; i < remainingQuestions.length; i++)
             await update_question(remainingQuestions[i].question_id, i, remainingQuestions[i].question_text, remainingQuestions[i].question_category, remainingQuestions[i].question_difficulty, remainingQuestions[i].question_type, quiz_id);
 
-        res.status(200).json({ message: 'Question deleted successfully' });
+        res.status(200).json({ error: 'Question deleted successfully' });
     } catch (error) {
         console.error('Error deleting question:', error);
 
         if (error instanceof Error && (error as any).code === 'P2025') {
-            res.status(404).json({ message: 'Question not found' });
+            res.status(404).json({ error: 'Question not found' });
         } else {
-            res.status(500).json({ message: 'Error while deleting question' });
+            res.status(500).json({ error: 'Error while deleting question' });
         }
     }
 }
@@ -380,7 +382,7 @@ export async function update_one(req: Request, res: Response) {
     try {
         assert(req.body, QuestionUpdateData);
     } catch (error) {
-        res.status(400).json({ message: 'Data is invalid' });
+        res.status(400).json({ error: 'Data is invalid' });
         return;
     }
 
@@ -388,7 +390,7 @@ export async function update_one(req: Request, res: Response) {
         const existingQuestion = await get_question_informations(question_id);
 
         if (!existingQuestion) {
-            res.status(404).json({ message: 'Question not found' });
+            res.status(404).json({ error: 'Question not found' });
             return;
         }
 
@@ -400,6 +402,17 @@ export async function update_one(req: Request, res: Response) {
         const updateData = req.body;
         const { options, ...questionFields } = updateData;
 
+
+        const currentIndex = existingQuestion.question_index;
+        const newIndex = questionFields.question_index ?? currentIndex;
+
+        if (newIndex >= await get_total_questions_count(quiz_id) || newIndex < 0) {
+            res.status(400).json({ error: 'Invalid question index' });
+            return;
+        }
+
+        change_questions_indexes(quiz_id, currentIndex, newIndex)
+
         await update_question(
             question_id,
             questionFields.question_index ?? existingQuestion.question_index,
@@ -409,6 +422,7 @@ export async function update_one(req: Request, res: Response) {
             questionFields.question_type ?? existingQuestion.question_type,
             existingQuestion.quizzesQuiz_id
         );
+
 
 
 
@@ -434,9 +448,9 @@ export async function update_one(req: Request, res: Response) {
         console.error('Error deleting question:', error);
 
         if (error instanceof Error && (error as any).code === 'P2025') {
-            res.status(404).json({ message: 'Question not found' });
+            res.status(404).json({ error: 'Question not found' });
         } else {
-            res.status(500).json({ message: 'Error while deleting question' });
+            res.status(500).json({ error: 'Error while deleting question' });
         }
     }
 }

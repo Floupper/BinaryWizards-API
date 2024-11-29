@@ -11,7 +11,7 @@ export async function create_one(req: Request, res: Response) {
     try {
         assert(req.body, QuizCreationData);
     } catch (error) {
-        res.status(400).json({ message: 'Data is invalid: \n- category must be a number between 9 and 32\n- difficulty must be a string\n- amount must be a number between 1 and 50\n- title is optional and must be a string' });
+        res.status(400).json({ error: 'Data is invalid: \n- category must be a number between 9 and 32\n- difficulty must be a string\n- amount must be a number between 1 and 50\n- title is optional and must be a string' });
         return;
     }
 
@@ -190,7 +190,7 @@ export async function update_one(req: Request, res: Response) {
     try {
         assert(req.body, QuizUpdateData);
     } catch (error) {
-        res.status(400).json({ message: 'Data is invalid' });
+        res.status(400).json({ error: 'Data is invalid' });
         return;
     }
 
@@ -203,6 +203,6 @@ export async function update_one(req: Request, res: Response) {
         res.status(200).json({ message: 'Quiz updated successfully' });
     } catch (error) {
         console.error('Error updating quiz:', error);
-        res.status(500).json({ message: 'An error occurred while updating the quiz' });
+        res.status(500).json({ error: 'An error occurred while updating the quiz' });
     }
 }

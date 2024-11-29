@@ -84,7 +84,7 @@ app.use(requestLogger);
 app.use(verifyJwtToken);
 
 // Quizzes creation and management
-/*used for development and tests*/ app.post('/quiz', quizzesHandler.create_one);
+app.post('/quiz', quizzesHandler.create_one);
 app.post('/quiz/init', quizzesHandler.init_one);
 app.get('/quiz/search', quizzesHandler.get_publics_with_params);
 app.get('/quiz/:quiz_id', validateQuizId, quizzesHandler.get_informations);
@@ -109,8 +109,8 @@ app.post('/user/username_avaible', usersHandler.username_avaible);
 app.post('/user/signin', usersHandler.sign_in);
 app.get('/user/quizzes', checkAuthentication, usersHandler.get_quizzes);
 app.get('/user/played_games', checkAuthentication, usersHandler.get_games);
-app.get('/user/:quiz_id/:question_id', checkAuthentication, validateQuizId, validateQuestionId, usersHandler.get_question);
-app.get('/user/:quiz_id', checkAuthentication, validateQuizId, usersHandler.get_quiz);
+app.get('/user/:quiz_id/:question_id', checkAuthentication, validateQuizId, validateQuestionId, checkQuizAccess, usersHandler.get_question);
+app.get('/user/:quiz_id', checkAuthentication, validateQuizId, checkQuizAccess, usersHandler.get_quiz);
 
 
 

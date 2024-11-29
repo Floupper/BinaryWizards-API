@@ -128,7 +128,7 @@ export const get_quiz = async (req: Request, res: Response) => {
             const quiz = await get_user_quiz(req.user.user_id, quiz_id);
 
             if (!quiz) {
-                res.status(404).json({ message: 'Quiz not found' });
+                res.status(404).json({ error: 'Quiz not found' });
                 return;
             }
 
@@ -179,7 +179,7 @@ export const get_question = async (req: Request, res: Response) => {
         const question = await get_user_question(req.params.question_id);
 
         if (!question) {
-            res.status(404).json({ message: 'Question not found' });
+            res.status(404).json({ error: 'Question not found' });
             return;
         }
 

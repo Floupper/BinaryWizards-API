@@ -11,6 +11,6 @@ export async function validateQuestionId(req: Request, res: Response, next: Next
         next();
     } catch (error) {
         console.error(error);
-        res.status(400).json({ message: 'The question id is invalid' });
+        res.status(400).json({ error: 'The question id is invalid' });
     }
 }
