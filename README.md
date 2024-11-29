@@ -5,7 +5,7 @@ git clone <project_remote_URL>
 
 Before launching the API, you need to create a *.env* file containing the following information:
 ```
-PORT=33012
+PORT=<a port>
 DATABASE_URL="file:./dev.db"
 JWT_SECRET=<a secret key>
 JWT_EXPIRES_IN=10h
