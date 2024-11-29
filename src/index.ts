@@ -29,15 +29,12 @@ declare module 'express' {
   }
 }
 
-
-const config = require('./Data/config.json');
-
 const fs = require('fs');
 const https = require('https');
 
 const app = express();
 
-const httpsPort = config[0].httpsPort || 33012;
+const httpsPort = Number(process.env.PORT) || 33012;
 
 
 let sslOptions = {};
