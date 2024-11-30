@@ -3,6 +3,8 @@ import app from '../../app';
 
 let server: any;
 
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 beforeAll(() => {
     server = app.listen(0, () => {
         console.log('Test server running');
@@ -21,6 +23,7 @@ describe('Quizzes Handler Tests', () => {
     // Test for quiz creation
     describe('POST /quiz', () => {
         it('should create a new quiz', async () => {
+            await delay(5000); // delay to avoid code 429 from open trivia db cause of too many requests error
             const response = await request(app)
                 .post('/quiz')
                 .send({ category: 9, difficulty: 'easy', amount: 10, title: 'My Quiz' });
@@ -28,16 +31,17 @@ describe('Quizzes Handler Tests', () => {
             expect(response.status).toBe(201);
             expect(response.body).toHaveProperty('quiz_id');
             quizId = response.body.quiz_id;
-        });
+        }, 10000);
 
         it('should return 400 for invalid data', async () => {
+            await delay(5000); // delay to avoid code 429 from open trivia db cause of too many requests error
             const response = await request(app)
                 .post('/quiz')
                 .send({ category: 100, difficulty: 'wrong_difficulty', amount: 60 });
 
             expect(response.status).toBe(400);
             expect(response.body).toHaveProperty('error');
-        });
+        }, 10000);
     });
 
     // Test for quiz initialization
