@@ -33,6 +33,21 @@ export async function get_games_by_user_paginated(user_id: string, skip: number,
     });
 }
 
+export async function get_started_games_by_user_paginated(user_id: string, skip: number, pageSize: number) {
+    return await prisma.$queryRaw<
+        any[]
+    >`SELECT Games.*, Quizzes.*, COUNT(Questions.question_id) AS nb_questions_total
+  FROM Games
+  JOIN Quizzes ON Games.quizzesQuiz_id = Quizzes.quiz_id
+  JOIN Questions ON Quizzes.quiz_id = Questions.quizzesQuiz_id
+  WHERE Games."userUser_id" = ${user_id}
+  GROUP BY Games.game_id, Quizzes.quiz_id
+  HAVING Games.current_question_index < COUNT(Questions.question_id)
+  ORDER BY Games.created_at DESC
+  LIMIT ${pageSize} OFFSET ${skip};`
+}
+
+
 export async function get_games_by_user(user_id: string) {
     return await prisma.games.findMany({
         where: {
@@ -43,12 +58,16 @@ export async function get_games_by_user(user_id: string) {
         }
     });
 }
-
-
 export async function count_started_games_by_user(user_id: string) {
-    return await prisma.games.count({
-        where: {
-            userUser_id: user_id
-        }
-    });
+    return await prisma.$queryRaw<
+        { total: bigint }[]
+    >`SELECT COUNT(*) AS total FROM (
+    SELECT Games.game_id
+    FROM Games
+    JOIN Quizzes ON Games.quizzesQuiz_id = Quizzes.quiz_id
+    JOIN Questions ON Quizzes.quiz_id = Questions.quizzesQuiz_id
+    WHERE Games."userUser_id" = ${user_id}
+    GROUP BY Games.game_id
+    HAVING Games.current_question_index < COUNT(Questions.question_id)
+) AS sub;`;
 }
