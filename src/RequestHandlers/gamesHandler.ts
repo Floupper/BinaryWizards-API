@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { persist_game } from '../Repositories/gamesRepository';
 import { get_quiz } from '../Repositories/quizzesRepository';
-import { count_started_games_by_user, get_games_by_user_paginated, get_started_games_by_user_paginated } from '../Repositories/usersRepository';
+import { count_started_games_by_user, get_started_games_by_user_paginated } from '../Repositories/usersRepository';
 import { get_total_questions_count } from '../Helpers/questionsHelper';
 
 

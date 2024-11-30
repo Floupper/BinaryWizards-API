@@ -6,7 +6,7 @@ import { persist_answer } from '../Repositories/answersRepository';
 import { change_questions_indexes, get_total_questions_count } from '../Helpers/questionsHelper';
 import { get_correct_answers_count } from '../Helpers/answersHelper';
 import { persist_game_update } from '../Repositories/gamesRepository';
-import { QuestionImportData, QUIZID } from '../Validation/quiz';
+import { QuestionImportData } from '../Validation/quiz';
 import axios from 'axios';
 import he from 'he';
 import { delete_from_question, persist_option } from '../Repositories/optionsRepository';
