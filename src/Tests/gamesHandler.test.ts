@@ -1,5 +1,5 @@
 import request from 'supertest';
-import app from '../../app';
+import app from '../app';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
