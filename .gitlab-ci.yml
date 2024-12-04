@@ -2,9 +2,9 @@ image: node:latest
 
 prepare_env:
   script:
-    - echo "DATABASE_URL=$DATABASE_URL" > .env
-    - echo "JWT_SECRET=$JWT_SECRET" >> .env
-    - echo "JWT_EXPIRES_IN=$JWT_EXPIRES_IN" >> .env
+    - echo "DATABASE_URL="$DATABASE_URL > .env
+    - echo "JWT_SECRET="$JWT_SECRET >> .env
+    - echo "JWT_EXPIRES_IN="$JWT_EXPIRES_IN >> .env
   artifacts:
     paths:
       - .env
@@ -14,6 +14,8 @@ test:
     - prepare_env
   script:
     - npm install
+    - npx prisma db push
+    - npx prisma generate
     - npm test --coverage --coverageDirectory=coverage --coverageProvider=babel --outputFile=test-results.xml
   artifacts:
     when: always
