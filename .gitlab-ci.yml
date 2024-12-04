@@ -1,0 +1,29 @@
+image: node:latest
+
+test:
+  script:
+    - npm install
+    - npm test --coverage --coverageDirectory=coverage --coverageProvider=babel --outputFile=test-results.xml
+  artifacts:
+    when: always
+    reports:
+      junit: coverage/test-results.xml
+    paths:
+      - coverage/test-results.xml
+  allow_failure: true
+
+build:
+  needs:
+    - test
+  script:
+    - echo "Build process started..."
+    - echo "Build process completed."
+  artifacts:
+    when: on_success
+
+deploy:
+  needs:
+    - build
+  script:
+    - echo "Deploy process started..."
+    - echo "Deploy process completed."
