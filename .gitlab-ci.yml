@@ -9,6 +9,8 @@ test:
   needs:
     - prepare_env
   script:
+    - cat .env
+    - pwd .env
     - npm install
     - npx prisma db push
     - npx prisma generate
