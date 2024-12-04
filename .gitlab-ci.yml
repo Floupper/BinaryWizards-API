@@ -8,14 +8,8 @@ test:
     - npx create-env --env-file .env --env-prefix TEST_
     - npx prisma db push
     - npx prisma generate
-    - npm test --outputFile=test-results.xml
-  artifacts:
-    when: always
-    reports:
-      junit: test-results.xml
-    paths:
-      - test-results.xml
-
+    - npm test
+    
 build:
   needs:
     - test
