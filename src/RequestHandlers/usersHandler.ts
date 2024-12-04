@@ -236,7 +236,7 @@ export const get_games = async (req: Request, res: Response) => {
 
             // Build response
             const played_games = await Promise.all(games.map(async (game) => {
-                const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id)
+                const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
                 const correct_answers_nb = await get_correct_answers_count(game.game_id);
                 // Check if the game is finished
                 if (nb_questions_total === game.current_question_index) {
