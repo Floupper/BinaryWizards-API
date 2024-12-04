@@ -38,4 +38,12 @@ export async function get_correct_answers(gamesGame_id: string) {
     });
 }
 
+export async function reset_answers(quiz_id: string) {
+    return await prisma.answers.deleteMany({
+        where: {
+            quizzesQuiz_id: quiz_id
+        }
+    });
+}
+
 
