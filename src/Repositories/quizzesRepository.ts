@@ -60,7 +60,10 @@ export async function get_quiz_informations(quiz_id: string) {
 export async function get_user_quizzes(user_id: string) {
     return await prisma.quizzes.findMany({
         where: {
-            userUser_id: user_id
+            userUser_id: user_id,
+            type: {
+                not: 2,
+            }
         }
     });
 }
