@@ -236,21 +236,25 @@ export const get_games = async (req: Request, res: Response) => {
 
             // Build response
             const played_games = await Promise.all(games.map(async (game) => {
-                const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
+                const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id)
                 const correct_answers_nb = await get_correct_answers_count(game.game_id);
-
-                return {
-                    game_id: game.game_id,
-                    quiz_id: game.quizzesQuiz_id,
-                    quiz_title: game.quizzes.title,
-                    date_game_creation: game.created_at,
-                    current_question_index: game.current_question_index + 1,
-                    nb_questions_total,
-                    correct_answers_nb
-                };
+                // Check if the game is finished
+                if (nb_questions_total === game.current_question_index) {
+                    return {
+                        game_id: game.game_id,
+                        quiz_id: game.quizzesQuiz_id,
+                        quiz_title: game.quizzes.title,
+                        date_game_creation: game.created_at,
+                        current_question_index: game.current_question_index,
+                        nb_questions_total,
+                        correct_answers_nb
+                    };
+                }
+                return null;
+                
             }));
-
-            res.status(200).json(played_games);
+            const completed_games = played_games.filter(game => game !== null);
+            res.status(200).json(completed_games.length > 0 ? completed_games : []);
         }
     } catch (error) {
         console.error('Error fetching played games for user:', error);
