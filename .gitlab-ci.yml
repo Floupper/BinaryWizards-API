@@ -8,7 +8,7 @@ test:
     - npx create-env --env-file .env --env-prefix TEST_
     - npx prisma db push
     - npx prisma generate
-    - npm test --coverage --coverageDirectory=coverage --coverageProvider=babel --outputFile=test-results.xml
+    - npm test --coverage --coverageDirectory=coverage --coverageProvider=babel --outputFile=coverage/test-results.xml
   artifacts:
     when: always
     reports:
