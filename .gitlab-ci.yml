@@ -1,0 +1,44 @@
+image: node:latest
+
+test:
+  script:
+    - npm install
+    - npm i -g create-env
+    - touch .env
+    - npx create-env --env-file .env --env-prefix TEST_
+    - npx prisma db push
+    - npx prisma generate
+    - npm test
+    
+build:
+  needs:
+    - test
+  script:
+    - echo "Build process started..."
+    - echo "Build process completed."
+  artifacts:
+    when: on_success
+
+deploy:
+  needs:
+    - build
+  script:
+    - echo "Deploy process started..."
+    - echo "Deploy process completed."
+
+
+trigger_web:
+  needs:
+    - test
+  trigger:
+    project: "binarywizards/s5-binarywizards-web"
+    branch: "main"  
+    strategy: depend
+
+trigger_mobile:
+  needs:
+    - test
+  trigger:
+    project: "binarywizards/s5-binarywizards-mobile"
+    branch: "main"
+    strategy: depend
