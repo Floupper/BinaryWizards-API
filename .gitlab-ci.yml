@@ -2,8 +2,8 @@ image: node:latest
 
 prepare_env:
   script:
-    - chmod +x ./src/Tests/envGenerator.sh
-    - ./src/Tests/envGenerator.sh
+    - chmod +x ./envGenerator.sh
+    - ./envGenerator.sh
 
 test:
   needs:
