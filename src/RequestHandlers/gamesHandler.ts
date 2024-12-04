@@ -24,13 +24,7 @@ export async function create_one(req: Request, res: Response) {
         const user_id = req.user?.user_id || null;
         let newGame;
 
-        if (quiz.type == 2) {
-            newGame = await persist_game(quiz_id, null);
-        }
-        else {
-            newGame = await persist_game(quiz_id, user_id);
-
-        }
+        newGame = await persist_game(quiz_id, user_id);
 
 
         res.status(201).json({ message: 'Game created', game_id: newGame.game_id });
