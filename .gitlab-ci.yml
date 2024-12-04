@@ -1,17 +1,10 @@
 image: node:latest
 
-prepare_env:
-  script:
-    - chmod +x ./envGenerator.sh
-    - ./envGenerator.sh
-
 test:
-  needs:
-    - prepare_env
   script:
-    - cat .env
-    - pwd .env
     - npm install
+    - npm i -g create-env
+    - npx create-env --env-file .env --env-prefix TEST_
     - npx prisma db push
     - npx prisma generate
     - npm test --coverage --coverageDirectory=coverage --coverageProvider=babel --outputFile=test-results.xml
