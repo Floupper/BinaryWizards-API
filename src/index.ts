@@ -1,57 +1,31 @@
-import express, { Request, Response, NextFunction } from 'express';
-import cors from 'cors';
-
-import * as quizzesHandler from './RequestHandlers/quizzesHandler';
-import * as categoriesHandler from './RequestHandlers/categoriesHandler';
-import * as difficultiesHandler from './RequestHandlers/difficultiesHandler';
-import * as questionsHandler from './RequestHandlers/questionsHandler';
-
-const config = require('./Data/config.json');
-
+import app from './app';
 const fs = require('fs');
-const https = require('https');
+import https from 'https';
 
-const app = express();
-const port = config[0].port;
+// Port number
+const httpsPort = Number(process.env.PORT) || 33012;
 
+let sslOptions = {};
 if (process.env.APP_ENV === 'server') {
-  let sslOptions = {}
   try {
     sslOptions = {
-      key: fs.readFileSync('/home/container/certificat.key'),
-      cert: fs.readFileSync('/home/container/certificat-privkey.cert')
+      key: fs.readFileSync(process.env.key),
+      cert: fs.readFileSync(process.env.cert),
     };
+    console.log('Certificats SSL chargés avec succès.');
+  } catch (err) {
+    console.error('Erreur lors du chargement des certificats SSL :', err);
   }
-  catch (err) {
-    console.error(err);
-  }
-
-  // Create HTTPS server and listen on secure port (ex. 33012)
-  https.createServer(sslOptions, app).listen(33012, () => {
-    console.log('HTTPS Server running on port 33012');
-  });
-
 }
 
-app.use(cors());
-app.use((req: Request, res: Response, next: NextFunction) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, UPDATE, PUT, DELETE, PATCH");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.header('Access-Control-Expose-Headers', 'Count');
-  next();
-});
-app.use(express.json());
 
-app.post('/quiz', quizzesHandler.create_one as (req: Request, res: Response) => Promise<void>);
-app.put('/quiz/:quiz_id', quizzesHandler.reset_quiz as (req: Request, res: Response) => Promise<void>);
-
-app.get('/categories', categoriesHandler.get_all);
-app.get('/difficulties', difficultiesHandler.get_all);
-
-app.get('/quiz/:quiz_id/question', questionsHandler.get_one as (req: Request, res: Response) => Promise<void>);
-app.post('/quiz/:quiz_id/:question_id', questionsHandler.send_answer as (req: Request, res: Response) => Promise<void>);
-
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server is running on http://0.0.0.0:${port}`);
-});
+// Server starting
+if (process.env.APP_ENV === 'server') {
+  https.createServer(sslOptions, app).listen(httpsPort, () => {
+    console.log(`🚀 Server running on https://localhost:${httpsPort}`);
+  });
+} else {
+  app.listen(httpsPort, '0.0.0.0', () => {
+    console.log(`Server is running on http://0.0.0.0:${httpsPort}`);
+  });
+}

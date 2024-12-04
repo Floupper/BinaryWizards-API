@@ -1,24 +1,22 @@
 import { Request, Response } from 'express';
-import { QuizCreationData, UUID } from '../Validation/quiz';
+import { QuizCreationData, QUIZID, QuizUpdateData } from '../Validation/quiz';
 import { assert } from 'superstruct';
 import axios from 'axios';
 import he from 'he';
 import { persist_question } from '../Repositories/questionsRepository';
 import { persist_option } from '../Repositories/optionsRepository';
-import { get_quiz, persist_quiz, persist_quiz_update } from '../Repositories/quizzesRepository';
-import { get_total_questions_count } from '../Helpers/questionsHelper';
-import { reset_answers } from '../Repositories/answersRepository';
+import { count_quizzes_with_filters, find_quizzes_with_filters, get_quiz_informations, persist_quiz, quiz_id_exists, update_quiz } from '../Repositories/quizzesRepository';
 
 export async function create_one(req: Request, res: Response) {
     try {
         assert(req.body, QuizCreationData);
     } catch (error) {
-        res.status(400).json({ message: 'Data is invalid: \n- category must be a number between 9 and 32\n- difficulty must be a string\n- amount must be a number between 1 and 50' });
+        res.status(400).json({ error: 'Data is invalid: \n- category must be a number between 9 and 32\n- difficulty must be a string\n- amount must be a number between 1 and 50\n- title is optional and must be a string' });
         return;
     }
 
     try {
-        const { category, difficulty, amount } = req.body;
+        const { category, difficulty, amount, title } = req.body;
 
         // Build object params
         const params: any = { amount };
@@ -44,11 +42,14 @@ export async function create_one(req: Request, res: Response) {
         const { response_code, results } = apiResponse.data;
 
         if (response_code !== 0) {
-            return res.status(400).json({ error: 'Error retrieving questions from the API.' });
+            res.status(400).json({ error: 'Error retrieving questions from the API.' });
+            return;
         }
 
+        const user_id = req.user?.user_id || null;
+
         // Create quiz
-        const quiz = await persist_quiz(category, difficulty, 0);
+        const quiz = await persist_quiz(difficulty, title?.toLowerCase() || "", 2, user_id, "");
 
         // Browsing questions and options
         for (let index = 0; index < results.length; index++) {
@@ -104,40 +105,104 @@ export async function create_one(req: Request, res: Response) {
     }
 }
 
-
-export async function reset_quiz(req: Request, res: Response) {
-    const { quiz_id } = req.params;
+export async function init_one(req: Request, res: Response) {
     try {
-        assert(quiz_id, UUID);
-    } catch (error) {
-        res.status(400).json({ message: 'The quiz id is invalid' });
-        return;
+        const user_id = req.user?.user_id || null;
+
+        // Create quiz
+        const quiz = await persist_quiz("easy", "", 0, user_id, "");
+
+        res.status(201).json({ message: 'Quiz initialized', quiz_id: quiz.quiz_id });
     }
+    catch (error: any) {
+        console.error('Erreur while initializing quiz:', error);
+        res.status(500).json({ error: 'Erreur while initializing quiz', details: error.message });
+    }
+}
+
+
+
+export async function get_informations(req: Request, res: Response) {
+    const { quiz_id } = req.params;
 
     try {
-        // Verify if quiz exists
-        const quiz = await get_quiz(quiz_id);
+        const quiz = await get_quiz_informations(quiz_id);
 
         if (!quiz) {
-            return res.status(404).json({ error: 'Quiz not found' });
+            res.status(404).json({ error: 'Quiz not found' });
+            return;
         }
 
-        // Get the total number of questions in the quiz
-        const totalQuestions = await get_total_questions_count(quiz_id);
+        res.status(201).json({ message: 'Quiz found', quiz });
+    } catch (error: any) {
+        console.error('Error while retrieving quiz :', error);
+        res.status(500).json({ error: 'Error while retrieving quiz', details: error.message });
+    }
+}
 
-        // Verify if the quiz is not finished yet
-        if (quiz.current_question_index < totalQuestions) {
-            return res.status(400).json({ error: 'The quiz have to be finished to be reset' });
+
+export async function get_publics_with_params(req: Request, res: Response) {
+    const text = req.query.text as string || '';
+    const page = parseInt(req.query.page as string) || 1;
+    const pageSize = parseInt(req.query.pageSize as string) || 10;
+    const difficulty = req.query.difficulty as string | undefined;
+    const minQuestions = parseInt(req.query.minQuestions as string) || 0;
+    const maxQuestions = parseInt(req.query.maxQuestions as string) || Infinity;
+
+
+    const skip = (page - 1) * pageSize;
+
+    try {
+        const total_quizzes = await count_quizzes_with_filters(text.toLowerCase(), difficulty, minQuestions, maxQuestions);
+        const quizzes = await find_quizzes_with_filters(text.toLowerCase(), skip, pageSize, difficulty, minQuestions, maxQuestions);
+
+        const quizzesWithQuestionCount = quizzes.map((quiz: any) => ({
+            quiz_id: quiz.quiz_id,
+            title: quiz.title,
+            difficulty: quiz.difficulty,
+            created_at: quiz.created_at,
+            nb_questions: quiz._count.questions
+        }));
+
+        const response: any = {
+            pageSize: pageSize,
+            quizzes: quizzesWithQuestionCount,
+            total_quizzes: total_quizzes
+        };
+
+        const totalPages = Math.ceil(total_quizzes / pageSize);
+        if (page < totalPages) {
+            response.nextPage = page + 1;
         }
 
-        // Reset quiz
-        await persist_quiz_update(quiz_id, 0);
-        await reset_answers(quiz_id);
-
-        res.status(200).json({ message: 'The quiz has been reset' });
+        res.status(200).json(response);
     } catch (error) {
-        console.error(error);
+        console.error('Error searching public quizzes:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 }
 
+
+
+export async function update_one(req: Request, res: Response) {
+    const { quiz_id } = req.params;
+
+    try {
+        assert(req.body, QuizUpdateData);
+    } catch (error) {
+        res.status(400).json({ error: 'Data is invalid' });
+        return;
+    }
+
+    try {
+
+        await update_quiz(quiz_id, req.body);
+
+
+
+        res.status(200).json({ message: 'Quiz updated successfully' });
+    } catch (error) {
+        console.error('Error updating quiz:', error);
+        res.status(500).json({ error: 'An error occurred while updating the quiz' });
+    }
+}

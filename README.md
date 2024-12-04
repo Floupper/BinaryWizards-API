@@ -1,93 +1,212 @@
-# S5 BinaryWizards SERVEUR
-
-
-
-## Getting started
-
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
-
+# Installation
 ```
-cd existing_repo
-git remote add origin https://git.unistra.fr/binarywizards/s5-binarywizards-serveur.git
-git branch -M main
-git push -uf origin main
+git clone <project_remote_URL>
 ```
 
-## Integrate with your tools
+Before launching the API, you need to create a *.env* file containing the following information:
+```
+PORT=<a port>
+DATABASE_URL="file:./dev.db"
+JWT_SECRET=<a secret key>
+JWT_EXPIRES_IN=10h
+```
 
-- [ ] [Set up project integrations](https://git.unistra.fr/binarywizards/s5-binarywizards-serveur/-/settings/integrations)
+Once the *.env* file is created and filled out, you can install the dependencies and launch the application with the following commands:
+```
+npm install
+npx prisma db push
+npx prisma generate
+npm start
+```
+# API Documentation
 
-## Collaborate with your team
+## Quizzes Creation and Management
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+### Create a New Quiz
+- **Endpoint:** `/quiz`
+- **Method:** `POST`
+- **Description:** Create a new quiz.
+- **Request Body:**
+  - `category` (Number, required, between 9 and 32)
+  - `difficulty` (String, required)
+  - `amount` (Number, required, 1-50)
 
-## Test and Deploy
+### Initialize a Quiz
+- **Endpoint:** `/quiz/init`
+- **Method:** `POST`
+- **Description:** Initializes a new quiz for create a personalized one.
 
-Use the built-in continuous integration in GitLab.
+### Get Public Quizzes with Search Parameters
+- **Endpoint:** `/quiz/search`
+- **Method:** `GET`
+- **Description:** Retrieve public quizzes using search parameters.
+- **Query Parameters:**
+  - `text` (String, optional)
+  - `difficulty` (String, optional)
+  - `page` (Number, optional, default: 1)
+  - `pageSize` (Number, optional, default: 10)
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+### Get Quiz Information by ID
+- **Endpoint:** `/quiz/:quiz_id`
+- **Method:** `GET`
+- **Description:** Retrieve detailed information about a specific quiz by its ID.
+- **Path Parameters:**
+  - `quiz_id` (String, required, format: `^QU[A-Z0-9]{6}$`)
 
-***
+### Update a Quiz
+- **Endpoint:** `/quiz/:quiz_id`
+- **Method:** `POST`
+- **Description:** Update an existing quiz.
+- **Path Parameters:**
+  - `quiz_id` (String, required)
+- **Request Body:**
+  - `difficulty` (String, optional, values: `easy`, `medium`, `hard`)
+  - `title` (String, optional)
+  - `type` (Number, optional)
+  - `description` (String, optional)
 
-# Editing this README
+## Quiz Questions Management
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+### Import Questions into a Quiz
+- **Endpoint:** `/quiz/:quiz_id/import_questions`
+- **Method:** `POST`
+- **Description:** Import questions into a quiz.
+- **Path Parameters:**
+  - `quiz_id` (String, required)
+- **Request Body:**
+  - `category` (Number, required, between 9 and 32)
+  - `difficulty` (String, required)
+  - `amount` (Number, required, 1-50)
 
-## Suggestions for a good README
+### Get Specific Question Information
+- **Endpoint:** `/quiz/:quiz_id/:question_id`
+- **Method:** `GET`
+- **Description:** Retrieve information about a specific question.
+- **Path Parameters:**
+  - `quiz_id` (String, required)
+  - `question_id` (String, required)
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+### Create a New Question in a Quiz
+- **Endpoint:** `/quiz/:quiz_id/create_question`
+- **Method:** `POST`
+- **Description:** Create a new question within a specific quiz.
+- **Path Parameters:**
+  - `quiz_id` (String, required)
+- **Request Body:**
+  - `question_text` (String, required)
+  - `question_difficulty` (String, required)
+  - `question_category` (String, required)
+  - `question_type` (String, required)
+  - `options` (Array, required, at least two options)
+    - `option_text` (String, required)
+    - `is_correct_answer` (Boolean, required)
 
-## Name
-Choose a self-explaining name for your project.
+### Update a Question
+- **Endpoint:** `/quiz/:quiz_id/:question_id`
+- **Method:** `POST`
+- **Description:** Update a question within a quiz.
+- **Path Parameters:**
+  - `quiz_id` (String, required)
+  - `question_id` (String, required)
+- **Request Body:** (Partial fields allowed)
+  - `question_text`, `question_difficulty`, `question_category`, `question_type`, `options`
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+### Delete a Question
+- **Endpoint:** `/quiz/:quiz_id/:question_id`
+- **Method:** `DELETE`
+- **Description:** Delete a specific question from a quiz.
+- **Path Parameters:**
+  - `quiz_id` (String, required)
+  - `question_id` (String, required)
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+## Games Management
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+### Get Started Games by the User
+- **Endpoint:** `/game/user/started_games`
+- **Method:** `GET`
+- **Description:** Retrieve all games that have been started by the authenticated user.
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+### Create a New Game for a Quiz
+- **Endpoint:** `/game/:quiz_id/create`
+- **Method:** `GET`
+- **Description:** Create a new game instance for a specific quiz.
+- **Path Parameters:**
+  - `quiz_id` (String, required)
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+### Get a Question for a Specific Game
+- **Endpoint:** `/game/:game_id/question`
+- **Method:** `GET`
+- **Description:** Retrieve the current question for a given game.
+- **Path Parameters:**
+  - `game_id` (String, required, format: `^GA[A-Z0-9]{6}$`)
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+### Submit an Answer for a Game Question
+- **Endpoint:** `/game/:game_id/question`
+- **Method:** `POST`
+- **Description:** Submit an answer to a question in the game.
+- **Path Parameters:**
+  - `game_id` (String, required)
+- **Request Body:**
+  - `question_index` (Number, required)
+  - `option_index` (Number, required, 0-3)
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+## User Management
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+### Sign Up a New User
+- **Endpoint:** `/user/signup`
+- **Method:** `POST`
+- **Description:** Register a new user.
+- **Request Body:**
+  - `username` (String, required)
+  - `password` (String, required, 8-64 characters)
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+### Check Username Availability
+- **Endpoint:** `/user/username_avaible`
+- **Method:** `POST`
+- **Description:** Check if a given username is available.
+- **Request Body:**
+  - `username` (String, required)
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+### Sign In a User
+- **Endpoint:** `/user/signin`
+- **Method:** `POST`
+- **Description:** Sign in an existing user.
+- **Request Body:**
+  - `username` (String, required)
+  - `password` (String, required)
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+### Get User's Quizzes
+- **Endpoint:** `/user/quizzes`
+- **Method:** `GET`
+- **Description:** Get quizzes created by the authenticated user.
 
-## License
-For open source projects, say how it is licensed.
+### Get Games Played by the User
+- **Endpoint:** `/user/played_games`
+- **Method:** `GET`
+- **Description:** Retrieve games played by the authenticated user.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+### Get Specific Quiz Created by User
+- **Endpoint:** `/user/:quiz_id`
+- **Method:** `GET`
+- **Description:** Retrieve a specific quiz created by the user.
+- **Path Parameters:**
+  - `quiz_id` (String, required)
+
+## Categories and Difficulties
+
+### Get All Quiz Categories
+- **Endpoint:** `/categories`
+- **Method:** `GET`
+- **Description:** Retrieve all available quiz categories.
+
+### Get All Difficulty Levels
+- **Endpoint:** `/difficulties`
+- **Method:** `GET`
+- **Description:** Retrieve all available quiz difficulty levels.
+
+## Data Validation
+- **Quiz ID:** Must match the pattern `^QU[A-Z0-9]{6}$`
+- **Game ID:** Must match the pattern `^GA[A-Z0-9]{6}$`
+- **Category ID:** Must be a number between 9 and 32
+- **Username:** Must be between 8 and 64 characters in length
+- **Options:** Each question must have at least two options, and one correct answer
