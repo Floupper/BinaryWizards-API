@@ -1,9 +1,18 @@
-<<<<<<< HEAD
 image: node:latest
 
+prepare_env:
+  script:
+    - echo "DATABASE_URL="$DATABASE_URL > .env
+    - echo "JWT_SECRET="$JWT_SECRET >> .env
+    - echo "JWT_EXPIRES_IN="$JWT_EXPIRES_IN >> .env
+
 test:
+  needs:
+    - prepare_env
   script:
     - npm install
+    - npx prisma db push
+    - npx prisma generate
     - npm test --coverage --coverageDirectory=coverage --coverageProvider=babel --outputFile=test-results.xml
   artifacts:
     when: always
@@ -28,21 +37,20 @@ deploy:
   script:
     - echo "Deploy process started..."
     - echo "Deploy process completed."
-=======
-stages:
-  - trigger_clients_pipelines
+
 
 trigger_web:
-  stage: trigger_clients_pipelines
+  needs:
+    - test
   trigger:
     project: "binarywizards/s5-binarywizards-web"
-    branch: "devops"  
+    branch: "main"  
     strategy: depend
 
 trigger_mobile:
-  stage: trigger_clients_pipelines
+  needs:
+    - test
   trigger:
     project: "binarywizards/s5-binarywizards-mobile"
-    branch: "devops"
+    branch: "main"
     strategy: depend
->>>>>>> 1e1043751e999d9beafda0909f8e2f0de80e6c0c
