@@ -27,20 +27,16 @@ deploy:
   script:
     - echo "Deploy process started..."
     - echo "Deploy process completed."
-=======
-stages:
-  - trigger_clients_pipelines
+
 
 trigger_web:
-  stage: trigger_clients_pipelines
   trigger:
     project: "binarywizards/s5-binarywizards-web"
-    branch: "devops"  
+    branch: "main"  
     strategy: depend
 
 trigger_mobile:
-  stage: trigger_clients_pipelines
   trigger:
     project: "binarywizards/s5-binarywizards-mobile"
-    branch: "devops"
+    branch: "main"
     strategy: depend
