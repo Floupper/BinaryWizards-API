@@ -8,14 +8,14 @@ test:
     - npx create-env --env-file .env --env-prefix TEST_
     - npx prisma db push
     - npx prisma generate
-    - npm test --outputFile=coverage/test-results.xml
+    - npm test --outputFile=test-results.xml
   artifacts:
     when: always
     reports:
-      junit: coverage/test-results.xml
+      junit: test-results.xml
     paths:
-      - coverage/test-results.xml
-      
+      - test-results.xml
+
 build:
   needs:
     - test
