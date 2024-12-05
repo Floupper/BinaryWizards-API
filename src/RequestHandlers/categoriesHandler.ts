@@ -29,7 +29,7 @@ export async function get_all(req: Request, res: Response) {
             res.status(404).json({ error: 'Error while finding categories.' });
         }
     } catch (error) {
-        console.error('Erreur lors de la requête à l\'API :', error);
+        console.error('An error occurred while fetching categories :', error);
         res.status(500).json({ error: 'An error occurred while fetching categories.' });
     }
 }
