@@ -6,7 +6,7 @@ import { persist_answer } from '../Repositories/answersRepository';
 import { change_questions_indexes, get_total_questions_count } from '../Helpers/questionsHelper';
 import { get_correct_answers_count } from '../Helpers/answersHelper';
 import { persist_game_update } from '../Repositories/gamesRepository';
-import { QuestionImportData, QUIZID } from '../Validation/quiz';
+import { QuestionImportData } from '../Validation/quiz';
 import axios from 'axios';
 import he from 'he';
 import { delete_from_question, persist_option } from '../Repositories/optionsRepository';
@@ -193,6 +193,10 @@ export async function import_questions(req: Request, res: Response) {
         const { response_code, results } = apiResponse.data;
 
         if (response_code !== 0) {
+            if (response_code == 1) {
+                res.status(422).json({ error: 'The API have not enough questions with this parameters' })
+                return;
+            }
             res.status(400).json({ error: 'Error retrieving questions from the API.' });
             return;
         }
@@ -250,6 +254,10 @@ export async function import_questions(req: Request, res: Response) {
 
         res.status(201).json({ message: 'Questions added' });
     } catch (error: any) {
+        if (String(error.message).includes('429')) {
+            res.status(429).json({ error: 'Too Many Requests (Rate Limit Exceeded)' });
+            return;
+        }
         console.error('Error while importing questions:', error);
         res.status(500).json({ error: 'Error while importing questions', details: error.message });
     }

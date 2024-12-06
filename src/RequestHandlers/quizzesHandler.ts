@@ -42,6 +42,10 @@ export async function create_one(req: Request, res: Response) {
         const { response_code, results } = apiResponse.data;
 
         if (response_code !== 0) {
+            if (response_code == 1) {
+                res.status(422).json({ error: 'The API have not enough questions with this parameters' })
+                return;
+            }
             res.status(400).json({ error: 'Error retrieving questions from the API.' });
             return;
         }
@@ -100,6 +104,10 @@ export async function create_one(req: Request, res: Response) {
 
         res.status(201).json({ message: 'Quiz created', quiz_id: quiz.quiz_id });
     } catch (error: any) {
+        if (String(error.message).includes('429')) {
+            res.status(429).json({ error: 'Too Many Requests (Rate Limit Exceeded)' });
+            return;
+        }
         console.error('Erreur while creating quiz:', error);
         res.status(500).json({ error: 'Erreur while creating quiz', details: error.message });
     }
