@@ -38,6 +38,7 @@ export async function get_quiz_informations(quiz_id: string) {
         where: { quiz_id },
         select: {
             title: true,
+            description: true,
             difficulty: true,
             type: true,
             questions: {
