@@ -47,7 +47,7 @@ export async function get_one(req: Request, res: Response) {
             // Find all options for questions
             const options = question.options.map((option, index) => ({
                 option_index: option.option_index,
-                option_content: option.optionContent
+                option_content: option.option_content
             }));
 
 
@@ -305,6 +305,7 @@ export async function create_one(req: Request, res: Response) {
     try {
         assert(req.body, QuestionCreationData);
     } catch (error) {
+        console.log(error);
         res.status(400).json({ error: 'Data is invalid' });
         return;
     }
@@ -334,9 +335,9 @@ export async function create_one(req: Request, res: Response) {
             option_index: index,
             is_correct_answer: option.is_correct_answer,
             questionsQuestion_id: question.question_id,
-            OptionContents: {
-                type: option.OptionContents.type,
-                content: option.OptionContents.content,
+            option_content: {
+                type: option.option_content.type,
+                content: option.option_content.content,
             },
         }));
 
@@ -350,7 +351,9 @@ export async function create_one(req: Request, res: Response) {
 
         // Save options to database
         for (const option of optionsData) {
-            persist_option(option);
+            const { option_content, ...option_fields } = option;
+            persist_option_content(option_content);
+            persist_option(option_fields);
         }
 
         res.status(201).json({ message: 'Question created' })
@@ -456,16 +459,16 @@ export async function update_one(req: Request, res: Response) {
                 option_index: index,
                 is_correct_answer: option.is_correct_answer,
                 questionsQuestion_id: question_id,
-                optionContent: {
-                    type: option.optionContent.type,
-                    content: option.optionContent.content,
+                option_content: {
+                    type: option.option_content.type,
+                    content: option.option_content.content,
                 },
             }));
 
 
             for (const option of optionsData) {
-                const { optionContent, ...optionFields } = option;
-                persist_option_content(optionContent);
+                const { option_content, ...optionFields } = option;
+                persist_option_content(option_content);
                 persist_option(optionFields);
             }
         }

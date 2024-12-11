@@ -45,7 +45,7 @@ model Options {
 
   questions                      Questions?      @relation(fields: [questionsQuestion_id], references: [question_id])
   questionsQuestion_id           String
-  optionContent                  OptionContents? @relation(fields: [optionContentsOptionContent_id], references: [optionContent_id])
+  option_content                 OptionContents? @relation(fields: [optionContentsOptionContent_id], references: [optionContent_id])
   optionContentsOptionContent_id String?
 }
 

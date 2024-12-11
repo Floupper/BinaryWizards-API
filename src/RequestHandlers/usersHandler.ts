@@ -203,7 +203,7 @@ export const get_question = async (req: Request, res: Response) => {
             const selection_percentage = total_answers > 0 ? (selected_count / total_answers) * 100 : 0;
             return {
                 option_id: option.option_id,
-                option_content: option.optionContent,
+                option_content: option.option_content,
                 is_correct_answer: option.is_correct_answer,
                 selection_percentage
             };

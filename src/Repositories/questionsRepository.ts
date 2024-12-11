@@ -13,7 +13,7 @@ export async function get_current_question(quiz_id: string, question_index: numb
                     option_id: true,
                     option_index: true,
                     is_correct_answer: true,
-                    optionContent: {
+                    option_content: {
                         select: {
                             type: true,
                             content: true
@@ -84,7 +84,7 @@ export async function get_question_informations(question_id: string) {
             quizzesQuiz_id: true,
             options: {
                 select: {
-                    optionContent: {
+                    option_content: {
                         select: {
                             type: true,
                             content: true
@@ -117,7 +117,7 @@ export async function get_user_question(question_id: string) {
                     option_id: true,
                     option_index: true,
                     is_correct_answer: true,
-                    optionContent: {
+                    option_content: {
                         select: {
                             type: true,
                             content: true
@@ -133,7 +133,7 @@ export async function get_user_question(question_id: string) {
                         select: {
                             option_id: true,
                             is_correct_answer: true,
-                            optionContent: {
+                            option_content: {
                                 select: {
                                     type: true,
                                     content: true
