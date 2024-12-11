@@ -8,7 +8,19 @@ export async function get_current_question(quiz_id: string, question_index: numb
             question_index: question_index,
         },
         include: {
-            options: true,
+            options: {
+                select: {
+                    option_id: true,
+                    option_index: true,
+                    is_correct_answer: true,
+                    optionContent: {
+                        select: {
+                            type: true,
+                            content: true
+                        }
+                    }
+                }
+            }
         },
     });
 }
@@ -72,7 +84,12 @@ export async function get_question_informations(question_id: string) {
             quizzesQuiz_id: true,
             options: {
                 select: {
-                    option_text: true,
+                    optionContent: {
+                        select: {
+                            type: true,
+                            content: true
+                        }
+                    },
                     option_index: true,
                     is_correct_answer: true,
                 },
@@ -98,9 +115,14 @@ export async function get_user_question(question_id: string) {
             options: {
                 select: {
                     option_id: true,
-                    option_text: true,
                     option_index: true,
-                    is_correct_answer: true
+                    is_correct_answer: true,
+                    optionContent: {
+                        select: {
+                            type: true,
+                            content: true
+                        }
+                    }
                 }
             },
             answers: {
@@ -110,8 +132,13 @@ export async function get_user_question(question_id: string) {
                     options: {
                         select: {
                             option_id: true,
-                            option_text: true,
-                            is_correct_answer: true
+                            is_correct_answer: true,
+                            optionContent: {
+                                select: {
+                                    type: true,
+                                    content: true
+                                }
+                            }
                         }
                     }
                 }

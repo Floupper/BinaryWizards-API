@@ -203,7 +203,7 @@ export const get_question = async (req: Request, res: Response) => {
             const selection_percentage = total_answers > 0 ? (selected_count / total_answers) * 100 : 0;
             return {
                 option_id: option.option_id,
-                option_text: option.option_text,
+                option_content: option.optionContent,
                 is_correct_answer: option.is_correct_answer,
                 selection_percentage
             };
@@ -251,7 +251,7 @@ export const get_games = async (req: Request, res: Response) => {
                     };
                 }
                 return null;
-                
+
             }));
             const completed_games = played_games.filter(game => game !== null);
             res.status(200).json(completed_games.length > 0 ? completed_games : []);

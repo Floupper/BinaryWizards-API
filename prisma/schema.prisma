@@ -43,10 +43,10 @@ model Options {
   is_correct_answer Boolean
   answers           Answers[]
 
-  questions                      Questions?     @relation(fields: [questionsQuestion_id], references: [question_id])
+  questions                      Questions?      @relation(fields: [questionsQuestion_id], references: [question_id])
   questionsQuestion_id           String
-  OptionContents                 OptionContents @relation(fields: [optionContentsOptionContent_id], references: [optionContent_id])
-  optionContentsOptionContent_id String
+  optionContent                  OptionContents? @relation(fields: [optionContentsOptionContent_id], references: [optionContent_id])
+  optionContentsOptionContent_id String?
 }
 
 model Answers {

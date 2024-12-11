@@ -1,8 +1,14 @@
 import { object, number, size, string, boolean, refine, array, optional } from 'superstruct';
 
+const OptionContentStruct = object({
+    type: string(), // 'text', 'image', 'audio'
+    content: string(),
+});
+
 const OptionStruct = object({
-    option_text: string(),
+    option_index: number(),
     is_correct_answer: boolean(),
+    optionContent: OptionContentStruct,
 });
 
 export const QuestionAnswerData = object({

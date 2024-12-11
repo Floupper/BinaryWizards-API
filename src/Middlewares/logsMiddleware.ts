@@ -42,7 +42,10 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
         console.log('Query:', req.query);
     }
     if (req.body && Object.keys(req.body).length > 0) {
-        console.log('Body:', req.body);
+        if (req.originalUrl == "/user/signup" || req.originalUrl == "/user/signin")
+            console.log('Body hidden for hiding password');
+        else
+            console.log('Body:', req.body);
     }
 
     next();

@@ -8,6 +8,13 @@ import { get_total_questions_count } from '../Helpers/questionsHelper';
 export async function create_one(req: Request, res: Response) {
     const { quiz_id } = req.params;
 
+    const { mode } = req.body;
+
+    if (!mode) {
+        res.status(400).json({ error: 'Missing mode field (standart, time, scrum, team)' });
+        return;
+    }
+
     try {
         const quiz = await get_quiz(quiz_id);
 
@@ -24,7 +31,7 @@ export async function create_one(req: Request, res: Response) {
         const user_id = req.user?.user_id || null;
         let newGame;
 
-        newGame = await persist_game(quiz_id, user_id);
+        newGame = await persist_game(quiz_id, user_id, mode);
 
 
         res.status(201).json({ message: 'Game created', game_id: newGame.game_id });

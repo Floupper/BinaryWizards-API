@@ -9,7 +9,7 @@ import { persist_game_update } from '../Repositories/gamesRepository';
 import { QuestionImportData } from '../Validation/quiz';
 import axios from 'axios';
 import he from 'he';
-import { delete_from_question, persist_option } from '../Repositories/optionsRepository';
+import { delete_from_question, persist_option, persist_option_content } from '../Repositories/optionsRepository';
 
 
 export async function get_one(req: Request, res: Response) {
@@ -47,7 +47,7 @@ export async function get_one(req: Request, res: Response) {
             // Find all options for questions
             const options = question.options.map((option, index) => ({
                 option_index: option.option_index,
-                option_text: option.option_text
+                option_content: option.optionContent
             }));
 
 
@@ -220,23 +220,34 @@ export async function import_questions(req: Request, res: Response) {
             // Prepare the options
             const optionsData = [];
 
+            const correctOptionContent = await persist_option_content({
+                type: 'text',
+                content: correctAnswer
+            });
+
             // Add the correct answer
             optionsData.push({
-                option_text: correctAnswer,
                 option_index: 0,
                 is_correct_answer: true,
                 questionsQuestion_id: question.question_id,
+                optionContentsOptionContent_id: correctOptionContent.optionContent_id
             });
 
+
             // Add incorrect answers
-            incorrectAnswers.forEach((incorrectAnswer: string, index: number) => {
+            for (const [index, incorrectAnswer] of incorrectAnswers.entries()) {
+                const incorrectOptionContent = await persist_option_content({
+                    type: 'text',
+                    content: incorrectAnswer
+                });
+
                 optionsData.push({
-                    option_text: incorrectAnswer,
                     option_index: index + 1,
                     is_correct_answer: false,
                     questionsQuestion_id: question.question_id,
+                    optionContentsOptionContent_id: incorrectOptionContent.optionContent_id
                 });
-            });
+            }
 
             // Sort questions randomly
             optionsData.sort(() => Math.random() - 0.5);
@@ -320,10 +331,13 @@ export async function create_one(req: Request, res: Response) {
         const question = await persist_question(question_index, question_text, question_category, question_difficulty, question_type, req.params.quiz_id);
 
         const optionsData = options.map((option: any, index: number) => ({
-            option_text: option.option_text,
             option_index: index,
             is_correct_answer: option.is_correct_answer,
             questionsQuestion_id: question.question_id,
+            OptionContents: {
+                type: option.OptionContents.type,
+                content: option.OptionContents.content,
+            },
         }));
 
         // Sort questions randomly
@@ -439,15 +453,20 @@ export async function update_one(req: Request, res: Response) {
             await delete_from_question(question_id);
 
             const optionsData = options.map((option: any, index: number) => ({
-                option_text: option.option_text,
                 option_index: index,
                 is_correct_answer: option.is_correct_answer,
                 questionsQuestion_id: question_id,
+                optionContent: {
+                    type: option.optionContent.type,
+                    content: option.optionContent.content,
+                },
             }));
 
 
             for (const option of optionsData) {
-                persist_option(option);
+                const { optionContent, ...optionFields } = option;
+                persist_option_content(optionContent);
+                persist_option(optionFields);
             }
         }
 
