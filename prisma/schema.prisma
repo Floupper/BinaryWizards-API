@@ -38,13 +38,15 @@ model Questions {
 }
 
 model Options {
-  option_id            String     @id @default(uuid())
-  option_text          String
-  option_index         Int
-  is_correct_answer    Boolean
-  answers              Answers[]
-  Questions            Questions? @relation(fields: [questionsQuestion_id], references: [question_id])
-  questionsQuestion_id String?
+  option_id         String    @id @default(uuid())
+  option_index      Int
+  is_correct_answer Boolean
+  answers           Answers[]
+
+  questions                      Questions?      @relation(fields: [questionsQuestion_id], references: [question_id])
+  questionsQuestion_id           String
+  option_content                 OptionContents? @relation(fields: [optionContentsOptionContent_id], references: [optionContent_id])
+  optionContentsOptionContent_id String?
 }
 
 model Answers {
@@ -58,13 +60,15 @@ model Answers {
 }
 
 model Users {
-  user_id    String    @id @default(uuid())
-  email      String?   @unique
-  username   String    @unique
-  password   String
-  quizzes    Quizzes[]
-  games      Games[]
-  created_at DateTime  @default(now())
+  user_id     String    @id @default(uuid())
+  email       String?   @unique
+  username    String    @unique
+  password    String
+  quizzes     Quizzes[]
+  games       Games[]
+  created_at  DateTime  @default(now())
+  team        Teams?    @relation(fields: [teamTeam_id], references: [team_id])
+  teamTeam_id String?
 }
 
 model Games {
@@ -76,4 +80,26 @@ model Games {
   quizzesQuiz_id         String
   user                   Users?    @relation(fields: [userUser_id], references: [user_id])
   userUser_id            String?
+
+  mode             String // 'standard', 'time', 'scrum', 'team'
+  difficulty_level String? // 'facile', 'moyen', 'difficile' (for 'time' and 'team')
+  max_players      Int? // For 'scrum'
+  teams            Teams[] // For 'team'
+  game_link        String?
+}
+
+model OptionContents {
+  optionContent_id String    @id @default(uuid())
+  type             String // 'text', 'image', 'audio'
+  content          String // URL for images/sounds or text for textuel answers
+  options          Options[]
+}
+
+model Teams {
+  team_id      String  @id @default(uuid())
+  name         String
+  score        Float   @default(0)
+  games        Games   @relation(fields: [gamesGame_id], references: [game_id])
+  gamesGame_id String
+  players      Users[]
 }
