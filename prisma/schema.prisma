@@ -85,7 +85,8 @@ model Games {
   difficulty_level String? // 'facile', 'moyen', 'difficile' (for 'time' and 'team')
   max_players      Int? // For 'scrum'
   teams            Teams[] // For 'team'
-  game_link        String?
+
+  status String @default("pending") // 'pending', 'started', 'finished'
 }
 
 model OptionContents {
