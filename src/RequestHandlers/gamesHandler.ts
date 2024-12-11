@@ -3,15 +3,19 @@ import { persist_game } from '../Repositories/gamesRepository';
 import { get_quiz } from '../Repositories/quizzesRepository';
 import { count_started_games_by_user, get_started_games_by_user_paginated } from '../Repositories/usersRepository';
 import { get_total_questions_count } from '../Helpers/questionsHelper';
+import { assert } from 'superstruct';
+import { GameCreationData } from '../Validation/game';
 
 
 export async function create_one(req: Request, res: Response) {
     const { quiz_id } = req.params;
 
-    const { mode } = req.body;
-
-    if (!mode) {
-        res.status(400).json({ error: 'Missing mode field (standart, time, scrum, team)' });
+    try {
+        assert(req.body, GameCreationData);
+    } catch (error) {
+        res.status(400).json({
+            error: 'Mode field empty or incorrect (standard, time, scrum, team)'
+        });
         return;
     }
 
@@ -31,7 +35,7 @@ export async function create_one(req: Request, res: Response) {
         const user_id = req.user?.user_id || null;
         let newGame;
 
-        newGame = await persist_game(quiz_id, user_id, mode);
+        newGame = await persist_game(quiz_id, user_id, req.body.mode);
 
 
         res.status(201).json({ message: 'Game created', game_id: newGame.game_id });
