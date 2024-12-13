@@ -60,15 +60,14 @@ model Answers {
 }
 
 model Users {
-  user_id     String    @id @default(uuid())
-  email       String?   @unique
-  username    String    @unique
-  password    String
-  quizzes     Quizzes[]
-  games       Games[]
-  created_at  DateTime  @default(now())
-  team        Teams?    @relation(fields: [teamTeam_id], references: [team_id])
-  teamTeam_id String?
+  user_id    String    @id @default(uuid())
+  email      String?   @unique
+  username   String    @unique
+  password   String
+  quizzes    Quizzes[]
+  games      Games[]
+  created_at DateTime  @default(now())
+  teams      Teams[]
 }
 
 model Games {
