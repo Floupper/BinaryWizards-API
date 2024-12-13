@@ -4,9 +4,8 @@ import { count_started_games_by_user, get_started_games_by_user_paginated } from
 import { get_total_questions_count } from '../Helpers/questionsHelper';
 import { assert } from 'superstruct';
 import { GameInitData } from '../Validation/game';
-import { add_player_to_scrum_game, count_players_in_game, get_game, get_teams_in_game, update_game_status } from '../Repositories/gamesRepository';
+import { get_game } from '../Repositories/gamesRepository';
 import { generate_game_link } from '../Helpers/gamesHelper';
-import { assign_player_to_team, find_team } from '../Repositories/teamsRepository';
 import { GameControllerFactory } from '../Controllers/GameControllerFactory';
 
 
