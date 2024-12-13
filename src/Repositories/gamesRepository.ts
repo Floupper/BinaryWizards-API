@@ -101,3 +101,26 @@ export async function add_player_to_scrum_game(game_id: string, user_id: string)
     });
 }
 
+
+export async function is_scrum_player(game_id: string, user_id: string) {
+    return await prisma.teams.findFirst({
+        where: {
+            gamesGame_id: game_id,
+            players: {
+                some: { user_id: user_id },
+            },
+        },
+    });
+}
+
+
+export async function is_team_player(game_id: string, user_id: string) {
+    return await prisma.teams.findFirst({
+        where: {
+            gamesGame_id: game_id,
+            players: {
+                some: { user_id: user_id },
+            },
+        },
+    });
+}
