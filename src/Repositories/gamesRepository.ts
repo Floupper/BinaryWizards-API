@@ -57,7 +57,15 @@ export async function count_players_in_game(game_id: string): Promise<number> {
 
     if (game.mode === 'scrum') {
         return await prisma.users.count({
-            where: { teamTeam_id: { in: game.teams.map(team => team.team_id) } },
+            where: {
+                teams: {
+                    some: {
+                        team_id: {
+                            in: game.teams.map(team => team.team_id)
+                        }
+                    }
+                }
+            }
         });
     } else if (game.mode === 'team') {
         let count = 0;

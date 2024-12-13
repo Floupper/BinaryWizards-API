@@ -31,40 +31,47 @@ export async function checkGameAccess(req: Request, res: Response, next: NextFun
             case 'standard':
             case 'time':
                 if (!user) {
-                    return res.status(401).json({ error: 'Authentication required to access this game' });
+                    res.status(401).json({ error: 'Authentication required to access this game' });
+                    return;
                 }
                 if (game.userUser_id !== user.user_id) {
-                    return res.status(403).json({ error: 'You are not authorized to access this game' });
+                    res.status(403).json({ error: 'You are not authorized to access this game' });
+                    return;
                 }
                 break;
 
             case 'scrum':
                 if (!user) {
-                    return res.status(401).json({ error: 'Authentication required to access this game' });
+                    res.status(401).json({ error: 'Authentication required to access this game' });
+                    return;
                 }
 
                 // Verifying if player is in the scrum game
                 const isScrumPlayer = await is_scrum_player(game.game_id, user.user_id);
 
                 if (!isScrumPlayer) {
-                    return res.status(403).json({ error: 'You have not joined this Scrum game' });
+                    res.status(403).json({ error: 'You have not joined this Scrum game' });
+                    return;
                 }
                 break;
 
             case 'team':
                 if (!user) {
-                    return res.status(401).json({ error: 'Authentication required to access this game' });
+                    res.status(401).json({ error: 'Authentication required to access this game' });
+                    return;
                 }
 
                 const isTeamPlayer = await is_team_player(game.game_id, user.user_id);
 
                 if (!isTeamPlayer) {
-                    return res.status(403).json({ error: 'You are not part of any team in this game' });
+                    res.status(403).json({ error: 'You are not part of any team in this game' });
+                    return;
                 }
                 break;
 
             default:
-                return res.status(400).json({ error: 'Invalid game mode' });
+                res.status(400).json({ error: 'Invalid game mode' });
+                return;
         }
 
         req.game = game;
