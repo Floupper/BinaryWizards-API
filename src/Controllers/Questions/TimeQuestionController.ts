@@ -85,6 +85,7 @@ export class TimeQuestionController implements SingleplayerQuestionControllerInt
                     question_difficulty: question.question_difficulty,
                     question_category: question.question_category,
                     quiz_id: game.quizzesQuiz_id,
+                    time_avaible: (new Date().getTime() - start_time.getTime()) / 1000,
                     time_limit: time_limit // Include the time limit in the response
                 });
             } else {
