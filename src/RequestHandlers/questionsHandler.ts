@@ -390,7 +390,7 @@ export async function update_one(req: Request, res: Response) {
             }
         }
 
-        res.status(200).json({ message: 'Question updated successfully' });
+        res.status(200).json({ message: 'Question updated successfully', question_id: question_id });
     } catch (error) {
         console.error('Error deleting question:', error);
 
