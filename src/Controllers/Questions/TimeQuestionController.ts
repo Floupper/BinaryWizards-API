@@ -159,7 +159,28 @@ export class TimeQuestionController implements SingleplayerQuestionControllerInt
                 const elapsed_seconds = (current_time.getTime() - start_time.getTime()) / 1000;
 
                 if (elapsed_seconds > time_limit) {
-                    res.status(400).json({ error: 'Time limit exceeded for this question' });
+                    // Update the game in the database: increment the question index and reset the question time
+                    await persist_game_update(game_id, {
+                        current_question_index: game.current_question_index + 1,
+                        question_start_time: null // Reset the question start time
+                    });
+
+
+                    const correctOption = question.options.find(
+                        (option: any) => option.is_correct_answer
+                    );
+
+                    if (!correctOption) {
+                        res.status(500).json({ error: 'Correct answer not found' });
+                        return;
+                    }
+
+                    const correctOptionIndex = correctOption.option_index;
+                    res.status(200).json({
+                        error: 'Time limit exceeded for this question',
+                        is_correct: false,
+                        correct_option_index: correctOptionIndex,
+                    });
                     return;
                 }
 
