@@ -1,6 +1,6 @@
 import { Server } from 'socket.io';
 import { GameControllerInterface } from '../../Interfaces/GameControllerInterface';
-import { add_player_to_scrum_game, count_players_in_game, is_scrum_player, persist_game, update_game_status } from '../../Repositories/gamesRepository';
+import { add_player_to_scrum_game, count_players_in_game, get_players_in_game, is_scrum_player, persist_game, update_game_status } from '../../Repositories/gamesRepository';
 import { SocketError } from '../../Sockets/SocketError';
 
 export class ScrumGameController implements GameControllerInterface {
@@ -48,8 +48,20 @@ export class ScrumGameController implements GameControllerInterface {
         }
 
 
+        const players = await get_players_in_game(game.game_id);
+
+        const playerList: string[] = [];
+
+        players.forEach(game => {
+            game.teams.forEach(team => {
+                team.players.forEach(player => {
+                    playerList.push(player.username);
+                });
+            });
+        });
+
         // Notify other players that a player joined
-        this.io.to(game.game_id).emit('playerJoined', { user_id: user.user_id, username: user.username });
+        this.io.to(game.game_id).emit('playerJoined', { playerList });
 
         return { message: 'Scrum game successfully joined.' };
     }

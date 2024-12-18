@@ -133,3 +133,21 @@ export async function is_team_player(game_id: string, user_id: string) {
         },
     });
 }
+
+
+export async function get_players_in_game(game_id: string) {
+    return await prisma.games.findMany({
+        where: { game_id },
+        include: {
+            teams: {
+                include: {
+                    players: {
+                        select: {
+                            username: true,
+                        },
+                    },
+                },
+            },
+        },
+    });
+}
