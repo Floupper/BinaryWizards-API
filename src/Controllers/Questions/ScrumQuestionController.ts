@@ -111,7 +111,7 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
 
 
         if (isCorrect) {
-            await persist_game_update(game_id, {
+            game = await persist_game_update(game_id, {
                 current_question_index: game.current_question_index + 1
             });
 

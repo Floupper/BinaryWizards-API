@@ -14,7 +14,7 @@ export async function persist_game_update(game_id: string, updateData: Partial<{
     current_question_index: number;
     question_start_time: string | null;
 }>) {
-    await prisma.games.update({
+    return await prisma.games.update({
         where: { game_id },
         data: updateData,
     });
