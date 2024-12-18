@@ -297,7 +297,7 @@ export async function delete_one(req: Request, res: Response) {
             res.status(404).json({ error: 'Question does not belong to the provided quiz' });
             return;
         }
-
+        await delete_from_question(question_id);
         await delete_question(question_id);
 
         const remainingQuestions = await get_all_questions(quiz_id);
