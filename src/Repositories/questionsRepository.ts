@@ -195,3 +195,17 @@ export async function decrement_questions_index(quiz_id: string, currentIndex: n
         },
     });
 }
+
+
+
+export async function is_already_answered(game_id: string, question_id: string) {
+    return await prisma.answers.findFirst({
+        where: {
+            questionsQuestion_id: question_id,
+            gamesGame_id: game_id,
+            options: {
+                is_correct_answer: true
+            }
+        }
+    });
+}

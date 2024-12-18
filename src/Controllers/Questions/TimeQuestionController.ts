@@ -184,18 +184,26 @@ export class TimeQuestionController implements SingleplayerQuestionControllerInt
                     return;
                 }
 
-                // Find the selected option
-                const chosenOption = question.options.find(
-                    (option: any) => option.option_index === option_index
-                );
+                let isCorrect = false;
+                if (option_index != -1) {
 
-                if (!chosenOption) {
-                    res.status(400).json({ error: 'Invalid option index' });
-                    return;
+                    // Find the selected option
+                    const chosenOption = question.options.find(
+                        (option: any) => option.option_index === option_index
+                    );
+
+                    if (!chosenOption) {
+                        res.status(400).json({ error: 'Invalid option index' });
+                        return;
+                    }
+
+                    // Determine if the answer is correct
+                    isCorrect = chosenOption.is_correct_answer;
+
+
+                    // Add the answer
+                    await persist_answer(game_id, question.question_id, chosenOption.option_id, req.user?.user_id ? req.user.user_id : null);
                 }
-
-                // Determine if the answer is correct
-                const isCorrect = chosenOption.is_correct_answer;
 
                 // Find the correct answer index
                 const correctOption = question.options.find(
@@ -214,9 +222,6 @@ export class TimeQuestionController implements SingleplayerQuestionControllerInt
                     current_question_index: game.current_question_index + 1,
                     question_start_time: null // Reset the question start time
                 });
-
-                // Add the answer
-                await persist_answer(game_id, question.question_id, chosenOption.option_id);
 
                 // Build the response
                 res.status(200).json({

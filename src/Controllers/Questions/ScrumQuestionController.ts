@@ -2,7 +2,7 @@ import { Server } from 'socket.io';
 import { persist_game_update } from '../../Repositories/gamesRepository';
 import { get_total_questions_count } from '../../Helpers/questionsHelper';
 import { get_correct_answers_count } from '../../Helpers/answersHelper';
-import { get_current_question } from '../../Repositories/questionsRepository';
+import { get_current_question, is_already_answered } from '../../Repositories/questionsRepository';
 import { get_user_answer, persist_answer } from '../../Repositories/answersRepository';
 import { MultiplayerQuestionControllerInterface } from '../../Interfaces/MultiplayerQuestionControllerInterface';
 import { Games } from '@prisma/client';
@@ -79,6 +79,16 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
             throw new SocketError('Question not found');
         }
 
+        const isAlreadyAnswered = await is_already_answered(game_id, question.question_id);
+        if (isAlreadyAnswered) {
+            throw new SocketError('Question has already been answered with the right answer');
+        }
+
+        const userAnswer = await get_user_answer(game_id, question.question_id, user_id);
+        if (userAnswer) {
+            throw new SocketError('Player has already answered this question');
+        }
+
         const chosenOption = question.options.find(
             (option: any) => option.option_index === option_index
         );
@@ -99,15 +109,7 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
 
         const correctOptionIndex = correctOption.option_index;
 
-        // Save the answer
-        await persist_game_update(game_id, {
-            current_question_index: game.current_question_index + 1,
-            question_start_time: null // Reset the question start time
-        });
-
-        await persist_answer(game_id, question.question_id, chosenOption.option_id);
-
-
+        await persist_answer(game_id, question.question_id, chosenOption.option_id, user_id);
 
 
         if (isCorrect) {

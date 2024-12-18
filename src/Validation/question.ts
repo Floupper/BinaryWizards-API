@@ -13,7 +13,7 @@ const OptionStruct = object({
 
 export const QuestionAnswerData = object({
     question_index: number(),
-    option_index: size(number(), 0, 3),
+    option_index: size(number(), -1, 3),
 });
 
 export const QuestionCreationData = object({
