@@ -138,7 +138,7 @@ export class StandardQuestionController implements SingleplayerQuestionControlle
                 await persist_game_update(game_id, { current_question_index: game.current_question_index + 1 });
 
                 // Add the answer
-                await persist_answer(game_id, question.question_id, chosenOption.option_id);
+                await persist_answer(game_id, question.question_id, chosenOption.option_id, req.user?.user_id ? req.user.user_id : null);
 
                 // Build the response
                 res.status(200).json({

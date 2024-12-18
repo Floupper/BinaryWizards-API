@@ -6,6 +6,7 @@ import { socketCheckGameAccess, socketValidateGameId } from '../Middlewares/Sock
 import { MultiplayerQuestionControllerFactory } from '../Controllers/Questions/Factory/MultiplayerQuestionControllerFactory copy';
 import { MultiplayerQuestionControllerInterface } from '../Interfaces/MultiplayerQuestionControllerInterface';
 import { SocketError } from './SocketError';
+import { get_game } from '../Repositories/gamesRepository';
 
 const gameSocket = (io: Server, socket: AuthenticatedSocket) => {
     // Check if the user is authenticated
@@ -31,7 +32,11 @@ const gameSocket = (io: Server, socket: AuthenticatedSocket) => {
             await socketValidateGameId(game_id);
 
             // Check game access
-            const game = await socketCheckGameAccess(game_id, user);
+            const game = await get_game(game_id);
+
+            if (!game) {
+                throw new SocketError('Game not found');
+            }
 
             // Get the controller via the factory by passing the dependencies
             const controller = GameControllerFactory.getController(game.mode, dependencies);

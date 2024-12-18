@@ -3,13 +3,15 @@ import { prisma } from "../db";
 export async function persist_answer(
   gamesGame_id: string,
   questionsQuestion_id: string,
-  optionsOption_id: string
+  optionsOption_id: string,
+  usersUser_id: string | null
 ) {
   return await prisma.answers.create({
     data: {
       gamesGame_id,
       questionsQuestion_id,
       optionsOption_id,
+      usersUser_id
     },
   });
 }
@@ -73,3 +75,4 @@ export async function get_user_answer(gamesGame_id: string, questionsQuestion_id
     },
   });
 }
+

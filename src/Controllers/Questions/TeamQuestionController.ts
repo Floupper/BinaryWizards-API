@@ -139,6 +139,12 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
             throw new SocketError('Question not found');
         }
 
+        const userAnswer = await get_user_answer(game_id, question.question_id, user_id);
+
+        if (userAnswer) {
+            throw new SocketError('Player has already answered this question');
+        }
+
         const time_limit = this.getTimeLimit(game.difficulty_level);
 
         // Get the question start time
@@ -172,14 +178,6 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
             throw new SocketError('Correct answer not found');
         }
 
-        const correctOptionIndex = correctOption.option_index;
-
-        // Save the answer
-        await persist_game_update(game_id, {
-            current_question_index: game.current_question_index + 1,
-            question_start_time: null // Reset the question start time
-        });
-
-        await persist_answer(game_id, question.question_id, chosenOption.option_id);
+        await persist_answer(game_id, question.question_id, chosenOption.option_id, user_id);
     }
 }
