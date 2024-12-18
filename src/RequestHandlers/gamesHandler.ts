@@ -6,7 +6,7 @@ import { assert } from 'superstruct';
 import { GameInitData } from '../Validation/game';
 import { get_game } from '../Repositories/gamesRepository';
 import { generate_game_link } from '../Helpers/gamesHelper';
-import { GameControllerFactory } from '../Controllers/GameControllerFactory';
+import { GameControllerFactory } from '../Controllers/Games/Factory/GameControllerFactory';
 
 
 export async function init_one(req: Request, res: Response) {
@@ -36,7 +36,7 @@ export async function init_one(req: Request, res: Response) {
 
         const user_id = req.user?.user_id || null;
 
-        const gameController = GameControllerFactory.getController(mode);
+        const gameController = GameControllerFactory.getController(mode, null);
 
         const newGame = await gameController.init(quiz_id, user_id, initData);
 
@@ -55,142 +55,12 @@ export async function init_one(req: Request, res: Response) {
             res.status(400).json({ error: error.message });
             return;
         }
-        if (error.message.includes('authenticated')) {
-            res.status(403).json({ error: error.message });
-            return;
-        }
         console.error('Error at game initialization :', error);
 
 
         res.status(500).json({ error: 'Internal server error in game initialization.' });
     }
 }
-
-
-
-export async function join_game(req: Request, res: Response) {
-    const { game_id } = req.params;
-    const user = req.user;
-    const joinData = req.body; // Additional data like team_name
-
-    try {
-        if (!user) {
-            // Could not happen because user is verified in middleware, added for ts errors
-            res.status(403).json({ error: 'Authentication required to join a game.' });
-            return;
-        }
-
-        const game = await get_game(game_id);
-
-        if (!game) {
-            res.status(404).json({ error: 'Game not found.' });
-            return;
-        }
-
-        if (game.status !== 'pending') {
-            res.status(400).json({ error: 'Impossible to join a started game.' });
-            return;
-        }
-
-        const gameController = GameControllerFactory.getController(game.mode);
-
-        const result = await gameController.join(game, user, joinData);
-
-        res.status(200).json(result);
-        return;
-    } catch (error: any) {
-
-        if (error.message === 'Invalid mode') {
-            res.status(400).json({ error: 'Invalid game mode.' });
-            return;
-        }
-        if (error.message.includes('required')) {
-            res.status(400).json({ error: error.message });
-            return;
-        }
-        if (error.message.includes('authenticated')) {
-            res.status(403).json({ error: error.message });
-            return;
-        }
-        if (error.message === 'Scrum game is full.') {
-            res.status(400).json({ error: error.message });
-            return;
-        }
-        if (error.message === 'Game mode does not support the join game action.') {
-            res.status(400).json({ error: error.message });
-            return;
-        }
-        if (error.message === 'Team not found for this game.') {
-            res.status(404).json({ error: error.message });
-            return;
-        }
-        if (error.message === 'You have already joined this game.') {
-            res.status(400).json({ error: error.message });
-            return;
-        }
-
-
-        console.error('Error in join_game function :', error);
-
-        res.status(500).json({ error: 'Internal server error in joining a game function.' });
-        return;
-    }
-}
-
-
-export async function start_one(req: Request, res: Response) {
-    const { game_id } = req.params;
-    const user = req.user;
-
-    try {
-        const game = await get_game(game_id);
-
-        if (!game) {
-            res.status(404).json({ error: 'Game not found.' });
-            return;
-        }
-
-        if (game.userUser_id !== user?.user_id) {
-            res.status(403).json({ error: 'You are not allowed to start this game.' });
-            return;
-        }
-
-        if (game.status !== 'pending') {
-            res.status(400).json({ error: 'Game can\'t be started in its current state.' });
-            return;
-        }
-
-        const gameController = GameControllerFactory.getController(game.mode);
-
-        const result = await gameController.start(game, user);
-
-        res.status(200).json(result);
-    } catch (error: any) {
-
-        if (error.message === 'Invalid mode') {
-            res.status(400).json({ error: 'Invalid game mode.' });
-            return;
-        }
-        if (error.message.includes('required')) {
-            res.status(400).json({ error: error.message });
-            return;
-        }
-        if (error.message.includes('allowed')) {
-            res.status(403).json({ error: error.message });
-            return;
-        }
-        if (error.message.includes('players')) {
-            res.status(400).json({ error: error.message });
-            return;
-        }
-
-
-        console.error('Error while starting game:', error);
-
-        res.status(500).json({ error: 'Internal server error while starting game.' });
-    }
-}
-
 
 export async function get_started_by_user(req: Request, res: Response): Promise<void> {
     const user = req.user;

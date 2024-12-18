@@ -70,10 +70,9 @@ app.delete('/quiz/:quiz_id/:question_id', validateQuizId, validateQuestionId, ch
 // Games routes
 app.get('/game/user/started_games', checkAuthentication, gamesHandler.get_started_by_user); // Get the games started by the authenticated user
 app.post('/game/:quiz_id/init', validateQuizId, gamesHandler.init_one); // Init a new game for a quiz
-app.post('/game/:game_id/start', validateGameId, gamesHandler.start_one); // Start the game
 app.get('/game/:game_id/question', validateGameId, checkGameAccess, questionsHandler.get_one); // Get a question for a specific game
 app.post('/game/:game_id/question', validateGameId, checkGameAccess, questionsHandler.send_answer); // Submit an answer for a question in a game
-app.get('/game/:game_id/join', validateGameId, checkAuthentication, gamesHandler.join_game);
+
 
 // Users routes
 app.post('/user/signup', usersHandler.create_one); // Sign up a new user
