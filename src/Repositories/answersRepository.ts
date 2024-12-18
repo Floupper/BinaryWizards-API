@@ -59,3 +59,17 @@ export async function get_correct_answers(gamesGame_id: string) {
     },
   });
 }
+
+
+export async function get_user_answer(gamesGame_id: string, questionsQuestion_id: string, user_id: string) {
+  return await prisma.answers.findFirst({
+    where: {
+      gamesGame_id,
+      questionsQuestion_id,
+      usersUser_id: user_id,
+    },
+    include: {
+      options: true,
+    },
+  });
+}

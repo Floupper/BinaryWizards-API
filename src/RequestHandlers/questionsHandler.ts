@@ -273,7 +273,7 @@ export async function create_one(req: Request, res: Response) {
             persist_option(option_fields);
         }
 
-        res.status(201).json({ message: 'Question created' })
+        res.status(201).json({ message: 'Question created', question_id: question.question_id })
     } catch (error: any) {
         console.error('Error creating question :', error);
         res.status(500).json({ error: 'Error creating question', details: error.message });

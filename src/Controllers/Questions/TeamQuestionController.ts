@@ -3,7 +3,7 @@ import { persist_game_update } from '../../Repositories/gamesRepository';
 import { get_total_questions_count } from '../../Helpers/questionsHelper';
 import { get_correct_answers_count } from '../../Helpers/answersHelper';
 import { get_current_question } from '../../Repositories/questionsRepository';
-import { persist_answer } from '../../Repositories/answersRepository';
+import { get_user_answer, persist_answer } from '../../Repositories/answersRepository';
 import { MultiplayerQuestionControllerInterface } from '../../Interfaces/MultiplayerQuestionControllerInterface';
 import { Games } from '@prisma/client';
 import { SocketError } from '../../Sockets/SocketError';
@@ -34,6 +34,10 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
         const game_id = game.game_id;
         const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
 
+        if (!game.difficulty_level) {
+            throw new SocketError('Game difficulty level not found');
+        }
+
         if (game.current_question_index >= nb_questions_total) {
             const correctAnswers = await get_correct_answers_count(game_id, user_id);
             io.to(game_id).emit('gameFinished', {
@@ -49,7 +53,7 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
             throw new SocketError('Question not found');
         }
 
-        const time_limit = this.getTimeLimit(question.question_difficulty);
+        const time_limit = this.getTimeLimit(game.difficulty_level);
 
         // Update the game with the question start time
         const start_time = new Date();
@@ -77,6 +81,38 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
             quiz_id: game.quizzesQuiz_id,
             time_limit: time_limit
         });
+
+
+
+
+
+        setTimeout(async () => {
+            const correctOption = question.options.find(
+                (option: any) => option.is_correct_answer
+            );
+
+            if (!correctOption) {
+                throw new SocketError('Correct answer not found');
+            }
+
+            const correctOptionIndex = correctOption.option_index;
+
+            const userAnswer = await get_user_answer(game_id, question.question_id, user_id);
+
+            io.to(game_id).emit('answerResult', {
+                is_correct: userAnswer ? (userAnswer.options.is_correct_answer ? true : false) : false,
+                correct_option_index: correctOptionIndex,
+            });
+
+            await persist_game_update(game_id, {
+                current_question_index: game.current_question_index + 1,
+                question_start_time: null
+            });
+            await new Promise(resolve => setTimeout(resolve, 5000));
+
+            // Send the next question
+            await this.send_question(game, user_id, io);
+        }, time_limit * 1000);
 
     }
 
@@ -145,21 +181,5 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
         });
 
         await persist_answer(game_id, question.question_id, chosenOption.option_id);
-
-        // Send the result after a delay of 2 seconds
-        setTimeout(async () => {
-            // Send whether the answer is correct and the correct option index
-            io.to(game_id).emit('answerResult', {
-                is_correct: isCorrect,
-                correct_option_index: correctOptionIndex,
-            });
-
-            // Wait 2 seconds before sending the next question
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            // Send the next question
-            await this.send_question(game, user_id, io);
-        }, 2000);
-
     }
 }
