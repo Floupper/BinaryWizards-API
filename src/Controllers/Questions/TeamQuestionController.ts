@@ -104,7 +104,7 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
                 correct_option_index: correctOptionIndex,
             });
 
-            await persist_game_update(game_id, {
+            game = await persist_game_update(game_id, {
                 current_question_index: game.current_question_index + 1,
                 question_start_time: null
             });
