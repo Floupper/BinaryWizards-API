@@ -30,3 +30,15 @@ export async function init_team_for_game(game_id: string, team_name: string) {
         },
     });
 }
+
+
+export async function user_team_in_game(gamesGame_id: string, user_id: string | null) {
+    return await prisma.teams.findFirst({
+        where: {
+            gamesGame_id: gamesGame_id,
+            players: {
+                some: { user_id: user_id ?? undefined },
+            },
+        },
+    });
+}

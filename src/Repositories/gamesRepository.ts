@@ -10,12 +10,13 @@ export async function get_game(game_id: string) {
     });
 }
 
-export async function persist_game_update(game_id: string, current_question_index: number) {
+export async function persist_game_update(game_id: string, updateData: Partial<{
+    current_question_index: number;
+    question_start_time: string | null;
+}>) {
     await prisma.games.update({
         where: { game_id },
-        data: {
-            current_question_index,
-        },
+        data: updateData,
     });
 }
 
