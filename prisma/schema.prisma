@@ -57,6 +57,8 @@ model Answers {
   questionsQuestion_id String
   games                Games     @relation(fields: [gamesGame_id], references: [game_id])
   gamesGame_id         String
+  Users                Users?    @relation(fields: [usersUser_id], references: [user_id])
+  usersUser_id         String?
 }
 
 model Users {
@@ -68,6 +70,7 @@ model Users {
   games      Games[]
   created_at DateTime  @default(now())
   teams      Teams[]
+  answers    Answers[]
 }
 
 model Games {
@@ -85,7 +88,8 @@ model Games {
   max_players      Int? // For 'scrum'
   teams            Teams[] // For 'team'
 
-  status String @default("pending") // 'pending', 'started', 'finished'
+  status              String    @default("pending") // 'pending', 'started', 'finished'
+  question_start_time DateTime? // Start time of the current question for time and team modes
 }
 
 model OptionContents {
