@@ -14,11 +14,8 @@ export class TimeGameController implements GameControllerInterface {
         throw new Error(`The game mode ${game.mode} does not support the join game action.`);
     }
 
-    async start(game: any, user: any) {
-        // difficulty level is already verified in init
-
-        await update_game_status(game.game_id, 'started');
-        return { message: 'Time game started.' };
+    async start(game: any) {
+        throw new Error(`The game mode ${game.mode} does not support the start game action.`);
     }
 
     async init_time_game(quiz_id: string, user_id: string | null, difficulty_level: string) {

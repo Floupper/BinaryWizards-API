@@ -11,10 +11,8 @@ export class StandardGameController implements GameControllerInterface {
         throw new Error(`The game mode ${game.mode} does not support the join game action.`);
     }
 
-    async start(game: any, user: any) {
-        // For standard mode, no verification
-        await update_game_status(game.game_id, 'started');
-        return { message: 'Standard game started.' };
+    async start(game: any) {
+        throw new Error(`The game mode ${game.mode} does not support the start game action.`);
     }
 
 
