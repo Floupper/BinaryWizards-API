@@ -125,6 +125,7 @@ export const get_quiz = async (req: Request, res: Response) => {
 
     try {
         if (req.user?.user_id) { // User is not null because middleware is verifying it, adding condition cause of ts errors
+            const user = req.user;
             const quiz = await get_user_quiz(req.user.user_id, quiz_id);
 
             if (!quiz) {
@@ -232,7 +233,8 @@ export const get_games = async (req: Request, res: Response) => {
 
     try {
         if (req.user?.user_id) { // User is not null because middleware is verifying it, adding condition cause of ts errors
-            const games = await get_games_by_user(req.user.user_id);
+            const user = req.user;
+            const games = await get_games_by_user(user.user_id);
 
             // Build response
             const played_games = await Promise.all(games.map(async (game) => {

@@ -57,18 +57,20 @@ model Answers {
   questionsQuestion_id String
   games                Games     @relation(fields: [gamesGame_id], references: [game_id])
   gamesGame_id         String
+  Users                Users?    @relation(fields: [usersUser_id], references: [user_id])
+  usersUser_id         String?
 }
 
 model Users {
-  user_id     String    @id @default(uuid())
-  email       String?   @unique
-  username    String    @unique
-  password    String
-  quizzes     Quizzes[]
-  games       Games[]
-  created_at  DateTime  @default(now())
-  team        Teams?    @relation(fields: [teamTeam_id], references: [team_id])
-  teamTeam_id String?
+  user_id    String    @id @default(uuid())
+  email      String?   @unique
+  username   String    @unique
+  password   String
+  quizzes    Quizzes[]
+  games      Games[]
+  created_at DateTime  @default(now())
+  teams      Teams[]
+  answers    Answers[]
 }
 
 model Games {
@@ -85,7 +87,9 @@ model Games {
   difficulty_level String? // 'facile', 'moyen', 'difficile' (for 'time' and 'team')
   max_players      Int? // For 'scrum'
   teams            Teams[] // For 'team'
-  game_link        String?
+
+  status              String    @default("pending") // 'pending', 'started', 'finished'
+  question_start_time DateTime? // Start time of the current question for time and team modes
 }
 
 model OptionContents {

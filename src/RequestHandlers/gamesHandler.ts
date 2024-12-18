@@ -1,50 +1,66 @@
 import { Request, Response } from 'express';
-import { persist_game } from '../Repositories/gamesRepository';
 import { get_quiz } from '../Repositories/quizzesRepository';
 import { count_started_games_by_user, get_started_games_by_user_paginated } from '../Repositories/usersRepository';
 import { get_total_questions_count } from '../Helpers/questionsHelper';
 import { assert } from 'superstruct';
-import { GameCreationData } from '../Validation/game';
+import { GameInitData } from '../Validation/game';
+import { get_game } from '../Repositories/gamesRepository';
+import { generate_game_link } from '../Helpers/gamesHelper';
+import { GameControllerFactory } from '../Controllers/Games/Factory/GameControllerFactory';
 
 
-export async function create_one(req: Request, res: Response) {
+export async function init_one(req: Request, res: Response) {
     const { quiz_id } = req.params;
 
     try {
-        assert(req.body, GameCreationData);
+        assert(req.body, GameInitData);
     } catch (error) {
-        res.status(400).json({
-            error: 'Mode field empty or incorrect (standard, time, scrum, team)'
-        });
+        res.status(400).json({ error: 'Invalid data received to init game' });
         return;
     }
+
+    const { mode, ...initData } = req.body;
 
     try {
         const quiz = await get_quiz(quiz_id);
 
         if (!quiz) {
-            res.status(404).json({ error: 'Quiz not found' });
+            res.status(404).json({ error: 'Quiz not found.' });
             return;
         }
 
-        if (quiz.type == 0) {
-            res.status(403).json({ error: 'The quiz is private' });
+        if (quiz.type !== 1) {
+            res.status(403).json({ error: 'The quiz is not accessible.' });
             return;
         }
 
         const user_id = req.user?.user_id || null;
-        let newGame;
 
-        newGame = await persist_game(quiz_id, user_id, req.body.mode);
+        const gameController = GameControllerFactory.getController(mode, null);
+
+        const newGame = await gameController.init(quiz_id, user_id, initData);
+
+        res.status(201).json({
+            message: 'Game created',
+            game_id: newGame.game_id,
+            game_link: generate_game_link(newGame.game_id)
+        });
+    } catch (error: any) {
+        // Specific errors handling
+        if (error.message === 'Invalid mode') {
+            res.status(400).json({ error: 'Invalid mode' });
+            return;
+        }
+        if (error.message.includes('required')) {
+            res.status(400).json({ error: error.message });
+            return;
+        }
+        console.error('Error at game initialization :', error);
 
 
-        res.status(201).json({ message: 'Game created', game_id: newGame.game_id });
-    } catch (error) {
-        console.error('Error while creating game :', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ error: 'Internal server error in game initialization.' });
     }
 }
-
 
 export async function get_started_by_user(req: Request, res: Response): Promise<void> {
     const user = req.user;

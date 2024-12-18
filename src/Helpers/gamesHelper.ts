@@ -9,3 +9,7 @@ export async function generate_game_id() {
     }
     return `GA${NANOID()}`;
 }
+
+export function generate_game_link(gameId: string): string {
+    return `/game/join/${gameId}`;
+}
