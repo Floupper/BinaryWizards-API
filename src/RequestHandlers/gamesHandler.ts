@@ -29,7 +29,7 @@ export async function init_one(req: Request, res: Response) {
             return;
         }
 
-        if (quiz.type !== 1) {
+        if (quiz.type == 0) {
             res.status(403).json({ error: 'The quiz is not accessible.' });
             return;
         }
