@@ -7,16 +7,9 @@ export const GAMEID = pattern(
     /^GA[A-Z0-9]{6}$/i
 );
 
-
-
-const TeamContentStruct = object({
-    name: string(),
-    players: array(string())
-});
-
-
 export const GameInitData = object({
     mode: enums(['standard', 'time', 'scrum', 'team']),
     difficulty_level: optional(enums(['easy', 'medium', 'hard'])),
+    teams: optional(array(string())),
     max_players: optional(number()),
 });
