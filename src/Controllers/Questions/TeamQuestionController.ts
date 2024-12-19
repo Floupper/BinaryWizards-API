@@ -185,4 +185,62 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
 
         await persist_answer(game_id, question.question_id, chosenOption.option_id, user_id);
     }
+
+    async get_current_question(game: Games, user_id: string, io: Server) {
+        const game_id = game.game_id;
+        const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
+
+        if (!game.difficulty_level) {
+            throw new SocketError('Game difficulty level not found');
+        }
+
+        if (!game.question_start_time) {
+            throw new SocketError('Question start time not found');
+        }
+
+        if (game.current_question_index >= nb_questions_total) {
+            const correctAnswers = await get_correct_answers_count(game_id, user_id);
+            io.to(game_id).emit('gameFinished', {
+                correct_answers_nb: correctAnswers,
+                nb_questions_total: nb_questions_total,
+                quiz_id: game.quizzesQuiz_id
+            });
+            return;
+        }
+
+        const question = await get_current_question(game.quizzesQuiz_id, game.current_question_index);
+        if (!question) {
+            throw new SocketError('Question not found');
+        }
+
+        const time_limit = this.getTimeLimit(game.difficulty_level);
+
+        // Update the game with the question start time
+        const start_time = new Date();
+        await persist_game_update(game_id, {
+            question_start_time: start_time.toISOString(),
+        });
+
+        const options = question.options.map((option: any) => ({
+            option_index: option.option_index,
+            option_content: option.option_content
+        }));
+
+        const correctAnswers = await get_correct_answers_count(game_id, user_id);
+
+        io.to(game_id).emit('currentQuestion', {
+            game_finished: false,
+            question_text: question.question_text,
+            options: options,
+            question_index: question.question_index + 1,
+            nb_questions_total: nb_questions_total,
+            correct_answers_nb: correctAnswers,
+            question_type: question.question_type,
+            question_difficulty: question.question_difficulty,
+            question_category: question.question_category,
+            quiz_id: game.quizzesQuiz_id,
+            time_available: time_limit + ((game.question_start_time.getTime() - new Date().getTime()) / 1000) < 0 ? 0 : time_limit + ((game.question_start_time.getTime() - new Date().getTime()) / 1000),
+            time_limit: time_limit
+        });
+    }
 }

@@ -123,4 +123,45 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
             await this.send_question(game, user_id, io);
         }
     }
+
+
+    async get_current_question(game: Games, user_id: string, io: Server) {
+        const game_id = game.game_id;
+        const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
+
+        if (game.current_question_index >= nb_questions_total) {
+            const correctAnswers = await get_correct_answers_count(game_id, user_id);
+            io.to(game_id).emit('gameFinished', {
+                correct_answers_nb: correctAnswers,
+                nb_questions_total: nb_questions_total,
+                quiz_id: game.quizzesQuiz_id
+            });
+            return;
+        }
+
+        const question = await get_current_question(game.quizzesQuiz_id, game.current_question_index);
+        if (!question) {
+            throw new SocketError('Question not found');
+        }
+
+        const options = question.options.map((option: any) => ({
+            option_index: option.option_index,
+            option_content: option.option_content
+        }));
+
+        const correctAnswers = await get_correct_answers_count(game_id, user_id);
+
+        io.to(game_id).emit('currentQuestion', {
+            game_finished: false,
+            question_text: question.question_text,
+            options: options,
+            question_index: question.question_index + 1,
+            nb_questions_total: nb_questions_total,
+            correct_answers_nb: correctAnswers,
+            question_type: question.question_type,
+            question_difficulty: question.question_difficulty,
+            question_category: question.question_category,
+            quiz_id: game.quizzesQuiz_id
+        });
+    }
 }

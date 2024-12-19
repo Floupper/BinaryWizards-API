@@ -98,7 +98,7 @@ const gameSocket = (io: Server, socket: AuthenticatedSocket) => {
         const user = socket.user;
         try {
             if (!user)
-                throw new SocketError('Authentication required to join a game.'); // For ts errors, auth already verified in socketAuthMiddleware
+                throw new SocketError('Authentication required to get a game\'s information.'); // For ts errors, auth already verified in socketAuthMiddleware
             // Validate the game_id
             await socketValidateGameId(game_id);
 
@@ -108,7 +108,6 @@ const gameSocket = (io: Server, socket: AuthenticatedSocket) => {
             // Get the controller via the factory by passing the dependencies
             const controller = GameControllerFactory.getController(game.mode, dependencies);
 
-            // Call the start method of the controller
             const game_informations = await controller.game_informations(game);
             console.log(game_informations);
             io.to(game.game_id).emit('gameInformations', game_informations);
