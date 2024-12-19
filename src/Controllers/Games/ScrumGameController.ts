@@ -1,4 +1,4 @@
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { GameControllerInterface } from '../../Interfaces/GameControllerInterface';
 import { add_player_to_scrum_game, count_players_in_game, get_players_in_game, is_scrum_player, persist_game, update_game_status } from '../../Repositories/gamesRepository';
 import { SocketError } from '../../Sockets/SocketError';
@@ -20,7 +20,7 @@ export class ScrumGameController implements GameControllerInterface {
         return await this.init_scrum_game(quiz_id, user_id, max_players);
     }
 
-    async join(game: any, user: any, data: any) {
+    async join(game: any, user: any, data: any, socket: Socket) {
 
         if (!this.io) {
             throw new SocketError('Socket.IO server instance is required for scrum controller');
@@ -52,13 +52,15 @@ export class ScrumGameController implements GameControllerInterface {
 
         const playerList: string[] = [];
 
-        players.forEach(game => {
-            game.teams.forEach(team => {
-                team.players.forEach(player => {
+        if (players && players.teams.length > 0) {
+            players.teams.forEach(teams => {
+                teams.players.forEach(player => {
                     playerList.push(player.username);
                 });
             });
-        });
+        }
+
+        socket.join(game.game_id);
 
         // Notify other players that a player joined
         this.io.to(game.game_id).emit('playerJoined', { playerList });
@@ -98,9 +100,6 @@ export class ScrumGameController implements GameControllerInterface {
             max_players,
             'pending',
         );
-
-        // Adding creator to the game
-        await add_player_to_scrum_game(newGame.game_id, user_id!);
 
         return newGame;
     }

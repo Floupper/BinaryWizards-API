@@ -1,6 +1,7 @@
 import { persist_game, update_game_status } from '../../Repositories/gamesRepository';
 
 import { GameControllerInterface } from '../../Interfaces/GameControllerInterface';
+import { SocketError } from '../../Sockets/SocketError';
 
 export class StandardGameController implements GameControllerInterface {
     async init(quiz_id: string, user_id: string | null, data: any) {
@@ -8,11 +9,11 @@ export class StandardGameController implements GameControllerInterface {
     }
 
     async join(game: any, user: any, data: any) {
-        throw new Error(`The game mode ${game.mode} does not support the join game action.`);
+        throw new SocketError(`The game mode ${game.mode} does not support the join game action.`);
     }
 
     async start(game: any) {
-        throw new Error(`The game mode ${game.mode} does not support the start game action.`);
+        throw new SocketError(`The game mode ${game.mode} does not support the start game action.`);
     }
 
 

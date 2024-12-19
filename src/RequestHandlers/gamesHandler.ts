@@ -7,6 +7,7 @@ import { GameInitData } from '../Validation/game';
 import { get_game } from '../Repositories/gamesRepository';
 import { generate_game_link } from '../Helpers/gamesHelper';
 import { GameControllerFactory } from '../Controllers/Games/Factory/GameControllerFactory';
+import { SocketError } from '../Sockets/SocketError';
 
 
 export async function init_one(req: Request, res: Response) {
@@ -47,17 +48,11 @@ export async function init_one(req: Request, res: Response) {
         });
     } catch (error: any) {
         // Specific errors handling
-        if (error.message === 'Invalid mode') {
-            res.status(400).json({ error: 'Invalid mode' });
-            return;
-        }
-        if (error.message.includes('required')) {
+        if (error instanceof SocketError) {
             res.status(400).json({ error: error.message });
-            return;
+            return
         }
         console.error('Error at game initialization :', error);
-
-
         res.status(500).json({ error: 'Internal server error in game initialization.' });
     }
 }
