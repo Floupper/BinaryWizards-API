@@ -256,6 +256,7 @@ export async function create_one(req: Request, res: Response) {
                 type: option.option_content.type,
                 content: option.option_content.content,
             },
+            optionContentsOptionContent_id: ''
         }));
 
         // Sort options randomly
@@ -269,7 +270,8 @@ export async function create_one(req: Request, res: Response) {
         // Save options to the database
         for (const option of optionsData) {
             const { option_content, ...option_fields } = option;
-            persist_option_content(option_content);
+            const o_c = await persist_option_content(option_content);
+            option_fields.optionContentsOptionContent_id = o_c.optionContent_id;
             persist_option(option_fields);
         }
 

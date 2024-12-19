@@ -29,9 +29,13 @@ export class TimeQuestionController implements SingleplayerQuestionControllerInt
         const { game_id } = req.params;
 
         try {
-            const game = req.game;
+            let game = req.game;
 
             if (game) { // The game is not null thanks to the validation in the middleware
+                if (!game.difficulty_level) {
+                    res.status(404).json({ error: 'difficulty_level not found' });
+                    return;
+                }
                 // Count the total number of questions
                 const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
 
@@ -56,13 +60,21 @@ export class TimeQuestionController implements SingleplayerQuestionControllerInt
                 }
 
                 // Determine the time limit based on difficulty
-                const time_limit = this.get_time_limit(question.question_difficulty);
+                const time_limit = this.get_time_limit(game.difficulty_level);
 
-                // Update the game with the question start time
-                const start_time = new Date();
-                await persist_game_update(game_id, {
-                    question_start_time: start_time.toISOString(),
-                });
+                if (!game.question_start_time) {
+                    // Update the game with the question start time
+                    const start_time = new Date();
+                    game = await persist_game_update(game_id, {
+                        question_start_time: start_time.toISOString(),
+                    });
+                }
+
+                if (!game.question_start_time) {
+                    res.status(400).json({ error: 'Question start time not found' });
+                    return;
+                }
+
 
                 // Prepare the options
                 const options = question.options.map((option: any) => ({
@@ -72,6 +84,7 @@ export class TimeQuestionController implements SingleplayerQuestionControllerInt
 
                 // Get the number of correct answers
                 const correctAnswers = await get_correct_answers_count(game_id);
+
 
                 // Build the response
                 res.status(200).json({
@@ -85,7 +98,7 @@ export class TimeQuestionController implements SingleplayerQuestionControllerInt
                     question_difficulty: question.question_difficulty,
                     question_category: question.question_category,
                     quiz_id: game.quizzesQuiz_id,
-                    time_avaible: (new Date().getTime() - start_time.getTime()) / 1000,
+                    time_avaible: time_limit + ((game.question_start_time.getTime() - new Date().getTime()) / 1000) < 0 ? 0 : time_limit + ((game.question_start_time.getTime() - new Date().getTime()) / 1000),
                     time_limit: time_limit // Include the time limit in the response
                 });
             } else {
