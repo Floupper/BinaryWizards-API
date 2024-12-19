@@ -76,7 +76,7 @@ app.post('/game/:game_id/question', validateGameId, checkGameAccess, questionsHa
 
 // Users routes
 app.post('/user/signup', usersHandler.create_one); // Sign up a new user
-app.post('/user/username_avaible', usersHandler.username_avaible); // Check if a username is available
+app.post('/user/username_available', usersHandler.username_available); // Check if a username is available
 app.post('/user/signin', usersHandler.sign_in); // Sign in a user
 app.get('/user/quizzes', checkAuthentication, usersHandler.get_quizzes); // Get quizzes created by the authenticated user
 app.get('/user/played_games', checkAuthentication, usersHandler.get_games); // Get games played by the authenticated user
