@@ -161,7 +161,7 @@ npm start
   - `password` (String, required, 8-64 characters)
 
 ### Check Username Availability
-- **Endpoint:** `/user/username_avaible`
+- **Endpoint:** `/user/username_available`
 - **Method:** `POST`
 - **Description:** Check if a given username is available.
 - **Request Body:**

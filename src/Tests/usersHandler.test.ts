@@ -43,10 +43,10 @@ describe('User Routes', () => {
         });
     });
 
-    describe('POST /user/username_avaible', () => {
+    describe('POST /user/username_available', () => {
         it('should return true if username is available', async () => {
             const response = await request(app)
-                .post('/user/username_avaible')
+                .post('/user/username_available')
                 .send({ username: 'uniqueuser' });
             expect(response.status).toBe(200);
             expect(response.body).toHaveProperty('is_available', true);
@@ -58,7 +58,7 @@ describe('User Routes', () => {
                 .send({ username: uniqueUsername, password: 'testpassword' });
 
             const response = await request(app)
-                .post('/user/username_avaible')
+                .post('/user/username_available')
                 .send({ username: uniqueUsername });
             expect(response.status).toBe(200);
             expect(response.body).toHaveProperty('is_available', false);

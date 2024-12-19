@@ -1,7 +1,7 @@
 import { assert } from 'superstruct';
 import { Request, Response } from 'express';
 import { UserData } from '../Validation/user';
-import { is_username_avaible } from '../Helpers/usersHelper';
+import { is_username_available } from '../Helpers/usersHelper';
 import { create_user, get_games_by_user, get_user } from '../Repositories/usersRepository';
 import { get_token } from '../Helpers/tokensHelper';
 import { get_user_quiz, get_user_quizzes } from '../Repositories/quizzesRepository';
@@ -20,7 +20,7 @@ export async function create_one(req: Request, res: Response) {
     }
 
     try {
-        if (!(await is_username_avaible(req.body.username))) {
+        if (!(await is_username_available(req.body.username))) {
             res.status(409).json({ error: 'Username already exists' });
             return;
         }
@@ -39,7 +39,7 @@ export async function create_one(req: Request, res: Response) {
 }
 
 
-export async function username_avaible(req: Request, res: Response) {
+export async function username_available(req: Request, res: Response) {
     const { username } = req.body;
 
     if (!username) {
@@ -47,7 +47,7 @@ export async function username_avaible(req: Request, res: Response) {
     }
 
     try {
-        const is_available = await is_username_avaible(username);
+        const is_available = await is_username_available(username);
         res.json({ is_available });
     }
     catch (error) {
