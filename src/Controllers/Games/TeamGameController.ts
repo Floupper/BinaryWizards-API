@@ -1,6 +1,6 @@
 import { Server, Socket } from 'socket.io';
 import { GameControllerInterface } from '../../Interfaces/GameControllerInterface';
-import { get_teams_in_game, is_team_player, persist_game, update_game_status } from '../../Repositories/gamesRepository';
+import { get_players_in_game, get_teams_in_game, is_team_player, persist_game, update_game_status } from '../../Repositories/gamesRepository';
 import { assign_player_to_team, find_team, init_team_for_game } from '../../Repositories/teamsRepository';
 import { Games } from '@prisma/client';
 import { SocketError } from '../../Sockets/SocketError';
@@ -52,11 +52,13 @@ export class TeamGameController implements GameControllerInterface {
 
         await assign_player_to_team(team.team_id, user.user_id);
 
+
+        const teams = (await get_players_in_game(game.game_id));
         // Join the corresponding Socket.IO room for the game
         socket.join(game.game_id);
 
         // Notify the other players in the room that this player has joined
-        this.io.to(game.game_id).emit('playerJoined', { user_id: user.user_id, team_name, username: user.username });
+        this.io.to(game.game_id).emit('playerJoined', teams);
 
         return { message: `Game successfully joined in team "${team_name}".` };
     }

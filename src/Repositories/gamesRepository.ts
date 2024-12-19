@@ -136,11 +136,12 @@ export async function is_team_player(game_id: string, user_id: string) {
 
 
 export async function get_players_in_game(game_id: string) {
-    return await prisma.games.findMany({
+    return await prisma.games.findUnique({
         where: { game_id },
-        include: {
+        select: {
             teams: {
-                include: {
+                select: {
+                    name: true,
                     players: {
                         select: {
                             username: true,

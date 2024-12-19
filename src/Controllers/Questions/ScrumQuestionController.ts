@@ -61,10 +61,6 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
         const game_id = game.game_id;
         question_index--;
 
-        if (!game.difficulty_level) {
-            throw new SocketError('Difficulty level not found');
-        }
-
         if (question_index !== game.current_question_index) {
             throw new SocketError('Question\'s index invalid');
         }
