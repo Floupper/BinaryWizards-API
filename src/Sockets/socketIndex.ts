@@ -1,7 +1,8 @@
-import { Server } from 'socket.io';
+import { DefaultEventsMap, Server, Socket } from 'socket.io';
 import gameSocket from './gameSocket';
 import questionSocket from './questionSocket';
 import { logSocketEvent } from '../Middlewares/Sockets/socketLogsMiddleware';
+import { connectSocket } from './connectSocket';
 
 const socketHandler = (io: Server) => {
     io.on('connection', (socket) => {
@@ -14,6 +15,7 @@ const socketHandler = (io: Server) => {
 
         gameSocket(io, socket);
         questionSocket(io, socket);
+        connectSocket(io, socket);
 
         socket.on('disconnect', () => {
             console.log(`Client disconnected: ${socket.id}`);

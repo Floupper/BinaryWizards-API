@@ -1,6 +1,6 @@
 import { Server, Socket } from 'socket.io';
 import { GameControllerInterface } from '../../Interfaces/GameControllerInterface';
-import { get_players_in_game, get_teams_in_game, get_teams_players_in_game, is_team_player, persist_game, update_game_status } from '../../Repositories/gamesRepository';
+import { get_players_in_game, get_team_game_informations, get_teams_in_game, get_teams_players_in_game, is_team_player, persist_game, update_game_status } from '../../Repositories/gamesRepository';
 import { assign_player_to_team, find_team, init_team_for_game } from '../../Repositories/teamsRepository';
 import { Games } from '@prisma/client';
 import { SocketError } from '../../Sockets/SocketError';
@@ -27,7 +27,7 @@ export class TeamGameController implements GameControllerInterface {
         return await this.init_team_game(quiz_id, user_id, difficulty_level, teams);
     }
 
-    async join(game: any, user: any, data: any, socket: Socket) {
+    async join(game: Games, user: any, data: any, socket: Socket) {
         if (!this.io) {
             throw new SocketError('Socket.IO server instance is required for team controller');
         }
@@ -96,5 +96,12 @@ export class TeamGameController implements GameControllerInterface {
         teams.map(async (team_name) => await init_team_for_game(newGame.game_id, team_name))
 
         return newGame;
+    }
+
+
+    async game_informations(game: any): Promise<any> {
+        const game_informations = await get_team_game_informations(game.game_id);
+
+        return game_informations;
     }
 }

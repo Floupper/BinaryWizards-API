@@ -46,6 +46,34 @@ const questionSocket = (io: Server, socket: AuthenticatedSocket) => {
             }
         }
     });
+
+
+    socket.on('getQuestionInformations', async (data: { game_id: string }) => {
+        const { game_id } = data;
+        const user = socket.user;
+        try {
+            if (!user)
+                throw new SocketError('Authentication required to get question informations.'); // For ts errors, auth already verified in socketAuthMiddleware
+            // Validate the game_id
+            await socketValidateGameId(game_id);
+
+            // Check game access
+            const game = await socketCheckGameAccess(game_id, user);
+
+            // Get the controller via the factory by passing the dependencies
+            const controller = MultiplayerQuestionControllerFactory.getController(game.mode, dependencies);
+
+            await controller.get_current_question(game, user.user_id, io);
+        } catch (error: any) {
+            if (error instanceof SocketError) {
+                socket.emit('error', error.message);
+            }
+            else {
+                socket.emit('error', 'Internal server error');
+                console.error('Error starting game:', error);
+            }
+        }
+    });
 };
 
 

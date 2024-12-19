@@ -1,3 +1,4 @@
+import { Games } from '@prisma/client';
 import { GameControllerInterface } from '../../Interfaces/GameControllerInterface';
 import { persist_game, update_game_status } from '../../Repositories/gamesRepository';
 import { SocketError } from '../../Sockets/SocketError';
@@ -11,11 +12,11 @@ export class TimeGameController implements GameControllerInterface {
         return await this.init_time_game(quiz_id, user_id, difficulty_level);
     }
 
-    async join(game: any, user: any, data: any) {
+    async join(game: Games, user: any, data: any) {
         throw new SocketError(`The game mode ${game.mode} does not support the join game action.`);
     }
 
-    async start(game: any) {
+    async start(game: Games) {
         throw new SocketError(`The game mode ${game.mode} does not support the start game action.`);
     }
 
@@ -30,6 +31,11 @@ export class TimeGameController implements GameControllerInterface {
         );
 
         return newGame;
+    }
+
+
+    async game_informations(game: any): Promise<any> {
+        throw new SocketError(`The game mode ${game.mode} does not support the game informations action.`);
     }
 }
 

@@ -71,3 +71,32 @@ export async function count_started_games_by_user(user_id: string) {
     HAVING Games.current_question_index < COUNT(Questions.question_id)
 ) AS sub;`;
 }
+
+
+export async function get_user_multiplayer_games(user_id: string) {
+    return await prisma.games.findMany({
+        where: {
+            mode: {
+                in: ['scrum', 'team'],
+            },
+            teams: {
+                some: {
+                    players: {
+                        some: {
+                            user_id: user_id,
+                        },
+                    },
+                },
+            },
+        },
+        include: {
+            quizzes: {
+                select: {
+                    _count: {
+                        select: { questions: true }
+                    }
+                }
+            }
+        },
+    });
+}

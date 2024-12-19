@@ -133,9 +133,7 @@ export async function is_team_player(game_id: string, user_id: string) {
         },
     });
 }
-
-
-export async function get_teams_players_in_game(game_id: string) {
+export async function get_team_game_informations(game_id: string) {
     return await prisma.games.findUnique({
         where: { game_id },
         select: {
@@ -149,6 +147,61 @@ export async function get_teams_players_in_game(game_id: string) {
                     },
                 },
             },
+            quizzes: {
+                select: {
+                    title: true,
+                    quiz_id: true,
+                    difficulty: true,
+                    description: true,
+                },
+            },
+        },
+    });
+}
+
+
+
+export async function get_teams_players_in_game(game_id: string) {
+    return await prisma.games.findUnique({
+        where: { game_id },
+        include: {
+            teams: {
+                select: {
+                    name: true,
+                    players: {
+                        select: {
+                            username: true,
+                        },
+                    },
+                },
+            },
+        },
+    });
+}
+
+
+
+export async function get_scrum_game_informations(game_id: string) {
+    return await prisma.games.findUnique({
+        where: { game_id },
+        select: {
+            teams: {
+                select: {
+                    players: {
+                        select: {
+                            username: true,
+                        },
+                    },
+                },
+            },
+            quizzes: {
+                select: {
+                    title: true,
+                    quiz_id: true,
+                    difficulty: true,
+                    description: true,
+                }
+            }
         },
     });
 }
