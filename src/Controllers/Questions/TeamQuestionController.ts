@@ -38,9 +38,6 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
             throw new SocketError('Game difficulty level not found');
         }
 
-        if (!game.question_start_time) {
-            throw new SocketError('Question start time not found');
-        }
 
         if (game.current_question_index >= nb_questions_total) {
             const correctAnswers = await get_correct_answers_count(game_id, user_id);
@@ -59,11 +56,17 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
 
         const time_limit = this.getTimeLimit(game.difficulty_level);
 
-        // Update the game with the question start time
-        const start_time = new Date();
-        await persist_game_update(game_id, {
-            question_start_time: start_time.toISOString(),
-        });
+        if (!game.question_start_time) {
+            // Update the game with the question start time
+            const start_time = new Date();
+            game = await persist_game_update(game_id, {
+                question_start_time: start_time.toISOString(),
+            });
+        }
+
+        if (!game.question_start_time) {
+            throw new SocketError('Question start time not found');
+        }
 
         const options = question.options.map((option: any) => ({
             option_index: option.option_index,
