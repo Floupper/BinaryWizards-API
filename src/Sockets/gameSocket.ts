@@ -91,6 +91,37 @@ const gameSocket = (io: Server, socket: AuthenticatedSocket) => {
             }
         }
     });
+
+
+    socket.on('getGameInformations', async (data: { game_id: string }) => {
+        const { game_id } = data;
+        const user = socket.user;
+        try {
+            if (!user)
+                throw new SocketError('Authentication required to join a game.'); // For ts errors, auth already verified in socketAuthMiddleware
+            // Validate the game_id
+            await socketValidateGameId(game_id);
+
+            // Check game access
+            const game = await socketCheckGameAccess(game_id, user);
+
+            // Get the controller via the factory by passing the dependencies
+            const controller = GameControllerFactory.getController(game.mode, dependencies);
+
+            // Call the start method of the controller
+            const game_informations = await controller.game_informations(game);
+            console.log(game_informations);
+            io.to(game.game_id).emit('gameInformations', game_informations);
+        } catch (error: any) {
+            if (error instanceof SocketError) {
+                socket.emit('error', error.message);
+            }
+            else {
+                socket.emit('error', 'Internal server error');
+                console.error('Error starting game:', error);
+            }
+        }
+    });
 };
 
 export default gameSocket;

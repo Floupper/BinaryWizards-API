@@ -1,7 +1,8 @@
 import { Server, Socket } from 'socket.io';
 import { GameControllerInterface } from '../../Interfaces/GameControllerInterface';
-import { add_player_to_scrum_game, count_players_in_game, get_players_in_game, is_scrum_player, persist_game, update_game_status } from '../../Repositories/gamesRepository';
+import { add_player_to_scrum_game, count_players_in_game, get_players_in_game, get_scrum_game_informations, is_scrum_player, persist_game, update_game_status } from '../../Repositories/gamesRepository';
 import { SocketError } from '../../Sockets/SocketError';
+import { Games } from '@prisma/client';
 
 export class ScrumGameController implements GameControllerInterface {
     private io: Server | null;
@@ -20,7 +21,7 @@ export class ScrumGameController implements GameControllerInterface {
         return await this.init_scrum_game(quiz_id, user_id, max_players);
     }
 
-    async join(game: any, user: any, data: any, socket: Socket) {
+    async join(game: Games, user: any, data: any, socket: Socket) {
 
         if (!this.io) {
             throw new SocketError('Socket.IO server instance is required for scrum controller');
@@ -69,7 +70,7 @@ export class ScrumGameController implements GameControllerInterface {
     }
 
 
-    async start(game: any) {
+    async start(game: Games) {
         if (!this.io) {
             throw new SocketError('Socket.IO server instance is required for scrum controller');
         }
@@ -102,6 +103,12 @@ export class ScrumGameController implements GameControllerInterface {
         );
 
         return newGame;
+    }
+
+    async game_informations(game: any): Promise<any> {
+        const game_informations = await get_scrum_game_informations(game.game_id);
+
+        return game_informations;
     }
 }
 
