@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import path from 'path';
 
 import * as quizzesHandler from './RequestHandlers/quizzesHandler';
 import * as categoriesHandler from './RequestHandlers/categoriesHandler';
@@ -7,6 +8,7 @@ import * as difficultiesHandler from './RequestHandlers/difficultiesHandler';
 import * as questionsHandler from './RequestHandlers/questionsHandler';
 import * as gamesHandler from './RequestHandlers/gamesHandler';
 import * as usersHandler from './RequestHandlers/usersHandler';
+import * as uploadsHandler from './RequestHandlers/uploadsHandler';
 
 import { validateGameId, checkGameAccess } from './Middlewares/gamesMiddleware';
 import { validateQuizId, checkQuizAccess } from './Middlewares/quizzesMiddleware';
@@ -51,6 +53,10 @@ app.use(requestLogger);
 // Use JWT verification middleware for authentication on all routes
 app.use(verifyJwtToken);
 
+app.use(express.static(path.join(__dirname, '../public')));
+
+
+
 // Define the application routes
 
 // Quizzes creation and management routes
@@ -86,6 +92,14 @@ app.get('/user/:quiz_id', checkAuthentication, validateQuizId, checkQuizAccess, 
 // Categories and difficulties routes
 app.get('/categories', categoriesHandler.get_all); // Get all quiz categories
 app.get('/difficulties', difficultiesHandler.get_all); // Get all difficulty levels
+
+
+app.use('/uploads/images', express.static(path.join(__dirname, '/public/uploads/images')));
+app.use('/uploads/audios', express.static(path.join(__dirname, '/public/uploads/audios')));
+
+app.post('/upload/image', uploadsHandler.upload_image);
+app.post('/upload/audio', uploadsHandler.upload_audio);
+
 
 // Exporting the configured Express application
 export default app;
