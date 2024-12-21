@@ -12,7 +12,7 @@ export async function socketValidateGameId(game_id: string): Promise<void> {
     }
 }
 
-export async function socketCheckGameAccess(game_id: string, user: any | null): Promise<any> {
+export async function socketCheckGameAccess(game_id: string, user: any | null, isJoinEvent: boolean): Promise<any> {
     const game = await get_game(game_id);
 
     if (!game) {
@@ -24,16 +24,17 @@ export async function socketCheckGameAccess(game_id: string, user: any | null): 
 
     switch (game.mode) {
         case 'scrum':
+            if (!isJoinEvent) {
+                const isScrumPlayer = await is_scrum_player(game.game_id, user.user_id);
 
-            const isScrumPlayer = await is_scrum_player(game.game_id, user.user_id);
-
-            if (!isScrumPlayer) {
-                throw new SocketError('You have not joined this Scrum game');
+                if (!isScrumPlayer) {
+                    throw new SocketError('You have not joined this Scrum game');
+                }
             }
             break;
 
         case 'team':
-            if (game.status != 'pending') {
+            if (!isJoinEvent) {
                 const isTeamPlayer = await is_team_player(game.game_id, user.user_id);
 
                 if (!isTeamPlayer) {
