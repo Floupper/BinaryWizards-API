@@ -32,7 +32,7 @@ const gameSocket = (io: Server, socket: AuthenticatedSocket) => {
             await socketValidateGameId(game_id);
 
             // Check game access
-            const game = await get_game(game_id);
+            const game = await socketCheckGameAccess(game_id, user, true);
 
             if (!game) {
                 throw new SocketError('Game not found');
@@ -67,7 +67,7 @@ const gameSocket = (io: Server, socket: AuthenticatedSocket) => {
             await socketValidateGameId(game_id);
 
             // Check game access
-            const game = await socketCheckGameAccess(game_id, user);
+            const game = await socketCheckGameAccess(game_id, user, false);
 
             // Get the controller via the factory by passing the dependencies
             const controller = GameControllerFactory.getController(game.mode, dependencies);
@@ -103,13 +103,12 @@ const gameSocket = (io: Server, socket: AuthenticatedSocket) => {
             await socketValidateGameId(game_id);
 
             // Check game access
-            const game = await socketCheckGameAccess(game_id, user);
+            const game = await socketCheckGameAccess(game_id, user, false);
 
             // Get the controller via the factory by passing the dependencies
             const controller = GameControllerFactory.getController(game.mode, dependencies);
 
             const game_informations = await controller.game_informations(game);
-            console.log(game_informations);
             io.to(game.game_id).emit('gameInformations', game_informations);
         } catch (error: any) {
             if (error instanceof SocketError) {

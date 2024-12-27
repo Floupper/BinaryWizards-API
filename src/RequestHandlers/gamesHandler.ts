@@ -4,7 +4,7 @@ import { count_started_games_by_user, get_started_games_by_user_paginated } from
 import { get_total_questions_count } from '../Helpers/questionsHelper';
 import { assert } from 'superstruct';
 import { GameInitData } from '../Validation/game';
-import { get_game } from '../Repositories/gamesRepository';
+import { get_game, get_teams_in_game } from '../Repositories/gamesRepository';
 import { generate_game_link } from '../Helpers/gamesHelper';
 import { GameControllerFactory } from '../Controllers/Games/Factory/GameControllerFactory';
 import { SocketError } from '../Sockets/SocketError';
@@ -93,6 +93,52 @@ export async function get_started_by_user(req: Request, res: Response): Promise<
         }
     } catch (error) {
         console.error('Error fetching started games:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
+
+export async function get_mode(req: Request, res: Response) {
+    const { game_id } = req.params;
+
+    try {
+        const game = await get_game(game_id);
+
+        if (!game) {
+            res.status(404).json({ error: 'Game not found' });
+            return;
+        }
+
+        res.status(200).json({ game_mode: game.mode });
+    }
+    catch (error) {
+        console.error('Error fetching game mode:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
+
+export async function get_teams(req: Request, res: Response) {
+    const { game_id } = req.params;
+
+    try {
+        const game = await get_game(game_id);
+
+        if (!game) {
+            res.status(404).json({ error: 'Game not found' });
+            return;
+        }
+
+        if (game.mode != 'team') {
+            res.status(400).json({ error: 'Game is not a team mode' });
+        }
+
+
+        const teams = await get_teams_in_game(game_id);
+        res.status(200).json({ teams: teams.map(team => team.name) });
+    }
+    catch (error) {
+        console.error('Error fetching game teams:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 }

@@ -42,17 +42,3 @@ export async function user_team_in_game(gamesGame_id: string, user_id: string | 
         },
     });
 }
-
-
-export async function get_teams_in_game(game_id: string) {
-    return await prisma.teams.findMany({
-        where: { gamesGame_id: game_id },
-        include: {
-            players: {
-                select: {
-                    username: true,
-                },
-            },
-        },
-    });
-}

@@ -85,6 +85,7 @@ export async function count_players_in_game(game_id: string): Promise<number> {
 export async function get_teams_in_game(game_id: string) {
     return await prisma.teams.findMany({
         where: { gamesGame_id: game_id },
+        select: { name: true }
     });
 }
 
@@ -137,6 +138,10 @@ export async function get_team_game_informations(game_id: string) {
     return await prisma.games.findUnique({
         where: { game_id },
         select: {
+            game_id: true,
+            created_at: true,
+            mode: true,
+            difficulty_level: true,
             teams: {
                 select: {
                     name: true,
@@ -160,31 +165,14 @@ export async function get_team_game_informations(game_id: string) {
 }
 
 
-
-export async function get_teams_players_in_game(game_id: string) {
-    return await prisma.games.findUnique({
-        where: { game_id },
-        include: {
-            teams: {
-                select: {
-                    name: true,
-                    players: {
-                        select: {
-                            username: true,
-                        },
-                    },
-                },
-            },
-        },
-    });
-}
-
-
-
 export async function get_scrum_game_informations(game_id: string) {
     return await prisma.games.findUnique({
         where: { game_id },
         select: {
+            game_id: true,
+            created_at: true,
+            mode: true,
+            max_players: true,
             teams: {
                 select: {
                     players: {
@@ -201,10 +189,37 @@ export async function get_scrum_game_informations(game_id: string) {
                     difficulty: true,
                     description: true,
                 }
-            }
+            },
         },
     });
 }
+
+
+
+
+
+
+
+export async function get_teams_players_in_game(game_id: string) {
+    return await prisma.games.findUnique({
+        where: { game_id },
+        select: {
+            teams: {
+                select: {
+                    name: true,
+                    players: {
+                        select: {
+                            username: true,
+                        },
+                    },
+                },
+            },
+        },
+    });
+}
+
+
+
 
 
 export async function get_players_in_game(game_id: string) {

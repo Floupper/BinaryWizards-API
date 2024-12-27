@@ -29,7 +29,7 @@ const questionSocket = (io: Server, socket: AuthenticatedSocket) => {
             await socketValidateGameId(game_id);
 
             // Check game access
-            const game = await socketCheckGameAccess(game_id, user);
+            const game = await socketCheckGameAccess(game_id, user, false);
 
             // Get the question controller via the factory by passing the dependencies
             const questionController = MultiplayerQuestionControllerFactory.getController(game.mode, dependencies);
@@ -58,7 +58,7 @@ const questionSocket = (io: Server, socket: AuthenticatedSocket) => {
             await socketValidateGameId(game_id);
 
             // Check game access
-            const game = await socketCheckGameAccess(game_id, user);
+            const game = await socketCheckGameAccess(game_id, user, false);
 
             // Get the controller via the factory by passing the dependencies
             const controller = MultiplayerQuestionControllerFactory.getController(game.mode, dependencies);
