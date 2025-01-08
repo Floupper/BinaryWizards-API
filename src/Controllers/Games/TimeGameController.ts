@@ -34,7 +34,7 @@ export class TimeGameController implements GameControllerInterface {
     }
 
 
-    async game_informations(game: any): Promise<any> {
+    async game_informations(game: any, user_id: string): Promise<any> {
         throw new SocketError(`The game mode ${game.mode} does not support the game informations action.`);
     }
 }

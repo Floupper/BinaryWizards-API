@@ -7,6 +7,7 @@ import { MultiplayerQuestionControllerFactory } from '../Controllers/Questions/F
 import { MultiplayerQuestionControllerInterface } from '../Interfaces/MultiplayerQuestionControllerInterface';
 import { SocketError } from './SocketError';
 import { get_game } from '../Repositories/gamesRepository';
+import { logSocketEvent } from '../Middlewares/Sockets/socketLogsMiddleware';
 
 const gameSocket = (io: Server, socket: AuthenticatedSocket) => {
     // Check if the user is authenticated
@@ -46,11 +47,12 @@ const gameSocket = (io: Server, socket: AuthenticatedSocket) => {
             socket.emit('joinedGame', joinResult);
         } catch (error: any) {
             if (error instanceof SocketError) {
+                logSocketEvent("Socket error in join game function", error.message, socket);
                 socket.emit('error', error.message);
             }
             else {
+                logSocketEvent("Generic error in join game function", error, socket);
                 socket.emit('error', 'Internal server error');
-                console.error('Error starting game:', error);
             }
         }
     });
@@ -83,11 +85,12 @@ const gameSocket = (io: Server, socket: AuthenticatedSocket) => {
             await (questionController as MultiplayerQuestionControllerInterface).send_question(game, user.user_id, io);
         } catch (error: any) {
             if (error instanceof SocketError) {
+                logSocketEvent("Socket error in start game function", error.message, socket);
                 socket.emit('error', error.message);
             }
             else {
+                logSocketEvent("Generic error in start game function", error, socket);
                 socket.emit('error', 'Internal server error');
-                console.error('Error starting game:', error);
             }
         }
     });
@@ -108,15 +111,16 @@ const gameSocket = (io: Server, socket: AuthenticatedSocket) => {
             // Get the controller via the factory by passing the dependencies
             const controller = GameControllerFactory.getController(game.mode, dependencies);
 
-            const game_informations = await controller.game_informations(game);
-            io.to(game.game_id).emit('gameInformations', game_informations);
+            const game_informations = await controller.game_informations(game, user.user_id);
+            socket.emit('gameInformations', game_informations);
         } catch (error: any) {
             if (error instanceof SocketError) {
+                logSocketEvent("Socket error in getGameInformations function", error.message, socket);
                 socket.emit('error', error.message);
             }
             else {
+                logSocketEvent("Generic error in getGameInformations function", error, socket);
                 socket.emit('error', 'Internal server error');
-                console.error('Error starting game:', error);
             }
         }
     });

@@ -134,8 +134,8 @@ export async function is_team_player(game_id: string, user_id: string) {
         },
     });
 }
-export async function get_team_game_informations(game_id: string) {
-    return await prisma.games.findUnique({
+export async function get_team_game_informations(game_id: string, user_id: string) {
+    const game = await prisma.games.findUnique({
         where: { game_id },
         select: {
             game_id: true,
@@ -160,13 +160,19 @@ export async function get_team_game_informations(game_id: string) {
                     description: true,
                 },
             },
+            userUser_id: true
         },
     });
+
+    return {
+        ...game,
+        is_game_owner: game?.userUser_id === user_id,
+    };
 }
 
 
-export async function get_scrum_game_informations(game_id: string) {
-    return await prisma.games.findUnique({
+export async function get_scrum_game_informations(game_id: string, user_id: string) {
+    const game = await prisma.games.findUnique({
         where: { game_id },
         select: {
             game_id: true,
@@ -190,8 +196,14 @@ export async function get_scrum_game_informations(game_id: string) {
                     description: true,
                 }
             },
+            userUser_id: true
         },
     });
+
+    return {
+        ...game,
+        is_game_owner: game?.userUser_id === user_id,
+    };
 }
 
 

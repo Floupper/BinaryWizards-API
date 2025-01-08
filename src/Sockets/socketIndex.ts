@@ -6,11 +6,11 @@ import { connectSocket } from './connectSocket';
 
 const socketHandler = (io: Server) => {
     io.on('connection', (socket) => {
-        console.log(`Client connected: ${socket.id}`);
+        logSocketEvent("Client connected", "", socket);
 
         socket.onAny((event: string, ...args: any[]) => {
             const argsString = args.map(arg => JSON.stringify(arg)).join(', ');
-            logSocketEvent(event, `Args: ${argsString}`);
+            logSocketEvent(event, `Args: ${argsString}`, socket);
         });
 
         gameSocket(io, socket);
@@ -18,7 +18,7 @@ const socketHandler = (io: Server) => {
         connectSocket(io, socket);
 
         socket.on('disconnect', () => {
-            console.log(`Client disconnected: ${socket.id}`);
+            logSocketEvent("Client disconnected", "", socket);
         });
     });
 };
