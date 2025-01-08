@@ -95,8 +95,8 @@ export class TeamGameController implements GameControllerInterface {
     }
 
 
-    async game_informations(game: any): Promise<any> {
-        const game_informations = await get_team_game_informations(game.game_id);
+    async game_informations(game: any, user_id: string): Promise<any> {
+        const game_informations = await get_team_game_informations(game.game_id, user_id);
 
         return game_informations;
     }

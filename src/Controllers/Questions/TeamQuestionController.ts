@@ -1,4 +1,4 @@
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { persist_game_update } from '../../Repositories/gamesRepository';
 import { get_total_questions_count } from '../../Helpers/questionsHelper';
 import { get_correct_answers_count } from '../../Helpers/answersHelper';
@@ -189,7 +189,7 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
         await persist_answer(game_id, question.question_id, chosenOption.option_id, user_id);
     }
 
-    async get_current_question(game: Games, user_id: string, io: Server) {
+    async get_current_question(game: Games, user_id: string, socket: Socket) {
         const game_id = game.game_id;
         const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
 
@@ -203,7 +203,7 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
 
         if (game.current_question_index >= nb_questions_total) {
             const correctAnswers = await get_correct_answers_count(game_id, user_id);
-            io.to(game_id).emit('gameFinished', {
+            socket.emit('gameFinished', {
                 correct_answers_nb: correctAnswers,
                 nb_questions_total: nb_questions_total,
                 quiz_id: game.quizzesQuiz_id
@@ -231,7 +231,7 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
 
         const correctAnswers = await get_correct_answers_count(game_id, user_id);
 
-        io.to(game_id).emit('currentQuestion', {
+        socket.emit('currentQuestion', {
             game_finished: false,
             question_text: question.question_text,
             options: options,

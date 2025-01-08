@@ -5,6 +5,7 @@ import { socketCheckGameAccess, socketValidateGameId } from '../Middlewares/Sock
 import { Dependencies } from '../Interfaces/Dependencies';
 import { MultiplayerQuestionControllerInterface } from '../Interfaces/MultiplayerQuestionControllerInterface';
 import { SocketError } from './SocketError';
+import { logSocketEvent } from '../Middlewares/Sockets/socketLogsMiddleware';
 
 
 const questionSocket = (io: Server, socket: AuthenticatedSocket) => {
@@ -38,11 +39,12 @@ const questionSocket = (io: Server, socket: AuthenticatedSocket) => {
             await (questionController as MultiplayerQuestionControllerInterface).get_answer(game, question_index, option_index, user.user_id, io);
         } catch (error: any) {
             if (error instanceof SocketError) {
+                logSocketEvent("Socket error in sendAnswer function", error.message, socket);
                 socket.emit('error', error.message);
             }
             else {
+                logSocketEvent("Generic error in sendAnswer function", error, socket);
                 socket.emit('error', 'Internal server error');
-                console.error('Error starting game:', error);
             }
         }
     });
@@ -63,14 +65,15 @@ const questionSocket = (io: Server, socket: AuthenticatedSocket) => {
             // Get the controller via the factory by passing the dependencies
             const controller = MultiplayerQuestionControllerFactory.getController(game.mode, dependencies);
 
-            await controller.get_current_question(game, user.user_id, io);
+            await controller.get_current_question(game, user.user_id, socket);
         } catch (error: any) {
             if (error instanceof SocketError) {
+                logSocketEvent("Socket error in getQuestionInformations function", error.message, socket);
                 socket.emit('error', error.message);
             }
             else {
+                logSocketEvent("Generic error in getQuestionInformations function", error, socket);
                 socket.emit('error', 'Internal server error');
-                console.error('Error starting game:', error);
             }
         }
     });

@@ -1,6 +1,7 @@
 import { Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import { SocketError } from '../../Sockets/SocketError';
+import { logEvent } from './socketLogsMiddleware';
 
 export interface AuthenticatedSocket extends Socket {
     user?: {
@@ -12,17 +13,20 @@ export interface AuthenticatedSocket extends Socket {
 export const socketAuthMiddleware = (socket: AuthenticatedSocket, next: (err?: any) => void) => {
     const authHeader = socket.handshake.headers['authorization'] as string;
     if (!authHeader) {
+        logEvent('Connection refused', 'Missing authorization header', socket);
         return next(new SocketError("Missing authorization header"));
     }
 
     const token = authHeader.split(' ')[1]; // Assume the format is "Bearer <token>"
     if (!token) {
+        logEvent('Connection refused', 'Missing auth token', socket);
         return next(new SocketError("Missing token"));
     }
 
     jwt.verify(token, process.env.JWT_SECRET as string, (err: any, decoded: any) => {
         if (err) {
-            return next(new SocketError('Authentication error'));
+            logEvent('Connection refused', 'Authentication failed', socket);
+            return next(new SocketError('Authentication failed'));
         }
         // Attach user information to the socket
         socket.user = decoded as { user_id: string; username: string };

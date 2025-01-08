@@ -12,15 +12,15 @@ const logger = createLogger({
         new transports.Console(),
     ],
 });
-export function logEvent(event: string, details: string) {
-    logger.info(`${event} - ${details}`);
+export function logEvent(event: string, details: string, socket: Socket) {
+    logger.info(`${event} - ${details} [Socket ID: ${socket.id}]`);
 }
 
 export const socketLoggerMiddleware = (socket: Socket, next: (err?: any) => void) => {
-    logEvent('Connection Attempt', `Socket ID: ${socket.id} Attempting to connect.`);
+    logEvent('Connection Attempt', ``, socket);
     next();
 };
 
-export const logSocketEvent = (event: string, details: string) => {
-    logEvent(event, details);
+export const logSocketEvent = (event: string, details: string, socket: Socket) => {
+    logEvent(event, details, socket);
 };
