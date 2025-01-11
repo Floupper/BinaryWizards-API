@@ -259,9 +259,6 @@ export async function get_team_rankings(game_id: string) {
         where: { gamesGame_id: game_id },
         include: {
             players: true
-        },
-        orderBy: {
-            score: 'desc'
         }
     });
 }
