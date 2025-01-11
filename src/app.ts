@@ -39,13 +39,15 @@ const app = express();
 app.use(cors()); // Enable CORS (Cross-Origin Resource Sharing)
 app.use((req: Request, res: Response, next: NextFunction) => {
     // Setting headers for CORS
-    res.set('Cache-Control', 'no-cache');
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, UPDATE, PUT, DELETE, PATCH");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
     res.header('Access-Control-Expose-Headers', 'Count');
     next();
 });
+
+app.disable('etag');
+
 app.use(express.json()); // Parse JSON request bodies
 
 // Add logging for all incoming requests
