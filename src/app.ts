@@ -46,7 +46,6 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     next();
 });
 
-app.disable('etag');
 
 app.use(express.json()); // Parse JSON request bodies
 
