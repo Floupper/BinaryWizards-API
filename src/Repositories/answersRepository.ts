@@ -76,3 +76,24 @@ export async function get_user_answer(gamesGame_id: string, questionsQuestion_id
   });
 }
 
+
+
+export async function get_answers_in_game(game_id: string) {
+  return await prisma.answers.findMany({
+    where: { gamesGame_id: game_id },
+    include: {
+      options: true,
+      Users: true
+    }
+  });
+}
+
+
+export async function count_answers_for_question(game_id: string, question_id: string) {
+  return await prisma.answers.count({
+    where: {
+      questionsQuestion_id: question_id,
+      gamesGame_id: game_id
+    }
+  });
+}

@@ -6,4 +6,5 @@ export interface GameControllerInterface {
     join(game: Games, user: any, data: any, socket: Socket): Promise<any>;
     start(game: Games): Promise<any>;
     game_informations(game: Games, user_id: string): Promise<any>;
+    switch_team(game: Games, user_id: string, new_team_name: string): Promise<void>;
 }

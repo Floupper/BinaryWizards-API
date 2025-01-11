@@ -102,7 +102,6 @@ model OptionContents {
 model Teams {
   team_id      String  @id @default(uuid())
   name         String
-  score        Float   @default(0)
   games        Games   @relation(fields: [gamesGame_id], references: [game_id])
   gamesGame_id String
   players      Users[]

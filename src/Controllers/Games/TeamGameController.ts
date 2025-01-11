@@ -1,7 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import { GameControllerInterface } from '../../Interfaces/GameControllerInterface';
 import { get_players_in_game, get_team_game_informations, get_teams_players_in_game, is_team_player, persist_game, update_game_status } from '../../Repositories/gamesRepository';
-import { assign_player_to_team, find_team, init_team_for_game } from '../../Repositories/teamsRepository';
+import { assign_player_to_team, find_team, get_teams_for_game, init_team_for_game, remove_player_from_team } from '../../Repositories/teamsRepository';
 import { Games } from '@prisma/client';
 import { SocketError } from '../../Sockets/SocketError';
 
@@ -99,5 +99,34 @@ export class TeamGameController implements GameControllerInterface {
         const game_informations = await get_team_game_informations(game.game_id, user_id);
 
         return game_informations;
+    }
+
+    async switch_team(game: Games, user_id: string, new_team_name: string): Promise<void> {
+        if (!this.io) {
+            throw new SocketError('Socket.IO server instance is required for team controller');
+        }
+
+        if (game.status !== 'pending') {
+            throw new SocketError('Cannot switch team when game is not in pending status');
+        }
+
+        const new_team = await find_team(game.game_id, new_team_name);
+        if (!new_team) {
+            throw new SocketError('Team not found in this game');
+        }
+
+        const teams_for_game = await get_teams_for_game(game.game_id);
+        const current_team = teams_for_game.find(team =>
+            team.players.some(player => player.user_id === user_id)
+        );
+
+        if (current_team) {
+            await remove_player_from_team(current_team.team_id, user_id);
+        }
+
+        await assign_player_to_team(new_team.team_id, user_id);
+
+        const teams = (await get_teams_players_in_game(game.game_id));
+        this.io.to(game.game_id).emit('teamSwitch', teams);
     }
 }

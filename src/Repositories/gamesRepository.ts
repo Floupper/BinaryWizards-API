@@ -250,3 +250,18 @@ export async function get_players_in_game(game_id: string) {
         },
     });
 }
+
+
+
+
+export async function get_team_rankings(game_id: string) {
+    return await prisma.teams.findMany({
+        where: { gamesGame_id: game_id },
+        include: {
+            players: true
+        },
+        orderBy: {
+            score: 'desc'
+        }
+    });
+}

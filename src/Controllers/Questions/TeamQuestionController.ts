@@ -7,6 +7,7 @@ import { get_user_answer, persist_answer } from '../../Repositories/answersRepos
 import { MultiplayerQuestionControllerInterface } from '../../Interfaces/MultiplayerQuestionControllerInterface';
 import { Games } from '@prisma/client';
 import { SocketError } from '../../Sockets/SocketError';
+import { get_teams_scores } from '../../Helpers/gamesHelper';
 
 export class TeamQuestionController implements MultiplayerQuestionControllerInterface {
     private io: Server;
@@ -41,10 +42,12 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
 
         if (game.current_question_index >= nb_questions_total) {
             const correctAnswers = await get_correct_answers_count(game_id, user_id);
+            const ranking = await get_teams_scores(game_id, game.quizzesQuiz_id);
             io.to(game_id).emit('gameFinished', {
                 correct_answers_nb: correctAnswers,
                 nb_questions_total: nb_questions_total,
-                quiz_id: game.quizzesQuiz_id
+                quiz_id: game.quizzesQuiz_id,
+                ranking: ranking
             });
             return;
         }
@@ -137,6 +140,10 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
             throw new SocketError('Question\'s index invalid');
         }
 
+        if (game.status !== 'started') {
+            throw new SocketError('Game not started');
+        }
+
         const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
         if (question_index >= nb_questions_total) {
             throw new SocketError('Game is finished');
@@ -203,10 +210,12 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
 
         if (game.current_question_index >= nb_questions_total) {
             const correctAnswers = await get_correct_answers_count(game_id, user_id);
+            const ranking = await get_teams_scores(game_id, game.quizzesQuiz_id);
             socket.emit('gameFinished', {
                 correct_answers_nb: correctAnswers,
                 nb_questions_total: nb_questions_total,
-                quiz_id: game.quizzesQuiz_id
+                quiz_id: game.quizzesQuiz_id,
+                ranking: ranking
             });
             return;
         }
