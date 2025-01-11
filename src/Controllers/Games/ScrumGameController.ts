@@ -42,12 +42,6 @@ export class ScrumGameController implements GameControllerInterface {
 
         await add_player_to_scrum_game(game.game_id, user.user_id);
 
-        // Automatically start the game if the game is already full
-        if (game.max_players && (await count_players_in_game(game.game_id)) >= game.max_players) {
-            await update_game_status(game.game_id, 'started');
-            // TODO: automatically start the game
-        }
-
 
         const players = await get_players_in_game(game.game_id);
 
@@ -109,6 +103,10 @@ export class ScrumGameController implements GameControllerInterface {
         const game_informations = await get_scrum_game_informations(game.game_id, user_id);
 
         return game_informations;
+    }
+
+    async switch_team(): Promise<void> {
+        throw new SocketError('Switching teams is only available in team games.');
     }
 }
 

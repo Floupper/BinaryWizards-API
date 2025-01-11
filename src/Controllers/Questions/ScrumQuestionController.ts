@@ -7,6 +7,7 @@ import { get_user_answer, persist_answer } from '../../Repositories/answersRepos
 import { MultiplayerQuestionControllerInterface } from '../../Interfaces/MultiplayerQuestionControllerInterface';
 import { Games } from '@prisma/client';
 import { SocketError } from '../../Sockets/SocketError';
+import { have_all_scrum_players_answered } from '../../Helpers/gamesHelper';
 
 export class ScrumQuestionController implements MultiplayerQuestionControllerInterface {
     private io: Server;
@@ -57,12 +58,16 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
     }
 
     // Handle receiving an answer from a player
-    async get_answer(game: Games, question_index: number, option_index: number, user_id: string, io: Server): Promise<void> {
+    async get_answer(game: Games, question_index: number, option_index: number, user_id: string, io: Server, socket: Socket): Promise<void> {
         const game_id = game.game_id;
         question_index--;
 
         if (question_index !== game.current_question_index) {
             throw new SocketError('Question\'s index invalid');
+        }
+        console.log(game.status);
+        if (game.status !== 'started') {
+            throw new SocketError('Game not started');
         }
 
         const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
@@ -108,7 +113,11 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
         await persist_answer(game_id, question.question_id, chosenOption.option_id, user_id);
 
 
-        if (isCorrect) {
+        socket.emit('isCorrectAnswer', {
+            is_correct: isCorrect
+        });
+
+        if (isCorrect || await have_all_scrum_players_answered(game_id, question.question_id)) {
             game = await persist_game_update(game_id, {
                 current_question_index: game.current_question_index + 1
             });

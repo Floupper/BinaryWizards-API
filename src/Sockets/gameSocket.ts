@@ -8,6 +8,7 @@ import { MultiplayerQuestionControllerInterface } from '../Interfaces/Multiplaye
 import { SocketError } from './SocketError';
 import { get_game } from '../Repositories/gamesRepository';
 import { logSocketEvent } from '../Middlewares/Sockets/socketLogsMiddleware';
+import { TeamGameController } from '../Controllers/Games/TeamGameController';
 
 const gameSocket = (io: Server, socket: AuthenticatedSocket) => {
     // Check if the user is authenticated
@@ -113,6 +114,38 @@ const gameSocket = (io: Server, socket: AuthenticatedSocket) => {
 
             const game_informations = await controller.game_informations(game, user.user_id);
             socket.emit('gameInformations', game_informations);
+        } catch (error: any) {
+            if (error instanceof SocketError) {
+                logSocketEvent("Socket error in getGameInformations function", error.message, socket);
+                socket.emit('error', error.message);
+            }
+            else {
+                logSocketEvent("Generic error in getGameInformations function", error, socket);
+                socket.emit('error', 'Internal server error');
+            }
+        }
+    });
+
+
+    socket.on('switchTeam', async (data: { game_id: string, new_team_name: string }) => {
+        const { game_id, new_team_name } = data;
+        const user = socket.user;
+        try {
+            if (!user)
+                throw new SocketError('Authentication required to get a game\'s information.'); // For ts errors, auth already verified in socketAuthMiddleware
+            // Validate the game_id
+            await socketValidateGameId(game_id);
+
+            // Check game access
+            const game = await socketCheckGameAccess(game_id, user, false);
+
+            if (!new_team_name || new_team_name.length == 0)
+                throw new SocketError('The new team name cannot be empty.');
+
+            // Get the controller via the factory by passing the dependencies
+            const controller = GameControllerFactory.getController(game.mode, dependencies);
+
+            await controller.switch_team(game, user.user_id, new_team_name);
         } catch (error: any) {
             if (error instanceof SocketError) {
                 logSocketEvent("Socket error in getGameInformations function", error.message, socket);
