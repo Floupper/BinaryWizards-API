@@ -65,7 +65,7 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
         if (question_index !== game.current_question_index) {
             throw new SocketError('Question\'s index invalid');
         }
-        console.log(game.status);
+
         if (game.status !== 'started') {
             throw new SocketError('Game not started');
         }
