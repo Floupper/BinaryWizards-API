@@ -386,9 +386,14 @@ export async function update_one(req: Request, res: Response) {
 
 
             for (const option of optionsData) {
-                const { option_content, ...optionFields } = option;
-                persist_option_content(option_content);
-                persist_option(optionFields);
+                const { option_content, ...option_fields } = option;
+                const option_content2 = await persist_option_content(option_content);
+                const optionContentsOptionContent_id = option_content2.optionContent_id;
+                const options_fields_with_content = {
+                    ...option_fields,
+                    optionContentsOptionContent_id
+                };
+                persist_option(options_fields_with_content);
             }
         }
 
