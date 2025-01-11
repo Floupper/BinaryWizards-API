@@ -39,6 +39,7 @@ const app = express();
 app.use(cors()); // Enable CORS (Cross-Origin Resource Sharing)
 app.use((req: Request, res: Response, next: NextFunction) => {
     // Setting headers for CORS
+    res.set('Cache-Control', 'no-cache');
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, UPDATE, PUT, DELETE, PATCH");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");

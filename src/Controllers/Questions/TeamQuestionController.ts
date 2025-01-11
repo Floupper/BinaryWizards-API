@@ -31,7 +31,7 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
     }
 
     // Send a new question
-    async send_question(game: Games, user_id: string, io: Server): Promise<void> {
+    async send_question(game: Games, user_id: string, io: Server, socket: Socket): Promise<void> {
         const game_id = game.game_id;
         const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
 
@@ -110,8 +110,11 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
 
             const userAnswer = await get_user_answer(game_id, question.question_id, user_id);
 
-            io.to(game_id).emit('answerResult', {
+            socket.emit('isCorrectAnswer', {
                 is_correct: userAnswer ? (userAnswer.options.is_correct_answer ? true : false) : false,
+            });
+
+            io.to(game_id).emit('answerResult', {
                 correct_option_index: correctOptionIndex,
             });
 
@@ -122,9 +125,8 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
             await new Promise(resolve => setTimeout(resolve, 5000));
 
             // Send the next question
-            await this.send_question(game, user_id, io);
+            await this.send_question(game, user_id, io, socket);
         }, time_limit * 1000);
-
     }
 
     // Handle receiving an answer from a team
@@ -182,8 +184,6 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
         if (!chosenOption) {
             throw new SocketError('Invalid option index');
         }
-
-        const isCorrect = chosenOption.is_correct_answer;
 
         const correctOption = question.options.find(
             (option: any) => option.is_correct_answer

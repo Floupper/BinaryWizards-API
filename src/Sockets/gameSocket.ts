@@ -83,7 +83,7 @@ const gameSocket = (io: Server, socket: AuthenticatedSocket) => {
 
             // Get the question controller via the factory
             const questionController = MultiplayerQuestionControllerFactory.getController(game.mode, dependencies);
-            await (questionController as MultiplayerQuestionControllerInterface).send_question(game, user.user_id, io);
+            await (questionController as MultiplayerQuestionControllerInterface).send_question(game, user.user_id, io, socket);
         } catch (error: any) {
             if (error instanceof SocketError) {
                 logSocketEvent("Socket error in start game function", error.message, socket);
