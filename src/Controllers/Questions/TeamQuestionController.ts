@@ -31,7 +31,7 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
     }
 
     // Send a new question
-    async send_question(game: Games, user_id: string, io: Server, socket: Socket): Promise<void> {
+    async send_question(game: Games, user_id: string, socket: Socket): Promise<void> {
         const game_id = game.game_id;
         const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
 
@@ -41,10 +41,8 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
 
 
         if (game.current_question_index >= nb_questions_total) {
-            const correctAnswers = await get_correct_answers_count(game_id, user_id);
             const ranking = await get_teams_scores(game_id, game.quizzesQuiz_id);
-            io.to(game_id).emit('gameFinished', {
-                correct_answers_nb: correctAnswers,
+            this.io.to(game_id).emit('gameFinished', {
                 nb_questions_total: nb_questions_total,
                 quiz_id: game.quizzesQuiz_id,
                 ranking: ranking
@@ -78,7 +76,7 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
 
         const correctAnswers = await get_correct_answers_count(game_id, user_id);
 
-        io.to(game_id).emit('newQuestion', {
+        this.io.to(game_id).emit('newQuestion', {
             game_finished: false,
             question_text: question.question_text,
             options: options,
@@ -92,8 +90,6 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
             time_available: time_limit + ((game.question_start_time.getTime() - new Date().getTime()) / 1000) < 0 ? 0 : time_limit + ((game.question_start_time.getTime() - new Date().getTime()) / 1000),
             time_limit: time_limit
         });
-
-
 
 
 
@@ -114,7 +110,7 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
                 is_correct: userAnswer ? (userAnswer.options.is_correct_answer ? true : false) : false,
             });
 
-            io.to(game_id).emit('answerResult', {
+            this.io.to(game_id).emit('answerResult', {
                 correct_option_index: correctOptionIndex,
             });
 
@@ -125,12 +121,12 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
             await new Promise(resolve => setTimeout(resolve, 5000));
 
             // Send the next question
-            await this.send_question(game, user_id, io, socket);
+            await this.send_question(game, user_id, socket);
         }, time_limit * 1000);
     }
 
     // Handle receiving an answer from a team
-    async get_answer(game: Games, question_index: number, option_index: number, user_id: string, io: Server): Promise<void> {
+    async get_answer(game: Games, question_index: number, option_index: number, user_id: string): Promise<void> {
         const game_id = game.game_id;
         question_index--;
 
@@ -209,10 +205,8 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
         }
 
         if (game.current_question_index >= nb_questions_total) {
-            const correctAnswers = await get_correct_answers_count(game_id, user_id);
             const ranking = await get_teams_scores(game_id, game.quizzesQuiz_id);
             socket.emit('gameFinished', {
-                correct_answers_nb: correctAnswers,
                 nb_questions_total: nb_questions_total,
                 quiz_id: game.quizzesQuiz_id,
                 ranking: ranking

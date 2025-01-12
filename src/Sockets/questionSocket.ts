@@ -36,7 +36,7 @@ const questionSocket = (io: Server, socket: AuthenticatedSocket) => {
             const questionController = MultiplayerQuestionControllerFactory.getController(game.mode, dependencies);
 
             // Call the handleTeamAnswer method of the controller
-            await (questionController as MultiplayerQuestionControllerInterface).get_answer(game, question_index, option_index, user.user_id, io, socket);
+            await (questionController as MultiplayerQuestionControllerInterface).get_answer(game, question_index, option_index, user.user_id, socket);
         } catch (error: any) {
             if (error instanceof SocketError) {
                 logSocketEvent("Socket error in sendAnswer function", error.message, socket);
