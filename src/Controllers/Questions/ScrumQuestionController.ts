@@ -7,7 +7,7 @@ import { get_user_answer, persist_answer } from '../../Repositories/answersRepos
 import { MultiplayerQuestionControllerInterface } from '../../Interfaces/MultiplayerQuestionControllerInterface';
 import { Games } from '@prisma/client';
 import { SocketError } from '../../Sockets/SocketError';
-import { have_all_scrum_players_answered } from '../../Helpers/gamesHelper';
+import { get_scrum_scores, have_all_scrum_players_answered } from '../../Helpers/gamesHelper';
 
 export class ScrumQuestionController implements MultiplayerQuestionControllerInterface {
     private io: Server;
@@ -20,13 +20,12 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
     async send_question(game: Games, user_id: string): Promise<void> {
         const game_id = game.game_id;
         const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
-
+        const ranking = await get_scrum_scores(game_id);
         if (game.current_question_index >= nb_questions_total) {
-            const correctAnswers = await get_correct_answers_count(game_id, user_id);
             this.io.to(game_id).emit('gameFinished', {
-                correct_answers_nb: correctAnswers,
                 nb_questions_total: nb_questions_total,
-                quiz_id: game.quizzesQuiz_id
+                quiz_id: game.quizzesQuiz_id,
+                ranking: ranking
             });
             return;
         }
@@ -137,13 +136,12 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
     async get_current_question(game: Games, user_id: string, socket: Socket) {
         const game_id = game.game_id;
         const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
-
+        const ranking = await get_scrum_scores(game_id);
         if (game.current_question_index >= nb_questions_total) {
-            const correctAnswers = await get_correct_answers_count(game_id, user_id);
             socket.emit('gameFinished', {
-                correct_answers_nb: correctAnswers,
                 nb_questions_total: nb_questions_total,
-                quiz_id: game.quizzesQuiz_id
+                quiz_id: game.quizzesQuiz_id,
+                ranking: ranking
             });
             return;
         }

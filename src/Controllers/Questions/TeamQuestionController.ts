@@ -41,10 +41,8 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
 
 
         if (game.current_question_index >= nb_questions_total) {
-            const correctAnswers = await get_correct_answers_count(game_id, user_id);
             const ranking = await get_teams_scores(game_id, game.quizzesQuiz_id);
             this.io.to(game_id).emit('gameFinished', {
-                correct_answers_nb: correctAnswers,
                 nb_questions_total: nb_questions_total,
                 quiz_id: game.quizzesQuiz_id,
                 ranking: ranking
@@ -207,10 +205,8 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
         }
 
         if (game.current_question_index >= nb_questions_total) {
-            const correctAnswers = await get_correct_answers_count(game_id, user_id);
             const ranking = await get_teams_scores(game_id, game.quizzesQuiz_id);
             socket.emit('gameFinished', {
-                correct_answers_nb: correctAnswers,
                 nb_questions_total: nb_questions_total,
                 quiz_id: game.quizzesQuiz_id,
                 ranking: ranking
