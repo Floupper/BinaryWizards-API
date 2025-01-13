@@ -5,7 +5,7 @@ import fs from 'fs';
 
 export const FILE_TYPES = {
     image: /jpeg|jpg|png|gif/,
-    audio: /mp3|wav|ogg/
+    audio: /mp3|wav|ogg|mpeg/
 };
 
 export const generateUniqueFilename = (originalName: string): string => {
