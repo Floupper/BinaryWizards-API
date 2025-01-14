@@ -75,6 +75,8 @@ app.post('/quiz/:quiz_id/create_question', validateQuizId, checkQuizAccess, ques
 app.post('/quiz/:quiz_id/:question_id', validateQuizId, validateQuestionId, checkQuizAccess, questionsHandler.update_one); // Update a question in a quiz
 app.delete('/quiz/:quiz_id/:question_id', validateQuizId, validateQuestionId, checkQuizAccess, questionsHandler.delete_one); // Delete a question from a quiz
 
+app.post('/question/complete_options', questionsHandler.complete_options_ai);
+
 // Games routes
 app.get('/game/user/started_games', checkAuthentication, gamesHandler.get_started_by_user); // Get the games started by the authenticated user
 app.post('/game/:quiz_id/init', validateQuizId, gamesHandler.init_one); // Init a new game for a quiz

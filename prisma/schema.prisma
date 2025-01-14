@@ -30,7 +30,7 @@ model Questions {
   question_text       String
   question_category   String
   question_difficulty String
-  question_type       String
+  question_type       String  // 'text', 'image', 'audio'
   quizzes             Quizzes   @relation(fields: [quizzesQuiz_id], references: [quiz_id])
   quizzesQuiz_id      String
   options             Options[]
@@ -94,7 +94,6 @@ model Games {
 
 model OptionContents {
   optionContent_id String    @id @default(uuid())
-  type             String // 'text', 'image', 'audio'
   content          String // URL for images/sounds or text for textuel answers
   options          Options[]
 }

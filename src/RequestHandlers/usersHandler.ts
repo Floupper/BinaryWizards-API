@@ -105,7 +105,8 @@ export const get_quizzes = async (req: Request, res: Response) => {
                         id: quiz.quiz_id,
                         title: quiz.title,
                         difficulty: quiz.difficulty,
-                        total_questions: await get_total_questions_count(quiz.quiz_id)
+                        total_questions: await get_total_questions_count(quiz.quiz_id),
+                        is_public: (quiz.type == 1)
                     };
                 })
             );

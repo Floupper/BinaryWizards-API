@@ -13,14 +13,14 @@ const OptionStruct = object({
 
 export const QuestionAnswerData = object({
     question_index: number(),
-    option_index: size(number(), -1, 3),
+    option_index: size(number(), -1, 7),
 });
 
 export const QuestionCreationData = object({
     question_text: string(),
     question_difficulty: enums(['easy', 'medium', 'hard']),
     question_category: string(),
-    question_type: enums(['multiple', 'boolean']),
+    question_type: enums(['text', 'image', 'audio']),
     options: refine(array(OptionStruct), 'options', (options) => options.length > 1),
 });
 
@@ -29,6 +29,12 @@ export const QuestionUpdateData = object({
     question_text: optional(string()),
     question_difficulty: optional(enums(['easy', 'medium', 'hard'])),
     question_category: optional(string()),
-    question_type: optional(enums(['multiple', 'boolean'])),
+    question_type: enums(['text', 'image', 'audio']),
     options: optional(refine(array(OptionStruct), 'options', (options) => options.length > 1)),
+});
+
+
+export const CompleteOptionsData = object({
+    question_text: string(),
+    options_type: enums(['realistic', 'humouristic', 'mixt']),
 });
