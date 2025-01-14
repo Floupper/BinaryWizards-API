@@ -424,7 +424,6 @@ export async function complete_options_ai(req: Request, res: Response) {
     const prompt = `You are a quiz generator. For the question "${question_text}", generate exactly one correct answer and exactly three incorrect answers. The theme should be ${options_type}. The incorrect_answers array must contain exactly 3 items.`;
 
     try {
-        console.log(String(process.env.OLLAMA_URL));
         const response = await axios.post(String(process.env.OLLAMA_URL), {
             model: 'llama3.2:1b',
             prompt: prompt,
@@ -465,8 +464,6 @@ export async function complete_options_ai(req: Request, res: Response) {
             generatedAnswers.incorrect_answers.length !== 3) {
             throw new Error('Response structure invalid');
         }
-
-        console.log(generatedAnswers);
 
         res.status(200).json({ generatedAnswers });
     } catch (error) {
