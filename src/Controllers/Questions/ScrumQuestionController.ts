@@ -41,12 +41,8 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
             option_content: option.option_content
         }));
 
-        const correctAnswers = await get_correct_answers_count(game_id, user_id);
-
         const sockets = await this.io.in(game_id).fetchSockets();
-
         for (const socketData of sockets) {
-            // Conversion du RemoteSocket en Socket normal
             const socket = this.io.sockets.sockets.get(socketData.id) as AuthenticatedSocket;
 
             if (!socket.user) {
@@ -67,19 +63,6 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
                 quiz_id: game.quizzesQuiz_id,
             });
         }
-
-        // this.io.to(game_id).emit('newQuestion', {
-        //     game_finished: false,
-        //     question_text: question.question_text,
-        //     options: options,
-        //     question_index: question.question_index + 1,
-        //     nb_questions_total: nb_questions_total,
-        //     correct_answers_nb: correctAnswers,
-        //     question_type: question.question_type,
-        //     question_difficulty: question.question_difficulty,
-        //     question_category: question.question_category,
-        //     quiz_id: game.quizzesQuiz_id,
-        // });
     }
 
     // Handle receiving an answer from a player
