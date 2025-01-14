@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { assert } from 'superstruct';
-import { QuestionAnswerData, QuestionCreationData, QuestionUpdateData } from '../Validation/question';
+import { CompleteOptionsData, QuestionAnswerData, QuestionCreationData, QuestionUpdateData } from '../Validation/question';
 import { delete_question, get_all_questions, get_current_question, get_question_informations, persist_question, update_question } from '../Repositories/questionsRepository';
 import { persist_answer } from '../Repositories/answersRepository';
 import { change_questions_indexes, get_total_questions_count } from '../Helpers/questionsHelper';
@@ -132,13 +132,12 @@ export async function import_questions(req: Request, res: Response) {
 
 
             // Create question
-            const question = await persist_question(total_questions + index, questionText, questionData.category, questionData.difficulty, questionData.type, req.params.quiz_id);
+            const question = await persist_question(total_questions + index, questionText, questionData.category, questionData.difficulty, "text", req.params.quiz_id);
 
             // Prepare the options
             const optionsData = [];
 
             const correctOptionContent = await persist_option_content({
-                type: 'text',
                 content: correctAnswer
             });
 
@@ -154,7 +153,6 @@ export async function import_questions(req: Request, res: Response) {
             // Add incorrect answers
             for (const [index, incorrectAnswer] of incorrectAnswers.entries()) {
                 const incorrectOptionContent = await persist_option_content({
-                    type: 'text',
                     content: incorrectAnswer
                 });
 
@@ -406,5 +404,73 @@ export async function update_one(req: Request, res: Response) {
         } else {
             res.status(500).json({ error: 'Error while deleting question' });
         }
+    }
+}
+
+
+
+export async function complete_options_ai(req: Request, res: Response) {
+    const { quiz_id } = req.params;
+
+    try {
+        assert(req.body, CompleteOptionsData);
+    } catch (error) {
+        res.status(400).json({ error: 'Data is invalid: question_text and options_type must be given' });
+        return;
+    }
+
+    const { question_text, options_type } = req.body;
+
+    const prompt = `You are a quiz generator. For the question "${question_text}", generate exactly one correct answer and exactly three incorrect answers. The theme should be ${options_type}. The incorrect_answers array must contain exactly 3 items.`;
+
+    try {
+        console.log(String(process.env.OLLAMA_URL));
+        const response = await axios.post(String(process.env.OLLAMA_URL), {
+            model: 'llama3.2:1b',
+            prompt: prompt,
+            stream: false,
+            format: {
+                "type": "object",
+                "properties": {
+                    "correct_answer": {
+                        "type": "string"
+                    },
+                    "incorrect_answers": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "correct_answer",
+                    "incorrect_answers"
+                ]
+            },
+            num_ctx: 512,
+            num_predict: 256,
+            temperature: 0.7,
+            top_p: 0.9,
+            repeat_penalty: 1.1
+        });
+
+        const jsonMatch = response.data.response.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+            throw new Error('Response format invalid');
+        }
+
+        const generatedAnswers = JSON.parse(jsonMatch[0]);
+
+        if (!generatedAnswers.correct_answer || !Array.isArray(generatedAnswers.incorrect_answers) ||
+            generatedAnswers.incorrect_answers.length !== 3) {
+            throw new Error('Response structure invalid');
+        }
+
+        console.log(generatedAnswers);
+
+        res.status(200).json({ generatedAnswers });
+    } catch (error) {
+        console.error('Error while generating options: ' + error);
+        res.status(500).json({ error: 'Error while generating options' });
     }
 }

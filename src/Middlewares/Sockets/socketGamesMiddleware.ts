@@ -8,7 +8,7 @@ export async function socketValidateGameId(game_id: string): Promise<void> {
     try {
         assert(game_id, GAMEID);
     } catch (error) {
-        throw new Error('The game id is invalid');
+        throw new SocketError('The game id is invalid');
     }
 }
 

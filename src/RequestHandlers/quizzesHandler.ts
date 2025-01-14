@@ -67,14 +67,13 @@ export async function create_one(req: Request, res: Response) {
             const incorrectAnswers = questionData.incorrect_answers.map((ans: string) => he.decode(ans));
 
             // Create question
-            const question = await persist_question(index, questionText, questionData.category, questionData.difficulty, questionData.type, quiz.quiz_id);
+            const question = await persist_question(index, questionText, questionData.category, questionData.difficulty, "text", quiz.quiz_id);
 
             // Prepare the options
             const optionsData = [];
 
             // Add the correct answer
             const correctOptionContent = await persist_option_content({
-                type: 'text',
                 content: correctAnswer
             });
 
@@ -88,7 +87,6 @@ export async function create_one(req: Request, res: Response) {
             // Add incorrect answers
             for (const [index, incorrectAnswer] of incorrectAnswers.entries()) {
                 const incorrectOptionContent = await persist_option_content({
-                    type: 'text',
                     content: incorrectAnswer
                 });
 
@@ -217,8 +215,6 @@ export async function update_one(req: Request, res: Response) {
     try {
 
         await update_quiz(quiz_id, req.body);
-
-
 
         res.status(200).json({ message: 'Quiz updated successfully' });
     } catch (error) {

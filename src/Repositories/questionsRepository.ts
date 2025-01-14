@@ -15,7 +15,6 @@ export async function get_current_question(quiz_id: string, question_index: numb
                     is_correct_answer: true,
                     option_content: {
                         select: {
-                            type: true,
                             content: true
                         }
                     }
@@ -86,7 +85,6 @@ export async function get_question_informations(question_id: string) {
                 select: {
                     option_content: {
                         select: {
-                            type: true,
                             content: true
                         }
                     },
@@ -119,7 +117,6 @@ export async function get_user_question(question_id: string) {
                     is_correct_answer: true,
                     option_content: {
                         select: {
-                            type: true,
                             content: true
                         }
                     }
@@ -135,7 +132,6 @@ export async function get_user_question(question_id: string) {
                             is_correct_answer: true,
                             option_content: {
                                 select: {
-                                    type: true,
                                     content: true
                                 }
                             }
