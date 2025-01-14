@@ -74,22 +74,29 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
             option_content: option.option_content
         }));
 
-        const correctAnswers = await get_correct_answers_count(game_id, user_id);
 
-        this.io.to(game_id).emit('newQuestion', {
-            game_finished: false,
-            question_text: question.question_text,
-            options: options,
-            question_index: question.question_index + 1,
-            nb_questions_total: nb_questions_total,
-            correct_answers_nb: correctAnswers,
-            question_type: question.question_type,
-            question_difficulty: question.question_difficulty,
-            question_category: question.question_category,
-            quiz_id: game.quizzesQuiz_id,
-            time_available: time_limit + ((game.question_start_time.getTime() - new Date().getTime()) / 1000) < 0 ? 0 : time_limit + ((game.question_start_time.getTime() - new Date().getTime()) / 1000),
-            time_limit: time_limit
-        });
+
+        const sockets = await this.io.in(game_id).fetchSockets();
+
+        for (const socket of sockets) {
+            console.log("socket.data: " + JSON.stringify(socket.data, null, 2));
+            const playerCorrectAnswers = await get_correct_answers_count(game_id, socket.data.user_id);
+
+            socket.emit('newQuestion', {
+                game_finished: false,
+                question_text: question.question_text,
+                options: options,
+                question_index: question.question_index + 1,
+                nb_questions_total: nb_questions_total,
+                correct_answers_nb: playerCorrectAnswers,
+                question_type: question.question_type,
+                question_difficulty: question.question_difficulty,
+                question_category: question.question_category,
+                quiz_id: game.quizzesQuiz_id,
+                time_available: time_limit + ((game.question_start_time.getTime() - new Date().getTime()) / 1000) < 0 ? 0 : time_limit + ((game.question_start_time.getTime() - new Date().getTime()) / 1000),
+                time_limit: time_limit
+            });
+        }
 
 
 

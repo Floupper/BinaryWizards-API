@@ -8,6 +8,7 @@ import { MultiplayerQuestionControllerInterface } from '../../Interfaces/Multipl
 import { Games } from '@prisma/client';
 import { SocketError } from '../../Sockets/SocketError';
 import { get_scrum_scores, have_all_scrum_players_answered } from '../../Helpers/gamesHelper';
+import { AuthenticatedSocket } from '../../Middlewares/Sockets/socketAuthMiddleware';
 
 export class ScrumQuestionController implements MultiplayerQuestionControllerInterface {
     private io: Server;
@@ -42,18 +43,43 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
 
         const correctAnswers = await get_correct_answers_count(game_id, user_id);
 
-        this.io.to(game_id).emit('newQuestion', {
-            game_finished: false,
-            question_text: question.question_text,
-            options: options,
-            question_index: question.question_index + 1,
-            nb_questions_total: nb_questions_total,
-            correct_answers_nb: correctAnswers,
-            question_type: question.question_type,
-            question_difficulty: question.question_difficulty,
-            question_category: question.question_category,
-            quiz_id: game.quizzesQuiz_id,
-        });
+        const sockets = await this.io.in(game_id).fetchSockets();
+
+        for (const socketData of sockets) {
+            // Conversion du RemoteSocket en Socket normal
+            const socket = this.io.sockets.sockets.get(socketData.id) as AuthenticatedSocket;
+
+            if (!socket.user) {
+                throw new Error('User not found in socket.user, socket: ' + JSON.stringify(socket, null, 2));
+            }
+            const player_correct_answers = await get_correct_answers_count(game_id, socket.user.user_id);
+
+            socket.emit('newQuestion', {
+                game_finished: false,
+                question_text: question.question_text,
+                options: options,
+                question_index: question.question_index + 1,
+                nb_questions_total: nb_questions_total,
+                correct_answers_nb: player_correct_answers,
+                question_type: question.question_type,
+                question_difficulty: question.question_difficulty,
+                question_category: question.question_category,
+                quiz_id: game.quizzesQuiz_id,
+            });
+        }
+
+        // this.io.to(game_id).emit('newQuestion', {
+        //     game_finished: false,
+        //     question_text: question.question_text,
+        //     options: options,
+        //     question_index: question.question_index + 1,
+        //     nb_questions_total: nb_questions_total,
+        //     correct_answers_nb: correctAnswers,
+        //     question_type: question.question_type,
+        //     question_difficulty: question.question_difficulty,
+        //     question_category: question.question_category,
+        //     quiz_id: game.quizzesQuiz_id,
+        // });
     }
 
     // Handle receiving an answer from a player

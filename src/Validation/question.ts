@@ -1,7 +1,6 @@
 import { object, number, size, string, boolean, refine, array, optional, enums } from 'superstruct';
 
 const OptionContentStruct = object({
-    type: enums(['text', 'image', 'audio']),
     content: string(),
 });
 
@@ -29,7 +28,7 @@ export const QuestionUpdateData = object({
     question_text: optional(string()),
     question_difficulty: optional(enums(['easy', 'medium', 'hard'])),
     question_category: optional(string()),
-    question_type: enums(['text', 'image', 'audio']),
+    question_type: optional(enums(['text', 'image', 'audio'])),
     options: optional(refine(array(OptionStruct), 'options', (options) => options.length > 1)),
 });
 
