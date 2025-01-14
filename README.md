@@ -9,6 +9,7 @@ PORT=<a port>
 DATABASE_URL="file:./dev.db"
 JWT_SECRET=<a secret key>
 JWT_EXPIRES_IN=10h
+OLLAMA_URL='http://klebert-host.com:11434/api/generate'
 ```
 
 Once the *.env* file is created and filled out, you can install the dependencies and launch the application with the following commands:
