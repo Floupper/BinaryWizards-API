@@ -18,7 +18,7 @@ export async function change_questions_indexes(quiz_id: string, currentIndex: nu
 }
 
 
-export async function get_correct_option_index(question: any) {
+export function get_correct_option_index(question: any) {
     const correctOption = question.options.find(
         (option: any) => option.is_correct_answer
     );

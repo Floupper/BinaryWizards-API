@@ -17,3 +17,55 @@ export async function get_correct_answers_count(game_id: string, user_id?: strin
         return await count_correct_answers_multiplayer(game_id, user_id);
     }
 }
+
+
+class AnswerTimeManager {
+    private static instance: AnswerTimeManager;
+    private answerStartTimes: Map<string, Date>;
+    private readonly displayDuration: number = 5000;
+
+    private constructor() {
+        this.answerStartTimes = new Map();
+    }
+
+    public static getInstance(): AnswerTimeManager {
+        if (!AnswerTimeManager.instance) {
+            AnswerTimeManager.instance = new AnswerTimeManager();
+        }
+        return AnswerTimeManager.instance;
+    }
+
+    public startAnswerDisplay(gameId: string): void {
+        this.answerStartTimes.set(gameId, new Date());
+    }
+
+    public getTimeRemaining(gameId: string): number {
+        const startTime = this.answerStartTimes.get(gameId);
+
+        if (!startTime) {
+            return this.displayDuration;
+        }
+
+        const currentTime = new Date();
+        const elapsedTime = currentTime.getTime() - startTime.getTime();
+        const remainingTime = Math.max(0, this.displayDuration - elapsedTime);
+
+        if (remainingTime === 0) {
+            this.answerStartTimes.delete(gameId);
+        }
+
+        return remainingTime;
+    }
+
+    public clearGame(gameId: string): void {
+        this.answerStartTimes.delete(gameId);
+    }
+}
+
+export function getAnswerTimeDisplay(gameId: string): number {
+    return AnswerTimeManager.getInstance().getTimeRemaining(gameId);
+}
+
+export function startAnswerDisplay(gameId: string): void {
+    AnswerTimeManager.getInstance().startAnswerDisplay(gameId);
+}
