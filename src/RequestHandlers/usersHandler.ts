@@ -220,6 +220,7 @@ export const get_question = async (req: Request, res: Response) => {
             question_difficulty: question.question_difficulty,
             total_answers,
             accuracy_rate,
+            question_type: question.question_type,
             option_selection_stats
         };
 
