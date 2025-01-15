@@ -3,7 +3,7 @@ import { assert } from 'superstruct';
 import { CompleteOptionsData, QuestionAnswerData, QuestionCreationData, QuestionUpdateData } from '../Validation/question';
 import { delete_question, get_all_questions, get_current_question, get_question_informations, persist_question, update_question } from '../Repositories/questionsRepository';
 import { persist_answer } from '../Repositories/answersRepository';
-import { change_questions_indexes, get_total_questions_count } from '../Helpers/questionsHelper';
+import { change_questions_indexes, complete_options_request, get_total_questions_count } from '../Helpers/questionsHelper';
 import { get_game, persist_game_update } from '../Repositories/gamesRepository';
 import { QuestionImportData } from '../Validation/quiz';
 import axios from 'axios';
@@ -400,44 +400,11 @@ export async function complete_options_ai(req: Request, res: Response) {
     const prompt = `You are a quiz generator. For the question "${question_text}", generate exactly one correct answer and exactly ${nb_options - 1} incorrect answers. The theme should be ${options_type}. The incorrect_answers array must contain exactly ${nb_options - 1} items.`;
 
     try {
-        const response = await axios.post(String(process.env.OLLAMA_URL), {
-            model: 'llama3.2:1b',
-            prompt: prompt,
-            stream: false,
-            format: {
-                "type": "object",
-                "properties": {
-                    "correct_answer": {
-                        "type": "string"
-                    },
-                    "incorrect_answers": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    }
-                },
-                "required": [
-                    "correct_answer",
-                    "incorrect_answers"
-                ]
-            },
-            num_ctx: 512,
-            num_predict: 256,
-            temperature: 0.7,
-            top_p: 0.9,
-            repeat_penalty: 1.1
-        });
 
-        const jsonMatch = response.data.response.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) {
-            throw new Error('Response format invalid');
-        }
-
-        const generatedAnswers = JSON.parse(jsonMatch[0]);
+        let generatedAnswers = await complete_options_request(prompt);
 
         if (!generatedAnswers.correct_answer || !Array.isArray(generatedAnswers.incorrect_answers) ||
-            generatedAnswers.incorrect_answers.length !== 3) {
+            generatedAnswers.incorrect_answers.length !== nb_options - 1) {
             throw new Error('Response structure invalid');
         }
 
