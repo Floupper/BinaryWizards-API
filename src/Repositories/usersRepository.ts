@@ -51,7 +51,7 @@ export async function get_started_games_by_user_paginated(user_id: string, skip:
 export async function get_games_by_user(user_id: string) {
     return await prisma.games.findMany({
         where: {
-            userUser_id: user_id
+            userUser_id: user_id,
         },
         include: {
             quizzes: true

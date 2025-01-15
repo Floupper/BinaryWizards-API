@@ -164,7 +164,8 @@ export const get_quiz = async (req: Request, res: Response) => {
                 nb_questions,
                 nb_played,
                 average_score,
-                questions
+                questions,
+                is_public: (quiz.type == 1)
             };
 
             res.status(200).json(quizWithStats);

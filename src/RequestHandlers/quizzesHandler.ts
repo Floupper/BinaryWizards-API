@@ -4,7 +4,7 @@ import { assert } from 'superstruct';
 import axios from 'axios';
 import he from 'he';
 import { persist_question } from '../Repositories/questionsRepository';
-import { persist_option, persist_option_content } from '../Repositories/optionsRepository';
+import { persist_option } from '../Repositories/optionsRepository';
 import { count_quizzes_with_filters, find_quizzes_with_filters, get_quiz_informations, persist_quiz, quiz_id_exists, update_quiz } from '../Repositories/quizzesRepository';
 
 export async function create_one(req: Request, res: Response) {
@@ -72,29 +72,20 @@ export async function create_one(req: Request, res: Response) {
             // Prepare the options
             const optionsData = [];
 
-            // Add the correct answer
-            const correctOptionContent = await persist_option_content({
-                content: correctAnswer
-            });
-
             optionsData.push({
                 option_index: 0,
                 is_correct_answer: true,
                 questionsQuestion_id: question.question_id,
-                optionContentsOptionContent_id: correctOptionContent.optionContent_id
+                option_content: correctAnswer
             });
 
             // Add incorrect answers
             for (const [index, incorrectAnswer] of incorrectAnswers.entries()) {
-                const incorrectOptionContent = await persist_option_content({
-                    content: incorrectAnswer
-                });
-
                 optionsData.push({
                     option_index: index + 1,
                     is_correct_answer: false,
                     questionsQuestion_id: question.question_id,
-                    optionContentsOptionContent_id: incorrectOptionContent.optionContent_id
+                    option_content: incorrectAnswer
                 });
             }
 

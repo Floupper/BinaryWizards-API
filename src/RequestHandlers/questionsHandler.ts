@@ -8,7 +8,7 @@ import { get_game, persist_game_update } from '../Repositories/gamesRepository';
 import { QuestionImportData } from '../Validation/quiz';
 import axios from 'axios';
 import he from 'he';
-import { delete_from_question, persist_option, persist_option_content } from '../Repositories/optionsRepository';
+import { delete_from_question, persist_option } from '../Repositories/optionsRepository';
 import { SingleplayerQuestionControllerFactory } from '../Controllers/Questions/Factory/SingleplayerQuestionControllerFactory';
 
 
@@ -137,30 +137,23 @@ export async function import_questions(req: Request, res: Response) {
             // Prepare the options
             const optionsData = [];
 
-            const correctOptionContent = await persist_option_content({
-                content: correctAnswer
-            });
-
             // Add the correct answer
             optionsData.push({
                 option_index: 0,
                 is_correct_answer: true,
                 questionsQuestion_id: question.question_id,
-                optionContentsOptionContent_id: correctOptionContent.optionContent_id
+                option_content: correctAnswer
             });
 
 
             // Add incorrect answers
             for (const [index, incorrectAnswer] of incorrectAnswers.entries()) {
-                const incorrectOptionContent = await persist_option_content({
-                    content: incorrectAnswer
-                });
 
                 optionsData.push({
                     option_index: index + 1,
                     is_correct_answer: false,
                     questionsQuestion_id: question.question_id,
-                    optionContentsOptionContent_id: incorrectOptionContent.optionContent_id
+                    option_content: incorrectAnswer
                 });
             }
 
@@ -250,11 +243,7 @@ export async function create_one(req: Request, res: Response) {
             option_index: index,
             is_correct_answer: option.is_correct_answer,
             questionsQuestion_id: question.question_id,
-            option_content: {
-                type: option.option_content.type,
-                content: option.option_content.content,
-            },
-            optionContentsOptionContent_id: ''
+            option_content: option.option_content
         }));
 
         // Sort options randomly
@@ -267,10 +256,7 @@ export async function create_one(req: Request, res: Response) {
 
         // Save options to the database
         for (const option of optionsData) {
-            const { option_content, ...option_fields } = option;
-            const o_c = await persist_option_content(option_content);
-            option_fields.optionContentsOptionContent_id = o_c.optionContent_id;
-            persist_option(option_fields);
+            persist_option(option);
         }
 
         res.status(201).json({ message: 'Question created', question_id: question.question_id })
@@ -376,22 +362,12 @@ export async function update_one(req: Request, res: Response) {
                 option_index: index,
                 is_correct_answer: option.is_correct_answer,
                 questionsQuestion_id: question_id,
-                option_content: {
-                    type: option.option_content.type,
-                    content: option.option_content.content,
-                },
+                option_content: option.option_content
             }));
 
 
             for (const option of optionsData) {
-                const { option_content, ...option_fields } = option;
-                const option_content2 = await persist_option_content(option_content);
-                const optionContentsOptionContent_id = option_content2.optionContent_id;
-                const options_fields_with_content = {
-                    ...option_fields,
-                    optionContentsOptionContent_id
-                };
-                persist_option(options_fields_with_content);
+                persist_option(option);
             }
         }
 
@@ -419,9 +395,9 @@ export async function complete_options_ai(req: Request, res: Response) {
         return;
     }
 
-    const { question_text, options_type } = req.body;
+    const { question_text, options_type, nb_options } = req.body;
 
-    const prompt = `You are a quiz generator. For the question "${question_text}", generate exactly one correct answer and exactly three incorrect answers. The theme should be ${options_type}. The incorrect_answers array must contain exactly 3 items.`;
+    const prompt = `You are a quiz generator. For the question "${question_text}", generate exactly one correct answer and exactly ${nb_options - 1} incorrect answers. The theme should be ${options_type}. The incorrect_answers array must contain exactly ${nb_options - 1} items.`;
 
     try {
         const response = await axios.post(String(process.env.OLLAMA_URL), {
