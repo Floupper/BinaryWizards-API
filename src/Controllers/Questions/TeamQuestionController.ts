@@ -1,7 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import { persist_game_update } from '../../Repositories/gamesRepository';
 import { get_correct_option_index, get_total_questions_count } from '../../Helpers/questionsHelper';
-import { get_correct_answers_count } from '../../Helpers/answersHelper';
+import { get_correct_answers_count, getAnswerTimeDisplay, startAnswerDisplay } from '../../Helpers/answersHelper';
 import { get_current_question } from '../../Repositories/questionsRepository';
 import { get_user_answer, persist_answer } from '../../Repositories/answersRepository';
 import { MultiplayerQuestionControllerInterface } from '../../Interfaces/MultiplayerQuestionControllerInterface';
@@ -114,6 +114,8 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
                 throw new SocketError('Correct answer not found');
             }
 
+            startAnswerDisplay(game_id);
+
             const userAnswer = await get_user_answer(game_id, question.question_id, user_id);
 
             socket.emit('isCorrectAnswer', {
@@ -125,10 +127,13 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
             });
 
             game = await persist_game_update(game_id, {
-                current_question_index: game.current_question_index + 1,
                 question_start_time: null
             });
-            await new Promise(resolve => setTimeout(resolve, 5000));
+            await new Promise(resolve => setTimeout(resolve, getAnswerTimeDisplay(game_id)));
+
+            game = await persist_game_update(game_id, {
+                current_question_index: game.current_question_index + 1
+            });
 
             // Send the next question
             await this.send_question(game, user_id, socket);
@@ -236,7 +241,7 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
 
             socket.emit('answerResult', {
                 correct_option_index: get_correct_option_index(question),
-                time_remaining: 5000
+                time_remaining: getAnswerTimeDisplay(game_id)
             });
             return;
         }

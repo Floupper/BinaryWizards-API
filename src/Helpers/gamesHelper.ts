@@ -17,7 +17,6 @@ export function generate_game_link(game_id: string): string {
     return `/game/join/${game_id}`;
 }
 
-
 export async function get_teams_scores(game_id: string, quiz_id: string) {
     const teams = await get_teams_for_game(game_id);
 
