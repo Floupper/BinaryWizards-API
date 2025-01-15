@@ -22,7 +22,7 @@ export async function get_correct_answers_count(game_id: string, user_id?: strin
 class AnswerTimeManager {
     private static instance: AnswerTimeManager;
     private answerStartTimes: Map<string, Date>;
-    private readonly displayDuration: number = 30000;
+    private readonly displayDuration: number = 5000;
 
     private constructor() {
         this.answerStartTimes = new Map();
