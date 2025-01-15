@@ -14,8 +14,3 @@ export async function delete_from_question(question_id: string) {
         where: { questionsQuestion_id: question_id },
     });
 }
-
-
-export async function persist_option_content(optionContent: Prisma.OptionContentsCreateInput) {
-    return await prisma.optionContents.create({ data: optionContent });
-}

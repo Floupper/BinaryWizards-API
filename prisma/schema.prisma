@@ -30,7 +30,7 @@ model Questions {
   question_text       String
   question_category   String
   question_difficulty String
-  question_type       String  // 'text', 'image', 'audio'
+  question_type       String // 'text', 'image', 'audio'
   quizzes             Quizzes   @relation(fields: [quizzesQuiz_id], references: [quiz_id])
   quizzesQuiz_id      String
   options             Options[]
@@ -43,10 +43,9 @@ model Options {
   is_correct_answer Boolean
   answers           Answers[]
 
-  questions                      Questions?      @relation(fields: [questionsQuestion_id], references: [question_id])
-  questionsQuestion_id           String
-  option_content                 OptionContents? @relation(fields: [optionContentsOptionContent_id], references: [optionContent_id])
-  optionContentsOptionContent_id String?
+  questions            Questions? @relation(fields: [questionsQuestion_id], references: [question_id])
+  questionsQuestion_id String
+  option_content       String
 }
 
 model Answers {
@@ -90,12 +89,6 @@ model Games {
 
   status              String    @default("pending") // 'pending', 'started', 'finished'
   question_start_time DateTime? // Start time of the current question for time and team modes
-}
-
-model OptionContents {
-  optionContent_id String    @id @default(uuid())
-  content          String // URL for images/sounds or text for textuel answers
-  options          Options[]
 }
 
 model Teams {
