@@ -27,11 +27,6 @@ beforeAll(async () => {
         .send({ amount: 5, category: 10, difficulty: "easy" });
 }, 15000);
 
-afterAll(() => {
-    server.close(() => {
-        console.log('Test server stopped');
-    });
-});
 
 describe('Games Routes', () => {
     describe('GET /game/user/started_games', () => {
@@ -50,7 +45,7 @@ describe('Games Routes', () => {
         });
     });
 
-    describe('GET /game/:quiz_id/create', () => {
+    describe('POST /game/:quiz_id/init', () => {
         it('should create a new game for a quiz', async () => {
             const signupResponse = await request(app)
                 .post('/user/signup')
@@ -60,7 +55,8 @@ describe('Games Routes', () => {
 
 
             const response = await request(app)
-                .get(`/game/${quizId}/create`)
+                .post(`/game/${quizId}/init`)
+                .send({ mode: 'standard' })
                 .set('Authorization', `Bearer ${token}`);
 
             expect(response.status).toBe(201);
@@ -76,11 +72,12 @@ describe('Games Routes', () => {
 
             const quizId = "QUxxxxxx"; // Assume this quiz ID does not exist
             const response = await request(app)
-                .get(`/game/${quizId}/create`)
+                .post(`/game/${quizId}/init`)
+                .send({ mode: 'standard' })
                 .set('Authorization', `Bearer ${token}`);
 
             expect(response.status).toBe(404);
-            expect(response.body).toHaveProperty('error', 'Quiz not found');
+            expect(response.body).toHaveProperty('error', 'Quiz not found.');
         });
     });
 
@@ -93,7 +90,8 @@ describe('Games Routes', () => {
 
             // Create a new game first
             const createGameResponse = await request(app)
-                .get(`/game/${quizId}/create`)
+                .post(`/game/${quizId}/init`)
+                .send({ mode: 'standard' })
                 .set('Authorization', `Bearer ${token}`);
 
             const gameId = createGameResponse.body.game_id;
@@ -102,6 +100,7 @@ describe('Games Routes', () => {
             const response = await request(app)
                 .get(`/game/${gameId}/question`)
                 .set('Authorization', `Bearer ${token}`);
+
 
             expect(response.status).toBe(200);
             expect(response.body).toHaveProperty('correct_answers_nb', 0);
@@ -126,7 +125,8 @@ describe('Games Routes', () => {
 
             // Create a new game first
             const createGameResponse = await request(app)
-                .get(`/game/${quizId}/create`)
+                .post(`/game/${quizId}/init`)
+                .send({ mode: 'standard' })
                 .set('Authorization', `Bearer ${token}`);
 
             const gameId = createGameResponse.body.game_id;

@@ -9,11 +9,6 @@ beforeAll(() => {
     });
 });
 
-afterAll(() => {
-    server.close(() => {
-        console.log('Test server stopped');
-    });
-});
 
 const uniqueUsername = `testuser_${Date.now()}`;
 const uniqueUsername2 = `signinuser_${Date.now()}`;
