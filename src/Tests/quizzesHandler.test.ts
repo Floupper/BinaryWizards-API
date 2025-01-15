@@ -11,11 +11,6 @@ beforeAll(() => {
     });
 });
 
-afterAll(() => {
-    server.close(() => {
-        console.log('Test server stopped');
-    });
-});
 
 describe('Quizzes Handler Tests', () => {
     let quizId: string;
