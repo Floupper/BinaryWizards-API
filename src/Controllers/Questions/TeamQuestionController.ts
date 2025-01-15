@@ -1,6 +1,6 @@
 import { Server, Socket } from 'socket.io';
 import { persist_game_update } from '../../Repositories/gamesRepository';
-import { get_total_questions_count } from '../../Helpers/questionsHelper';
+import { get_correct_option_index, get_total_questions_count } from '../../Helpers/questionsHelper';
 import { get_correct_answers_count } from '../../Helpers/answersHelper';
 import { get_current_question } from '../../Repositories/questionsRepository';
 import { get_user_answer, persist_answer } from '../../Repositories/answersRepository';
@@ -66,6 +66,7 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
             });
         }
 
+
         if (!game.question_start_time) {
             throw new SocketError('Question start time not found');
         }
@@ -113,8 +114,6 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
                 throw new SocketError('Correct answer not found');
             }
 
-            const correctOptionIndex = correctOption.option_index;
-
             const userAnswer = await get_user_answer(game_id, question.question_id, user_id);
 
             socket.emit('isCorrectAnswer', {
@@ -122,7 +121,7 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
             });
 
             this.io.to(game_id).emit('answerResult', {
-                correct_option_index: correctOptionIndex,
+                correct_option_index: get_correct_option_index(question),
             });
 
             game = await persist_game_update(game_id, {
@@ -211,9 +210,6 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
             throw new SocketError('Game difficulty level not found');
         }
 
-        if (!game.question_start_time) {
-            throw new SocketError('Question start time not found');
-        }
 
         if (game.current_question_index >= nb_questions_total) {
             const ranking = await get_teams_scores(game_id, game.quizzesQuiz_id);
@@ -228,6 +224,21 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
         const question = await get_current_question(game.quizzesQuiz_id, game.current_question_index);
         if (!question) {
             throw new SocketError('Question not found');
+        }
+
+
+        // Sending the result of the question (time between two questions)
+        if (!game.question_start_time) {
+            const userAnswer = await get_user_answer(game_id, question.question_id, user_id);
+            socket.emit('isCorrectAnswer', {
+                is_correct: userAnswer ? (userAnswer.options.is_correct_answer ? true : false) : false,
+            });
+
+            socket.emit('answerResult', {
+                correct_option_index: get_correct_option_index(question),
+                time_remaining: 5000
+            });
+            return;
         }
 
         const time_limit = this.getTimeLimit(game.difficulty_level);
