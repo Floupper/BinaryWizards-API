@@ -252,6 +252,7 @@ export const get_games = async (req: Request, res: Response) => {
                         date_game_creation: game.created_at,
                         current_question_index: game.current_question_index,
                         nb_questions_total,
+                        game_mode: game.mode,
                         correct_answers_nb
                     };
                 }

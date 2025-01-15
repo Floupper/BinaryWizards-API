@@ -137,7 +137,8 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
             startAnswerDisplay(game_id);
 
             this.io.to(game_id).emit('answerResult', {
-                correct_option_index: correctOptionIndex
+                correct_option_index: correctOptionIndex,
+                time_remaining: getAnswerTimeDisplay(game_id)
             });
 
 

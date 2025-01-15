@@ -124,6 +124,7 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
 
             this.io.to(game_id).emit('answerResult', {
                 correct_option_index: get_correct_option_index(question),
+                time_remaining: getAnswerTimeDisplay(game_id)
             });
 
             game = await persist_game_update(game_id, {
