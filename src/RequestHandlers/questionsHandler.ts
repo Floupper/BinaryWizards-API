@@ -348,7 +348,6 @@ export async function update_one(req: Request, res: Response) {
 
         // If options are provided, delete existing options and create new ones
         if (options) {
-            await delete_from_question(question_id);
 
             const optionsData = options.map((option: any, index: number) => ({
                 option_index: index,
@@ -358,6 +357,7 @@ export async function update_one(req: Request, res: Response) {
             }));
 
 
+            delete_from_question(question_id);
             for (const option of optionsData) {
                 persist_option(option);
             }
