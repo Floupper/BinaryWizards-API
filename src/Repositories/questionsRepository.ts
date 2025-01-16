@@ -8,7 +8,14 @@ export async function get_current_question(quiz_id: string, question_index: numb
             question_index: question_index,
         },
         include: {
-            options: true,
+            options: {
+                select: {
+                    option_id: true,
+                    option_index: true,
+                    is_correct_answer: true,
+                    option_content: true
+                }
+            }
         },
     });
 }
@@ -72,10 +79,13 @@ export async function get_question_informations(question_id: string) {
             quizzesQuiz_id: true,
             options: {
                 select: {
-                    option_text: true,
+                    option_content: true,
                     option_index: true,
                     is_correct_answer: true,
                 },
+                orderBy: {
+                    option_index: 'asc',
+                }
             },
         },
     });
@@ -98,9 +108,9 @@ export async function get_user_question(question_id: string) {
             options: {
                 select: {
                     option_id: true,
-                    option_text: true,
                     option_index: true,
-                    is_correct_answer: true
+                    is_correct_answer: true,
+                    option_content: true
                 }
             },
             answers: {
@@ -110,8 +120,8 @@ export async function get_user_question(question_id: string) {
                     options: {
                         select: {
                             option_id: true,
-                            option_text: true,
-                            is_correct_answer: true
+                            is_correct_answer: true,
+                            option_content: true
                         }
                     }
                 }
@@ -166,5 +176,19 @@ export async function decrement_questions_index(quiz_id: string, currentIndex: n
                 decrement: 1,
             },
         },
+    });
+}
+
+
+
+export async function is_already_answered(game_id: string, question_id: string) {
+    return await prisma.answers.findFirst({
+        where: {
+            questionsQuestion_id: question_id,
+            gamesGame_id: game_id,
+            options: {
+                is_correct_answer: true
+            }
+        }
     });
 }

@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
+    "test:debug": "jest debug.test.ts",
     "start": "ts-node src/index.ts",
     "dev": "ts-node-dev src/index.ts",
     "build": "tsc"
@@ -18,7 +19,9 @@
     "@types/he": "^1.2.3",
     "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9.0.7",
+    "@types/multer": "^1.4.12",
     "@types/node": "^22.9.0",
+    "@types/socket.io": "^3.0.1",
     "@types/supertest": "^6.0.2",
     "jest": "^29.7.0",
     "prisma": "^5.22.0",
@@ -36,7 +39,10 @@
     "express": "^5.0.1",
     "he": "^1.2.0",
     "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
     "nanoid": "^3.3.7",
-    "superstruct": "^2.0.2"
+    "socket.io": "^4.8.1",
+    "superstruct": "^2.0.2",
+    "winston": "^3.17.0"
   }
 }

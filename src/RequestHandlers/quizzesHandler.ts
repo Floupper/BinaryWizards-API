@@ -6,12 +6,15 @@ import he from 'he';
 import { persist_question } from '../Repositories/questionsRepository';
 import { persist_option } from '../Repositories/optionsRepository';
 import { count_quizzes_with_filters, find_quizzes_with_filters, get_quiz_informations, persist_quiz, quiz_id_exists, update_quiz } from '../Repositories/quizzesRepository';
+import { count_quizzes_from_user } from '../Repositories/usersRepository';
 
 export async function create_one(req: Request, res: Response) {
     try {
         assert(req.body, QuizCreationData);
     } catch (error) {
-        res.status(400).json({ error: 'Data is invalid: \n- category must be a number between 9 and 32\n- difficulty must be a string\n- amount must be a number between 1 and 50\n- title is optional and must be a string' });
+        res.status(400).json({
+            error: 'Data is invalid: \n- category must be a number between 9 and 32\n- difficulty must be a string\n- amount must be a number between 1 and 50\n- title is optional and must be a string'
+        });
         return;
     }
 
@@ -33,7 +36,7 @@ export async function create_one(req: Request, res: Response) {
         // Build request string
         const queryString = new URLSearchParams(params).toString();
 
-        // CBuild the full URL for the API request
+        // Build the full URL for the API request
         const fullURL = `https://opentdb.com/api.php?${queryString}`;
 
         // Get questions from API Open Trivia Database
@@ -42,8 +45,8 @@ export async function create_one(req: Request, res: Response) {
         const { response_code, results } = apiResponse.data;
 
         if (response_code !== 0) {
-            if (response_code == 1) {
-                res.status(422).json({ error: 'The API have not enough questions with this parameters' })
+            if (response_code === 1) {
+                res.status(422).json({ error: 'The API does not have enough questions with these parameters' });
                 return;
             }
             res.status(400).json({ error: 'Error retrieving questions from the API.' });
@@ -65,40 +68,39 @@ export async function create_one(req: Request, res: Response) {
             const incorrectAnswers = questionData.incorrect_answers.map((ans: string) => he.decode(ans));
 
             // Create question
-            const question = await persist_question(index, questionText, questionData.category, questionData.difficulty, questionData.type, quiz.quiz_id);
+            const question = await persist_question(index, questionText, questionData.category, questionData.difficulty, "text", quiz.quiz_id);
 
             // Prepare the options
             const optionsData = [];
 
-            // Add the correct answer
             optionsData.push({
-                option_text: correctAnswer,
                 option_index: 0,
                 is_correct_answer: true,
                 questionsQuestion_id: question.question_id,
+                option_content: correctAnswer
             });
 
             // Add incorrect answers
-            incorrectAnswers.forEach((incorrectAnswer: string, index: number) => {
+            for (const [index, incorrectAnswer] of incorrectAnswers.entries()) {
                 optionsData.push({
-                    option_text: incorrectAnswer,
                     option_index: index + 1,
                     is_correct_answer: false,
                     questionsQuestion_id: question.question_id,
+                    option_content: incorrectAnswer
                 });
-            });
+            }
 
-            // Sort questions randomly
+            // Shuffle options randomly
             optionsData.sort(() => Math.random() - 0.5);
 
-            // Update option_index after random
+            // Update option_index after shuffle
             optionsData.forEach((option, index) => {
                 option.option_index = index;
             });
 
-            // Save options to database
+            // Save options to the database
             for (const option of optionsData) {
-                persist_option(option);
+                await persist_option(option);
             }
         }
 
@@ -108,17 +110,18 @@ export async function create_one(req: Request, res: Response) {
             res.status(429).json({ error: 'Too Many Requests (Rate Limit Exceeded)' });
             return;
         }
-        console.error('Erreur while creating quiz:', error);
-        res.status(500).json({ error: 'Erreur while creating quiz', details: error.message });
+        console.error('Error while creating quiz:', error);
+        res.status(500).json({ error: 'Error while creating quiz', details: error.message });
     }
 }
 
 export async function init_one(req: Request, res: Response) {
     try {
         const user_id = req.user?.user_id || null;
+        const quiz_count = user_id ? await count_quizzes_from_user(user_id) : 1;
 
         // Create quiz
-        const quiz = await persist_quiz("easy", "", 0, user_id, "");
+        const quiz = await persist_quiz("easy", "Quiz" + quiz_count, 0, user_id, "");
 
         res.status(201).json({ message: 'Quiz initialized', quiz_id: quiz.quiz_id });
     }
@@ -205,8 +208,6 @@ export async function update_one(req: Request, res: Response) {
     try {
 
         await update_quiz(quiz_id, req.body);
-
-
 
         res.status(200).json({ message: 'Quiz updated successfully' });
     } catch (error) {

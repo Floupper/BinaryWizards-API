@@ -1,7 +1,7 @@
 import { assert } from 'superstruct';
 import { Request, Response } from 'express';
 import { UserData } from '../Validation/user';
-import { is_username_avaible } from '../Helpers/usersHelper';
+import { is_username_available } from '../Helpers/usersHelper';
 import { create_user, get_games_by_user, get_user } from '../Repositories/usersRepository';
 import { get_token } from '../Helpers/tokensHelper';
 import { get_user_quiz, get_user_quizzes } from '../Repositories/quizzesRepository';
@@ -20,7 +20,7 @@ export async function create_one(req: Request, res: Response) {
     }
 
     try {
-        if (!(await is_username_avaible(req.body.username))) {
+        if (!(await is_username_available(req.body.username))) {
             res.status(409).json({ error: 'Username already exists' });
             return;
         }
@@ -39,7 +39,7 @@ export async function create_one(req: Request, res: Response) {
 }
 
 
-export async function username_avaible(req: Request, res: Response) {
+export async function username_available(req: Request, res: Response) {
     const { username } = req.body;
 
     if (!username) {
@@ -47,7 +47,7 @@ export async function username_avaible(req: Request, res: Response) {
     }
 
     try {
-        const is_available = await is_username_avaible(username);
+        const is_available = await is_username_available(username);
         res.json({ is_available });
     }
     catch (error) {
@@ -105,7 +105,8 @@ export const get_quizzes = async (req: Request, res: Response) => {
                         id: quiz.quiz_id,
                         title: quiz.title,
                         difficulty: quiz.difficulty,
-                        total_questions: await get_total_questions_count(quiz.quiz_id)
+                        total_questions: await get_total_questions_count(quiz.quiz_id),
+                        is_public: (quiz.type == 1)
                     };
                 })
             );
@@ -125,6 +126,7 @@ export const get_quiz = async (req: Request, res: Response) => {
 
     try {
         if (req.user?.user_id) { // User is not null because middleware is verifying it, adding condition cause of ts errors
+            const user = req.user;
             const quiz = await get_user_quiz(req.user.user_id, quiz_id);
 
             if (!quiz) {
@@ -162,7 +164,8 @@ export const get_quiz = async (req: Request, res: Response) => {
                 nb_questions,
                 nb_played,
                 average_score,
-                questions
+                questions,
+                is_public: (quiz.type == 1)
             };
 
             res.status(200).json(quizWithStats);
@@ -203,7 +206,7 @@ export const get_question = async (req: Request, res: Response) => {
             const selection_percentage = total_answers > 0 ? (selected_count / total_answers) * 100 : 0;
             return {
                 option_id: option.option_id,
-                option_text: option.option_text,
+                option_content: option.option_content,
                 is_correct_answer: option.is_correct_answer,
                 selection_percentage
             };
@@ -217,6 +220,7 @@ export const get_question = async (req: Request, res: Response) => {
             question_difficulty: question.question_difficulty,
             total_answers,
             accuracy_rate,
+            question_type: question.question_type,
             option_selection_stats
         };
 
@@ -232,12 +236,20 @@ export const get_games = async (req: Request, res: Response) => {
 
     try {
         if (req.user?.user_id) { // User is not null because middleware is verifying it, adding condition cause of ts errors
-            const games = await get_games_by_user(req.user.user_id);
+            const user = req.user;
+            const games = await get_games_by_user(user.user_id);
 
             // Build response
             const played_games = await Promise.all(games.map(async (game) => {
                 const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
-                const correct_answers_nb = await get_correct_answers_count(game.game_id);
+                let correct_answers_nb;
+                if (game.mode == 'standard' || game.mode == 'time') {
+                    correct_answers_nb = await get_correct_answers_count(game.game_id);
+                }
+                else {
+                    correct_answers_nb = await get_correct_answers_count(game.game_id, user.user_id);
+                }
+
                 // Check if the game is finished
                 if (nb_questions_total === game.current_question_index) {
                     return {
@@ -247,17 +259,30 @@ export const get_games = async (req: Request, res: Response) => {
                         date_game_creation: game.created_at,
                         current_question_index: game.current_question_index,
                         nb_questions_total,
+                        game_mode: game.mode,
                         correct_answers_nb
                     };
                 }
                 return null;
-                
+
             }));
             const completed_games = played_games.filter(game => game !== null);
             res.status(200).json(completed_games.length > 0 ? completed_games : []);
         }
     } catch (error) {
         console.error('Error fetching played games for user:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+
+export const get_username = async (req: Request, res: Response) => {
+    try {
+        if (req.user?.user_id) { // User is not null because middleware is verifying it, adding condition cause of ts errors
+            res.status(200).json(req.user.username);
+        }
+    } catch (error) {
+        console.error('Error getting username:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };

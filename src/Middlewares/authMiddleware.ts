@@ -8,7 +8,6 @@ export const verifyJwtToken = (req: Request, res: Response, next: NextFunction) 
     if (authHeader) {
         const token = authHeader.split(' ')[1]; // Format is "Bearer token"
 
-        // Vérifier le token
         jwt.verify(token, process.env.JWT_SECRET as string, (err, user) => {
             if (err) {
                 // If token is invalid, inform the client

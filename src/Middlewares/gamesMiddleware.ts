@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { assert } from 'superstruct';
 import { GAMEID } from '../Validation/game';
-import { get_game } from '../Repositories/gamesRepository';
+import { get_game, is_scrum_player, is_team_player } from '../Repositories/gamesRepository';
 
 export function validateGameId(req: Request, res: Response, next: NextFunction) {
     const { game_id } = req.params;
@@ -27,15 +27,23 @@ export async function checkGameAccess(req: Request, res: Response, next: NextFun
             return;
         }
 
-        if (game.userUser_id) {
-            if (!user) {
-                res.status(401).json({ error: 'Authentication required to access this game' });
+        switch (game.mode) {
+            case 'standard':
+            case 'time':
+                if (game.userUser_id) {
+                    if (!user) {
+                        res.status(401).json({ error: 'Authentication required to access this game' });
+                        return;
+                    }
+                    if (game.userUser_id !== user.user_id) {
+                        res.status(403).json({ error: 'You are not authorized to access this game' });
+                        return;
+                    }
+                }
+                break;
+            default:
+                res.status(400).json({ error: 'Invalid game mode (scrum and team games are with websocket)' });
                 return;
-            }
-            if (game.userUser_id !== user.user_id) {
-                res.status(403).json({ error: 'You are not authorized to access this game' });
-                return;
-            }
         }
 
         req.game = game;

@@ -1,159 +1,76 @@
 import { Request, Response } from 'express';
 import { assert } from 'superstruct';
-import { QuestionAnswerData, QuestionCreationData, QuestionUpdateData } from '../Validation/question';
+import { CompleteOptionsData, QuestionAnswerData, QuestionCreationData, QuestionUpdateData } from '../Validation/question';
 import { delete_question, get_all_questions, get_current_question, get_question_informations, persist_question, update_question } from '../Repositories/questionsRepository';
 import { persist_answer } from '../Repositories/answersRepository';
-import { change_questions_indexes, get_total_questions_count } from '../Helpers/questionsHelper';
-import { get_correct_answers_count } from '../Helpers/answersHelper';
-import { persist_game_update } from '../Repositories/gamesRepository';
+import { change_questions_indexes, complete_options_request, get_total_questions_count } from '../Helpers/questionsHelper';
+import { get_game, persist_game_update } from '../Repositories/gamesRepository';
 import { QuestionImportData } from '../Validation/quiz';
 import axios from 'axios';
 import he from 'he';
 import { delete_from_question, persist_option } from '../Repositories/optionsRepository';
+import { SingleplayerQuestionControllerFactory } from '../Controllers/Questions/Factory/SingleplayerQuestionControllerFactory';
 
 
 export async function get_one(req: Request, res: Response) {
     const { game_id } = req.params;
 
     try {
-        const game = req.game;
+        const game = await get_game(game_id);
 
-        if (game) { // The game is not null cause of validation with checkGameAccess in gamesMiddleware, this condition is for ts errors
-
-            // Count the number of questions
-            const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
-
-
-            // Verify if the game is finished
-            if (game.current_question_index >= nb_questions_total) {
-
-                res.status(200).json({
-                    game_finished: true,
-                    correct_answers_nb: await get_correct_answers_count(game_id),
-                    nb_questions_total: nb_questions_total,
-                    quiz_id: game.quizzesQuiz_id
-                });
-                return;
-            }
-
-            // Find actual question
-            const question = await get_current_question(game.quizzesQuiz_id, game.current_question_index);
-
-            if (!question) {
-                res.status(404).json({ error: 'Question not found' });
-                return;
-            }
-
-            // Find all options for questions
-            const options = question.options.map((option, index) => ({
-                option_index: option.option_index,
-                option_text: option.option_text
-            }));
-
-
-
-            // Build the response
-            res.status(200).json({
-                game_finished: false,
-                question_text: question.question_text,
-                options: options,
-                question_index: question.question_index + 1,
-                nb_questions_total: nb_questions_total,
-                correct_answers_nb: await get_correct_answers_count(game_id),
-                question_type: question.question_type,
-                question_difficulty: question.question_difficulty,
-                question_category: question.question_category,
-                quiz_id: game.quizzesQuiz_id,
-            });
+        if (!game) {
+            res.status(404).json({ error: 'Game not found.' });
+            return;
         }
-    } catch (error) {
-        console.error(error);
+
+        // Attach the game to the request so it is accessible in the controller
+        req.game = game;
+
+        // Instantiate the appropriate controller
+        const questionController = SingleplayerQuestionControllerFactory.getController(game.mode);
+
+        // Delegate the request handling to the controller
+        await questionController.get_one(req, res);
+    } catch (error: any) {
+        // Specific error handling
+        if (error.message === 'Invalid game mode') {
+            res.status(400).json({ error: 'Invalid game mode.' });
+            return;
+        }
+
+        console.error('Error in get_one:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 }
 
-
 export async function send_answer(req: Request, res: Response) {
     const { game_id } = req.params;
 
-
-    let { question_index, option_index } = req.body;
-
     try {
-        assert(req.body, QuestionAnswerData);
-    } catch (error) {
-        res.status(400).json({ error: 'Data is invalid: \n- question_index must be between 1 and 50\n- option_index must be between 0 and 3' });
-        return;
-    }
+        const game = await get_game(game_id);
 
-    // In DB, question_index starts at 0
-    question_index--;
-
-    try {
-        const game = req.game;
-
-        if (game) { // The game is not null cause of validation with checkGameAccess in gamesMiddleware, this condition is for ts errors
-            // Verify that there in no desynchronization
-            if (question_index !== game.current_question_index) {
-                res.status(400).json({ error: 'Question\'s index invalid' });
-                return;
-            }
-
-            // Count the number of questions
-            const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
-
-            if (question_index >= nb_questions_total) {
-                res.status(400).json({ error: 'Quiz is finished' });
-                return;
-            }
-
-            // Find corresponding question
-            const question = await get_current_question(game.quizzesQuiz_id, question_index);
-
-            if (!question) {
-                res.status(404).json({ error: 'Question not found' });
-                return;
-            }
-
-            // Find chosen option
-            const chosenOption = question.options.find(
-                (option) => option.option_index === option_index
-            );
-
-            if (!chosenOption) {
-                res.status(400).json({ error: 'Invalid option index' });
-                return;
-            }
-
-            // Determine if the answer is correct
-            const isCorrect = chosenOption.is_correct_answer;
-
-            // Find correct answer's index
-            const correctOption = question.options.find(
-                (option) => option.is_correct_answer
-            );
-
-            if (!correctOption) {
-                res.status(500).json({ error: 'Correct answer not found' });
-                return;
-            }
-
-            const correctOptionIndex = correctOption.option_index;
-
-            // Update game in DB
-            await persist_game_update(game_id, game.current_question_index + 1);
-
-            // Add answer
-            await persist_answer(game_id, question.question_id, chosenOption.option_id,);
-
-            // Build the response
-            res.status(200).json({
-                is_correct: isCorrect,
-                correct_option_index: correctOptionIndex,
-            });
+        if (!game) {
+            res.status(404).json({ error: 'Game not found.' });
+            return;
         }
-    } catch (error) {
-        console.error(error);
+
+        // Attach the game to the request so it is accessible in the controller
+        req.game = game;
+
+        // Instantiate the appropriate controller
+        const questionController = SingleplayerQuestionControllerFactory.getController(game.mode);
+
+        // Delegate the request handling to the controller
+        await questionController.send_answer(req, res);
+    } catch (error: any) {
+
+        // Specific error handling
+        if (error.message === 'Invalid game mode') {
+            res.status(400).json({ error: 'Invalid game mode.' });
+            return;
+        }
+
+        console.error('Error in send_answer:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 }
@@ -184,17 +101,17 @@ export async function import_questions(req: Request, res: Response) {
         // Build request string
         const queryString = new URLSearchParams(params).toString();
 
-        // CBuild the full URL for the API request
+        // Build the full URL for the API request
         const fullURL = `https://opentdb.com/api.php?${queryString}`;
 
-        // Get questions from API Open Trivia Database
+        // Get questions from the API Open Trivia Database
         const apiResponse = await axios.get(fullURL);
 
         const { response_code, results } = apiResponse.data;
 
         if (response_code !== 0) {
             if (response_code == 1) {
-                res.status(422).json({ error: 'The API have not enough questions with this parameters' })
+                res.status(422).json({ error: 'The API does not have enough questions with these parameters' })
                 return;
             }
             res.status(400).json({ error: 'Error retrieving questions from the API.' });
@@ -215,30 +132,32 @@ export async function import_questions(req: Request, res: Response) {
 
 
             // Create question
-            const question = await persist_question(total_questions + index, questionText, questionData.category, questionData.difficulty, questionData.type, req.params.quiz_id);
+            const question = await persist_question(total_questions + index, questionText, questionData.category, questionData.difficulty, "text", req.params.quiz_id);
 
             // Prepare the options
             const optionsData = [];
 
             // Add the correct answer
             optionsData.push({
-                option_text: correctAnswer,
                 option_index: 0,
                 is_correct_answer: true,
                 questionsQuestion_id: question.question_id,
+                option_content: correctAnswer
             });
 
+
             // Add incorrect answers
-            incorrectAnswers.forEach((incorrectAnswer: string, index: number) => {
+            for (const [index, incorrectAnswer] of incorrectAnswers.entries()) {
+
                 optionsData.push({
-                    option_text: incorrectAnswer,
                     option_index: index + 1,
                     is_correct_answer: false,
                     questionsQuestion_id: question.question_id,
+                    option_content: incorrectAnswer
                 });
-            });
+            }
 
-            // Sort questions randomly
+            // Sort options randomly
             optionsData.sort(() => Math.random() - 0.5);
 
             // Update option_index after random
@@ -246,7 +165,7 @@ export async function import_questions(req: Request, res: Response) {
                 option.option_index = index;
             });
 
-            // Save options to database
+            // Save options to the database
             for (const option of optionsData) {
                 persist_option(option);
             }
@@ -294,6 +213,7 @@ export async function create_one(req: Request, res: Response) {
     try {
         assert(req.body, QuestionCreationData);
     } catch (error) {
+        console.error(error);
         res.status(400).json({ error: 'Data is invalid' });
         return;
     }
@@ -320,26 +240,18 @@ export async function create_one(req: Request, res: Response) {
         const question = await persist_question(question_index, question_text, question_category, question_difficulty, question_type, req.params.quiz_id);
 
         const optionsData = options.map((option: any, index: number) => ({
-            option_text: option.option_text,
             option_index: index,
             is_correct_answer: option.is_correct_answer,
             questionsQuestion_id: question.question_id,
+            option_content: option.option_content
         }));
 
-        // Sort questions randomly
-        optionsData.sort(() => Math.random() - 0.5);
-
-        // Update option_index after random
-        optionsData.forEach((option, index) => {
-            option.option_index = index;
-        });
-
-        // Save options to database
+        // Save options to the database
         for (const option of optionsData) {
             persist_option(option);
         }
 
-        res.status(201).json({ message: 'Question created' })
+        res.status(201).json({ message: 'Question created', question_id: question.question_id })
     } catch (error: any) {
         console.error('Error creating question :', error);
         res.status(500).json({ error: 'Error creating question', details: error.message });
@@ -363,7 +275,7 @@ export async function delete_one(req: Request, res: Response) {
             res.status(404).json({ error: 'Question does not belong to the provided quiz' });
             return;
         }
-
+        await delete_from_question(question_id);
         await delete_question(question_id);
 
         const remainingQuestions = await get_all_questions(quiz_id);
@@ -434,24 +346,24 @@ export async function update_one(req: Request, res: Response) {
 
 
 
-        // if options are provided, delete existing options and create new ones
+        // If options are provided, delete existing options and create new ones
         if (options) {
-            await delete_from_question(question_id);
 
             const optionsData = options.map((option: any, index: number) => ({
-                option_text: option.option_text,
                 option_index: index,
                 is_correct_answer: option.is_correct_answer,
                 questionsQuestion_id: question_id,
+                option_content: option.option_content
             }));
 
 
+            await delete_from_question(question_id);
             for (const option of optionsData) {
-                persist_option(option);
+                await persist_option(option);
             }
         }
 
-        res.status(200).json({ message: 'Question updated successfully' });
+        res.status(200).json({ message: 'Question updated successfully', question_id: question_id });
     } catch (error) {
         console.error('Error deleting question:', error);
 
@@ -460,5 +372,35 @@ export async function update_one(req: Request, res: Response) {
         } else {
             res.status(500).json({ error: 'Error while deleting question' });
         }
+    }
+}
+
+
+
+export async function complete_options_ai(req: Request, res: Response) {
+    try {
+        assert(req.body, CompleteOptionsData);
+    } catch (error) {
+        res.status(400).json({ error: 'Data is invalid: question_text and options_type must be given' });
+        return;
+    }
+
+    const { question_text, options_type, nb_options } = req.body;
+
+    const prompt = `You are a quiz generator. For the question "${question_text}", generate exactly one correct answer and exactly ${nb_options - 1} incorrect answers. The theme should be ${options_type}. The incorrect_answers array must contain exactly ${nb_options - 1} items.`;
+
+    try {
+
+        let generatedAnswers = await complete_options_request(prompt);
+
+        if (!generatedAnswers.correct_answer || !Array.isArray(generatedAnswers.incorrect_answers) ||
+            generatedAnswers.incorrect_answers.length !== nb_options - 1) {
+            throw new Error('Response structure invalid');
+        }
+
+        res.status(200).json({ generatedAnswers });
+    } catch (error) {
+        console.error('Error while generating options: ' + error);
+        res.status(500).json({ error: 'Error while generating options' });
     }
 }

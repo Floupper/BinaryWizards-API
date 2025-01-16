@@ -30,7 +30,7 @@ model Questions {
   question_text       String
   question_category   String
   question_difficulty String
-  question_type       String
+  question_type       String // 'text', 'image', 'audio'
   quizzes             Quizzes   @relation(fields: [quizzesQuiz_id], references: [quiz_id])
   quizzesQuiz_id      String
   options             Options[]
@@ -38,13 +38,14 @@ model Questions {
 }
 
 model Options {
-  option_id            String     @id @default(uuid())
-  option_text          String
-  option_index         Int
-  is_correct_answer    Boolean
-  answers              Answers[]
-  Questions            Questions? @relation(fields: [questionsQuestion_id], references: [question_id])
-  questionsQuestion_id String?
+  option_id         String    @id @default(uuid())
+  option_index      Int
+  is_correct_answer Boolean
+  answers           Answers[]
+
+  questions            Questions? @relation(fields: [questionsQuestion_id], references: [question_id])
+  questionsQuestion_id String
+  option_content       String
 }
 
 model Answers {
@@ -55,6 +56,8 @@ model Answers {
   questionsQuestion_id String
   games                Games     @relation(fields: [gamesGame_id], references: [game_id])
   gamesGame_id         String
+  Users                Users?    @relation(fields: [usersUser_id], references: [user_id])
+  usersUser_id         String?
 }
 
 model Users {
@@ -65,6 +68,8 @@ model Users {
   quizzes    Quizzes[]
   games      Games[]
   created_at DateTime  @default(now())
+  teams      Teams[]
+  answers    Answers[]
 }
 
 model Games {
@@ -76,4 +81,20 @@ model Games {
   quizzesQuiz_id         String
   user                   Users?    @relation(fields: [userUser_id], references: [user_id])
   userUser_id            String?
+
+  mode             String // 'standard', 'time', 'scrum', 'team'
+  difficulty_level String? // 'facile', 'moyen', 'difficile' (for 'time' and 'team')
+  max_players      Int? // For 'scrum'
+  teams            Teams[] // For 'team'
+
+  status              String    @default("pending") // 'pending', 'started', 'finished'
+  question_start_time DateTime? // Start time of the current question for time and team modes
+}
+
+model Teams {
+  team_id      String  @id @default(uuid())
+  name         String
+  games        Games   @relation(fields: [gamesGame_id], references: [game_id])
+  gamesGame_id String
+  players      Users[]
 }
