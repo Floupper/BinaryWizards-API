@@ -37,6 +37,8 @@ export async function init_one(req: Request, res: Response) {
 
         const user_id = req.user?.user_id || null;
 
+        console.log('user_id:', user_id);
+
         const gameController = GameControllerFactory.getController(mode, null);
 
         const newGame = await gameController.init(quiz_id, user_id, initData);

@@ -83,11 +83,11 @@ const gameSocket = (io: Server, socket: AuthenticatedSocket) => {
             await controller.leave_game(game.game_id, user.user_id, socket);
         } catch (error: any) {
             if (error instanceof SocketError) {
-                logSocketEvent("Socket error in start game function", error.message, socket);
+                logSocketEvent("Socket error in leave game function", error.message, socket);
                 socket.emit('error', error.message);
             }
             else {
-                logSocketEvent("Generic error in start game function", error, socket);
+                logSocketEvent("Generic error in leave game function", error, socket);
                 socket.emit('error', 'Internal server error');
             }
         }

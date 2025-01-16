@@ -311,7 +311,7 @@ export async function remove_player(team_id: string, user_id: string) {
         },
         data: {
             players: {
-                deleteMany: {
+                disconnect: {
                     user_id: user_id
                 }
             }
