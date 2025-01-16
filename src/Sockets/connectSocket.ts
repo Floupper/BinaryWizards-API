@@ -33,8 +33,13 @@ export const connectSocket = async (io: Server, socket: AuthenticatedSocket) => 
             const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
 
             if (game.current_question_index < nb_questions_total) {
-                socket.join(game.game_id);
-                logSocketEvent(`\tUser ${user.user_id} joined room ${game.game_id}`, `Current room question index (${game.current_question_index})`, socket);
+                if (socket.rooms.has(game.game_id) === false) {
+                    socket.join(game.game_id);
+                    logSocketEvent(`\tUser ${user.user_id} joined room ${game.game_id}`, `Current room question index (${game.current_question_index})`, socket);
+                }
+                else {
+                    logSocketEvent(`\tUser ${user.user_id} already in room ${game.game_id}`, `Current room question index (${game.current_question_index})`, socket);
+                }
             }
         });
         logSocketEvent("Connecting client to all his active rooms", "Process END", socket);
