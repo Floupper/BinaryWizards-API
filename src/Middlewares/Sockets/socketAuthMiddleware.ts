@@ -12,7 +12,7 @@ export interface AuthenticatedSocket extends Socket {
 
 export const socketAuthMiddleware = (socket: AuthenticatedSocket, next: (err?: any) => void) => {
     const authHeader = socket.handshake.headers['authorization'] as string;
-    if (!authHeader || !socket.user?.user_id || socket.user.user_id === undefined || socket.user.user_id === '') {
+    if (!authHeader) {
         logEvent('Connection refused', 'Missing authorization header', socket);
         return next(new SocketError("Missing authorization header"));
     }
