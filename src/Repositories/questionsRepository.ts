@@ -83,6 +83,9 @@ export async function get_question_informations(question_id: string) {
                     option_index: true,
                     is_correct_answer: true,
                 },
+                orderBy: {
+                    option_index: 'asc',
+                }
             },
         },
     });

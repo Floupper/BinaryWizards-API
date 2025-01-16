@@ -120,6 +120,7 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
 
             socket.emit('isCorrectAnswer', {
                 is_correct: userAnswer ? (userAnswer.options.is_correct_answer ? true : false) : false,
+                correct_answers_nb: await get_correct_answers_count(game_id, user_id)
             });
 
             this.io.to(game_id).emit('answerResult', {
@@ -238,6 +239,7 @@ export class TeamQuestionController implements MultiplayerQuestionControllerInte
             const userAnswer = await get_user_answer(game_id, question.question_id, user_id);
             socket.emit('isCorrectAnswer', {
                 is_correct: userAnswer ? (userAnswer.options.is_correct_answer ? true : false) : false,
+                correct_answers_nb: await get_correct_answers_count(game_id, user_id)
             });
 
             socket.emit('answerResult', {

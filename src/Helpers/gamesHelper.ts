@@ -1,5 +1,5 @@
 import { count_answers_for_question, get_answers_in_game } from "../Repositories/answersRepository";
-import { count_players_in_game, game_id_exists, get_teams_in_game, get_teams_players_in_game } from "../Repositories/gamesRepository";
+import { count_players_in_game, game_id_exists, get_players_without_answers, get_teams_in_game, get_teams_players_in_game } from "../Repositories/gamesRepository";
 import { get_teams_for_game } from "../Repositories/teamsRepository";
 import { NANOID } from "./nanoidsHelper";
 import { get_total_questions_count } from "./questionsHelper";
@@ -76,11 +76,13 @@ export async function get_scrum_scores(game_id: string) {
     return sorted_scores;
 }
 
-export async function get_players_scores(game_id: string) {
-    // Retrieve all players scores
-    const answers = await get_answers_in_game(game_id);
 
-    // Calculate each player's score
+export async function get_players_scores(game_id: string) {
+    const [answers, missingPlayers] = await Promise.all([
+        get_answers_in_game(game_id),
+        get_players_without_answers(game_id)
+    ]);
+
     const player_scores: {
         [key: string]: {
             correct: number;
@@ -102,7 +104,7 @@ export async function get_players_scores(game_id: string) {
         }
     });
 
-    return player_scores;
+    return { ...player_scores, ...missingPlayers };
 }
 
 
