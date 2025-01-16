@@ -41,5 +41,10 @@ export class TimeGameController implements GameControllerInterface {
     async switch_team(): Promise<void> {
         throw new SocketError('Switching teams is only available in team games.');
     }
+
+
+    async leave_game(game_id: string, user_id: string): Promise<void> {
+        throw new SocketError(`The game mode time does not support the leave game action.`);
+    }
 }
 

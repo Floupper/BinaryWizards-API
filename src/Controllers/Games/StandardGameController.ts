@@ -39,5 +39,10 @@ export class StandardGameController implements GameControllerInterface {
     async switch_team(): Promise<void> {
         throw new SocketError('Switching teams is only available in team games.');
     }
+
+
+    async leave_game(game_id: string, user_id: string): Promise<void> {
+        throw new SocketError(`The game mode standard does not support the leave game action.`);
+    }
 }
 

@@ -1,8 +1,9 @@
 import { Server, Socket } from 'socket.io';
 import { GameControllerInterface } from '../../Interfaces/GameControllerInterface';
-import { add_player_to_scrum_game, count_players_in_game, get_players_in_game, get_scrum_game_informations, is_scrum_player, persist_game, update_game_status } from '../../Repositories/gamesRepository';
+import { add_player_to_scrum_game, count_players_in_game, get_players_in_game, get_scrum_game_informations, is_scrum_player, persist_game, remove_player, update_game_status } from '../../Repositories/gamesRepository';
 import { SocketError } from '../../Sockets/SocketError';
 import { Games } from '@prisma/client';
+import { get_team_from_game, remove_player_from_team } from '../../Repositories/teamsRepository';
 
 export class ScrumGameController implements GameControllerInterface {
     private io: Server | null;
@@ -107,6 +108,15 @@ export class ScrumGameController implements GameControllerInterface {
 
     async switch_team(): Promise<void> {
         throw new SocketError('Switching teams is only available in team games.');
+    }
+
+    async leave_game(game_id: string, user_id: string): Promise<void> {
+        const team = await get_team_from_game(game_id, user_id);
+        if (!team) {
+            throw new Error("User is not a player in this game");
+        }
+
+        await remove_player(team.team_id, user_id);
     }
 }
 
