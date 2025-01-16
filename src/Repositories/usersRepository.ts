@@ -70,9 +70,9 @@ export async function count_started_games_by_user(user_id: string) {
     JOIN Quizzes ON Games.quizzesQuiz_id = Quizzes.quiz_id
     JOIN Questions ON Quizzes.quiz_id = Questions.quizzesQuiz_id
     WHERE Games."userUser_id" = ${user_id}
+    AND (Games.mode = 'standart' OR Games.mode = 'time')
     GROUP BY Games.game_id
     HAVING Games.current_question_index < COUNT(Questions.question_id)
-    AND (Games.mode = 'standart' OR Games.mode = 'time')
 ) AS sub;`;
 }
 
@@ -85,9 +85,9 @@ export async function get_started_games_by_user_paginated(user_id: string, skip:
   JOIN Quizzes ON Games.quizzesQuiz_id = Quizzes.quiz_id
   JOIN Questions ON Quizzes.quiz_id = Questions.quizzesQuiz_id
   WHERE Games."userUser_id" = ${user_id}
+  AND (Games.mode = 'standart' OR Games.mode = 'time')
   GROUP BY Games.game_id, Quizzes.quiz_id
   HAVING Games.current_question_index < COUNT(Questions.question_id)
-  AND (Games.mode = 'standart' OR Games.mode = 'time')
   ORDER BY Games.created_at DESC
   LIMIT ${pageSize} OFFSET ${skip};`
 }
