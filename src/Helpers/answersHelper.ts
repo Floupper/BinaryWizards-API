@@ -111,21 +111,21 @@ class ScrumQuestionTimeoutManager {
         const timeout = setTimeout(async () => {
             try {
                 let nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
-                if (game.current_question_index >= nb_questions_total) {
-                    const ranking = await get_scrum_scores(game.game_id);
-                    clearQuestionTimeout(game.game_id);
-                    io.to(game.game_id).emit('gameFinished', {
-                        nb_questions_total: nb_questions_total,
-                        quiz_id: game.quizzesQuiz_id,
-                        ranking: ranking
-                    });
-                    return;
-                }
-
                 const updated_game = await get_game(game.game_id);
 
                 if (!updated_game) {
                     throw new Error('Game not found');
+                }
+
+                if (updated_game.current_question_index >= nb_questions_total) {
+                    const ranking = await get_scrum_scores(updated_game.game_id);
+                    clearQuestionTimeout(updated_game.game_id);
+                    io.to(updated_game.game_id).emit('gameFinished', {
+                        nb_questions_total: nb_questions_total,
+                        quiz_id: updated_game.quizzesQuiz_id,
+                        ranking: ranking
+                    });
+                    return;
                 }
 
                 if (current_index === updated_game.current_question_index && this.questionStart !== null) {
@@ -146,6 +146,17 @@ class ScrumQuestionTimeoutManager {
                         question_start_time: null,
                         current_question_index: updated_game.current_question_index + 1
                     });
+
+                    if (currentGame.current_question_index >= nb_questions_total) {
+                        const ranking = await get_scrum_scores(updated_game.game_id);
+                        clearQuestionTimeout(updated_game.game_id);
+                        io.to(updated_game.game_id).emit('gameFinished', {
+                            nb_questions_total: nb_questions_total,
+                            quiz_id: updated_game.quizzesQuiz_id,
+                            ranking: ranking
+                        });
+                        return;
+                    }
 
                     const question = await get_current_question(currentGame.quizzesQuiz_id, currentGame.current_question_index);
 
