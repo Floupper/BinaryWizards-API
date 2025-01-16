@@ -148,6 +148,10 @@ class ScrumQuestionTimeoutManager {
                     });
 
                     const question = await get_current_question(currentGame.quizzesQuiz_id, currentGame.current_question_index);
+
+                    if (!question)
+                        return;
+
                     if (question) {
                         // Emit the correct answer before moving to the next question
                         io.to(currentGame.game_id).emit('answerResult', {
