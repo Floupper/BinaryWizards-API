@@ -2,7 +2,7 @@ import { Games } from "@prisma/client";
 import { count_correct_answers_multiplayer, count_correct_answers_singleplayer } from "../Repositories/answersRepository";
 import { user_team_in_game } from "../Repositories/teamsRepository";
 import { Server } from "socket.io";
-import { persist_game_update } from "../Repositories/gamesRepository";
+import { get_game, persist_game_update } from "../Repositories/gamesRepository";
 import { get_current_question } from "../Repositories/questionsRepository";
 import { get_correct_option_index, get_total_questions_count } from "./questionsHelper";
 import { ScrumQuestionController } from "../Controllers/Questions/ScrumQuestionController";
@@ -122,40 +122,47 @@ class ScrumQuestionTimeoutManager {
                     return;
                 }
 
-                if (current_index === game.current_question_index && this.questionStart !== null) {
-                    nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
-                    if (game.current_question_index >= nb_questions_total) {
-                        const ranking = await get_scrum_scores(game.game_id);
-                        clearQuestionTimeout(game.game_id);
-                        io.to(game.game_id).emit('gameFinished', {
+                const updated_game = await get_game(game.game_id);
+
+                if (!updated_game) {
+                    throw new Error('Game not found');
+                }
+
+                if (current_index === updated_game.current_question_index && this.questionStart !== null) {
+                    nb_questions_total = await get_total_questions_count(updated_game.quizzesQuiz_id);
+
+                    if (updated_game.current_question_index >= nb_questions_total) {
+                        const ranking = await get_scrum_scores(updated_game.game_id);
+                        clearQuestionTimeout(updated_game.game_id);
+                        io.to(updated_game.game_id).emit('gameFinished', {
                             nb_questions_total: nb_questions_total,
-                            quiz_id: game.quizzesQuiz_id,
+                            quiz_id: updated_game.quizzesQuiz_id,
                             ranking: ranking
                         });
                         return;
                     }
 
-                    const currentGame = await persist_game_update(game.game_id, {
+                    const currentGame = await persist_game_update(updated_game.game_id, {
                         question_start_time: null,
-                        current_question_index: game.current_question_index + 1
+                        current_question_index: updated_game.current_question_index + 1
                     });
 
-                    const question = await get_current_question(game.quizzesQuiz_id, game.current_question_index);
+                    const question = await get_current_question(currentGame.quizzesQuiz_id, currentGame.current_question_index);
                     if (question) {
                         // Emit the correct answer before moving to the next question
-                        io.to(game.game_id).emit('answerResult', {
+                        io.to(currentGame.game_id).emit('answerResult', {
                             correct_option_index: get_correct_option_index(question),
-                            time_remaining: getAnswerTimeDisplay(game.game_id)
+                            time_remaining: getAnswerTimeDisplay(currentGame.game_id)
                         });
 
-                        game = await persist_game_update(game.game_id, {
+                        game = await persist_game_update(currentGame.game_id, {
                             question_start_time: null
                         });
 
-                        await new Promise(resolve => setTimeout(resolve, getAnswerTimeDisplay(game.game_id)));
+                        await new Promise(resolve => setTimeout(resolve, getAnswerTimeDisplay(currentGame.game_id)));
 
-                        game = await persist_game_update(game.game_id, {
-                            current_question_index: game.current_question_index + 1
+                        game = await persist_game_update(currentGame.game_id, {
+                            current_question_index: currentGame.current_question_index + 1
                         });
                     }
 
