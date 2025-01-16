@@ -40,12 +40,6 @@ const gameSocket = (io: Server, socket: AuthenticatedSocket) => {
                 throw new SocketError('Game not found');
             }
 
-            console.log('user: ');
-            console.log(user);
-            console.log('team_name: ', team_name);
-            console.log('game: ');
-            console.log(game);
-
             // Get the controller via the factory by passing the dependencies
             const controller = GameControllerFactory.getController(game.mode, dependencies);
 
@@ -83,11 +77,11 @@ const gameSocket = (io: Server, socket: AuthenticatedSocket) => {
             await controller.leave_game(game.game_id, user.user_id, socket);
         } catch (error: any) {
             if (error instanceof SocketError) {
-                logSocketEvent("Socket error in start game function", error.message, socket);
+                logSocketEvent("Socket error in leave game function", error.message, socket);
                 socket.emit('error', error.message);
             }
             else {
-                logSocketEvent("Generic error in start game function", error, socket);
+                logSocketEvent("Generic error in leave game function", error, socket);
                 socket.emit('error', 'Internal server error');
             }
         }
