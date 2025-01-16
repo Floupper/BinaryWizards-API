@@ -120,3 +120,12 @@ export async function get_user_multiplayer_games(user_id: string) {
         },
     });
 }
+
+
+export async function count_quizzes_from_user(user_id: string) {
+    return await prisma.quizzes.count({
+        where: {
+            userUser_id: user_id,
+        },
+    });
+}

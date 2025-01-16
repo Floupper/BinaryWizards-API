@@ -6,6 +6,7 @@ import he from 'he';
 import { persist_question } from '../Repositories/questionsRepository';
 import { persist_option } from '../Repositories/optionsRepository';
 import { count_quizzes_with_filters, find_quizzes_with_filters, get_quiz_informations, persist_quiz, quiz_id_exists, update_quiz } from '../Repositories/quizzesRepository';
+import { count_quizzes_from_user } from '../Repositories/usersRepository';
 
 export async function create_one(req: Request, res: Response) {
     try {
@@ -117,9 +118,10 @@ export async function create_one(req: Request, res: Response) {
 export async function init_one(req: Request, res: Response) {
     try {
         const user_id = req.user?.user_id || null;
+        const quiz_count = user_id ? await count_quizzes_from_user(user_id) : 1;
 
         // Create quiz
-        const quiz = await persist_quiz("easy", "", 0, user_id, "");
+        const quiz = await persist_quiz("easy", "Quiz" + quiz_count, 0, user_id, "");
 
         res.status(201).json({ message: 'Quiz initialized', quiz_id: quiz.quiz_id });
     }

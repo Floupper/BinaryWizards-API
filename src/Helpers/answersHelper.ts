@@ -110,7 +110,7 @@ class ScrumQuestionTimeoutManager {
 
         const timeout = setTimeout(async () => {
             try {
-                const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
+                let nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
                 if (game.current_question_index >= nb_questions_total) {
                     const ranking = await get_scrum_scores(game.game_id);
                     clearQuestionTimeout(game.game_id);
@@ -127,6 +127,18 @@ class ScrumQuestionTimeoutManager {
                         question_start_time: null,
                         current_question_index: game.current_question_index + 1
                     });
+
+                    nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
+                    if (game.current_question_index >= nb_questions_total) {
+                        const ranking = await get_scrum_scores(game.game_id);
+                        clearQuestionTimeout(game.game_id);
+                        io.to(game.game_id).emit('gameFinished', {
+                            nb_questions_total: nb_questions_total,
+                            quiz_id: game.quizzesQuiz_id,
+                            ranking: ranking
+                        });
+                        return;
+                    }
 
                     const question = await get_current_question(game.quizzesQuiz_id, game.current_question_index);
                     if (question) {
