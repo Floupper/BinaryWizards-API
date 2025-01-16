@@ -1,7 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import { persist_game_update } from '../../Repositories/gamesRepository';
 import { get_correct_option_index, get_total_questions_count } from '../../Helpers/questionsHelper';
-import { get_correct_answers_count, getAnswerTimeDisplay, startAnswerDisplay } from '../../Helpers/answersHelper';
+import { clearQuestionTimeout, get_correct_answers_count, getAnswerTimeDisplay, getQuestionTimeout, startAnswerDisplay, startQuestionTimeout } from '../../Helpers/answersHelper';
 import { get_current_question, is_already_answered } from '../../Repositories/questionsRepository';
 import { get_user_answer, persist_answer } from '../../Repositories/answersRepository';
 import { MultiplayerQuestionControllerInterface } from '../../Interfaces/MultiplayerQuestionControllerInterface';
@@ -17,12 +17,13 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
         this.io = io;
     }
 
-    // Send a new question
-    async send_question(game: Games, user_id: string): Promise<void> {
+    async send_question(game: Games): Promise<void> {
         const game_id = game.game_id;
         const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
-        const ranking = await get_scrum_scores(game_id);
+
         if (game.current_question_index >= nb_questions_total) {
+            const ranking = await get_scrum_scores(game_id);
+            clearQuestionTimeout(game_id);
             this.io.to(game_id).emit('gameFinished', {
                 nb_questions_total: nb_questions_total,
                 quiz_id: game.quizzesQuiz_id,
@@ -32,8 +33,11 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
         }
 
         if (!game.question_start_time) {
-            // Update the game with the question start time
             const start_time = new Date();
+
+            // Start the question timeout
+            startQuestionTimeout(game, this.io);
+
             game = await persist_game_update(game_id, {
                 question_start_time: start_time.toISOString(),
             });
@@ -41,6 +45,7 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
 
         const question = await get_current_question(game.quizzesQuiz_id, game.current_question_index);
         if (!question) {
+            clearQuestionTimeout(game_id);
             throw new SocketError('Question not found');
         }
 
@@ -52,7 +57,6 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
         const sockets = await this.io.in(game_id).fetchSockets();
         for (const socketData of sockets) {
             const socket = this.io.sockets.sockets.get(socketData.id) as AuthenticatedSocket;
-
             if (!socket.user) {
                 throw new Error('User not found in socket.user, socket: ' + JSON.stringify(socket, null, 2));
             }
@@ -69,15 +73,16 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
                 question_difficulty: question.question_difficulty,
                 question_category: question.question_category,
                 quiz_id: game.quizzesQuiz_id,
+                question_timeout: getQuestionTimeout(game_id)
             });
         }
     }
 
-    // Handle receiving an answer from a player
     async get_answer(game: Games, question_index: number, option_index: number, user_id: string, socket: Socket): Promise<void> {
         const game_id = game.game_id;
         question_index--;
 
+        // Existing validation checks...
         if (question_index !== game.current_question_index) {
             throw new SocketError('Question\'s index invalid');
         }
@@ -88,6 +93,7 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
 
         const nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
         if (question_index >= nb_questions_total) {
+            clearQuestionTimeout(game_id);
             throw new SocketError('Game is finished');
         }
 
@@ -115,7 +121,6 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
         }
 
         const isCorrect = chosenOption.is_correct_answer;
-
         const correctOption = question.options.find(
             (option: any) => option.is_correct_answer
         );
@@ -128,12 +133,12 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
 
         await persist_answer(game_id, question.question_id, chosenOption.option_id, user_id);
 
-
         socket.emit('isCorrectAnswer', {
             is_correct: isCorrect
         });
 
         if (isCorrect || await have_all_scrum_players_answered(game_id, question.question_id)) {
+            clearQuestionTimeout(game_id);
             startAnswerDisplay(game_id);
 
             this.io.to(game_id).emit('answerResult', {
@@ -141,20 +146,17 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
                 time_remaining: getAnswerTimeDisplay(game_id)
             });
 
-
             game = await persist_game_update(game_id, {
                 question_start_time: null
             });
 
             await new Promise(resolve => setTimeout(resolve, getAnswerTimeDisplay(game_id)));
 
-
             game = await persist_game_update(game_id, {
                 current_question_index: game.current_question_index + 1
             });
 
-            // Send the next question
-            await this.send_question(game, user_id);
+            await this.send_question(game);
         }
     }
 
@@ -209,7 +211,8 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
             question_type: question.question_type,
             question_difficulty: question.question_difficulty,
             question_category: question.question_category,
-            quiz_id: game.quizzesQuiz_id
+            quiz_id: game.quizzesQuiz_id,
+            question_timeout: getQuestionTimeout(game_id)
         });
     }
 }

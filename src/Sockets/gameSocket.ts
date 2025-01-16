@@ -72,6 +72,10 @@ const gameSocket = (io: Server, socket: AuthenticatedSocket) => {
             // Check game access
             const game = await socketCheckGameAccess(game_id, user, false);
 
+            if (game.status === 'started') {
+                throw new SocketError('Game already started.');
+            }
+
             // Get the controller via the factory by passing the dependencies
             const controller = GameControllerFactory.getController(game.mode, dependencies);
             if (user.user_id != game.userUser_id)

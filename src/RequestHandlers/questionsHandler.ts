@@ -386,8 +386,6 @@ export async function update_one(req: Request, res: Response) {
 
 
 export async function complete_options_ai(req: Request, res: Response) {
-    const { quiz_id } = req.params;
-
     try {
         assert(req.body, CompleteOptionsData);
     } catch (error) {
