@@ -357,9 +357,9 @@ export async function update_one(req: Request, res: Response) {
             }));
 
 
-            delete_from_question(question_id);
+            await delete_from_question(question_id);
             for (const option of optionsData) {
-                persist_option(option);
+                await persist_option(option);
             }
         }
 
