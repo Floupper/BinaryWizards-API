@@ -90,11 +90,12 @@ app.get('/game/:game_id/get_teams', validateGameId, gamesHandler.get_teams); // 
 app.post('/user/signup', usersHandler.create_one); // Sign up a new user
 app.post('/user/username_available', usersHandler.username_available); // Check if a username is available
 app.post('/user/signin', usersHandler.sign_in); // Sign in a user
+app.get('/user/username', checkAuthentication, usersHandler.get_username); // Get user information by ID
 app.get('/user/quizzes', checkAuthentication, usersHandler.get_quizzes); // Get quizzes created by the authenticated user
 app.get('/user/played_games', checkAuthentication, usersHandler.get_games); // Get games played by the authenticated user
 app.get('/user/:quiz_id/:question_id', checkAuthentication, validateQuizId, validateQuestionId, checkQuizAccess, usersHandler.get_question); // Get a question for a specific quiz
 app.get('/user/:quiz_id', checkAuthentication, validateQuizId, checkQuizAccess, usersHandler.get_quiz); // Get a specific quiz created by the authenticated user
-app.get('/user/username', checkAuthentication, usersHandler.get_username); // Get user information by ID
+
 
 // Categories and difficulties routes
 app.get('/categories', categoriesHandler.get_all); // Get all quiz categories
