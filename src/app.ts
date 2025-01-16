@@ -94,6 +94,7 @@ app.get('/user/quizzes', checkAuthentication, usersHandler.get_quizzes); // Get 
 app.get('/user/played_games', checkAuthentication, usersHandler.get_games); // Get games played by the authenticated user
 app.get('/user/:quiz_id/:question_id', checkAuthentication, validateQuizId, validateQuestionId, checkQuizAccess, usersHandler.get_question); // Get a question for a specific quiz
 app.get('/user/:quiz_id', checkAuthentication, validateQuizId, checkQuizAccess, usersHandler.get_quiz); // Get a specific quiz created by the authenticated user
+app.get('/user/:user_id/username', checkAuthentication, usersHandler.get_username); // Get user information by ID
 
 // Categories and difficulties routes
 app.get('/categories', categoriesHandler.get_all); // Get all quiz categories

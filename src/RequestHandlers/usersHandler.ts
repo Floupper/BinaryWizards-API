@@ -267,3 +267,15 @@ export const get_games = async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+
+export const get_username = async (req: Request, res: Response) => {
+    try {
+        if (req.user?.user_id) { // User is not null because middleware is verifying it, adding condition cause of ts errors
+            res.status(200).json(req.user.username);
+        }
+    } catch (error) {
+        console.error('Error getting username:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
