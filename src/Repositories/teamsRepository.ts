@@ -71,3 +71,15 @@ export async function remove_player_from_team(team_id: string, user_id: string) 
         },
     });
 }
+
+
+export async function get_team_from_game(game_id: string, user_id: string) {
+    return await prisma.teams.findFirst({
+        where: {
+            gamesGame_id: game_id,
+            players: {
+                some: { user_id: user_id }
+            }
+        }
+    });
+}

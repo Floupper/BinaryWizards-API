@@ -302,3 +302,19 @@ export async function get_players_without_answers(game_id: string) {
 
     return missingPlayers;
 }
+
+
+export async function remove_player(team_id: string, user_id: string) {
+    await prisma.teams.update({
+        where: {
+            team_id: team_id
+        },
+        data: {
+            players: {
+                deleteMany: {
+                    user_id: user_id
+                }
+            }
+        }
+    });
+}

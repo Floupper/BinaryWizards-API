@@ -1,7 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import { GameControllerInterface } from '../../Interfaces/GameControllerInterface';
-import { get_players_in_game, get_team_game_informations, get_teams_players_in_game, is_team_player, persist_game, update_game_status } from '../../Repositories/gamesRepository';
-import { assign_player_to_team, find_team, get_teams_for_game, init_team_for_game, remove_player_from_team } from '../../Repositories/teamsRepository';
+import { get_players_in_game, get_team_game_informations, get_teams_players_in_game, is_team_player, persist_game, remove_player, update_game_status } from '../../Repositories/gamesRepository';
+import { assign_player_to_team, find_team, get_team_from_game, get_teams_for_game, init_team_for_game, remove_player_from_team } from '../../Repositories/teamsRepository';
 import { Games } from '@prisma/client';
 import { SocketError } from '../../Sockets/SocketError';
 
@@ -128,5 +128,14 @@ export class TeamGameController implements GameControllerInterface {
 
         const teams = (await get_teams_players_in_game(game.game_id));
         this.io.to(game.game_id).emit('teamSwitch', teams);
+    }
+
+    async leave_game(game_id: string, user_id: string): Promise<void> {
+        const team = await get_team_from_game(game_id, user_id);
+        if (!team) {
+            throw new Error("User is not a player in this game");
+        }
+
+        await remove_player(team.team_id, user_id);
     }
 }
