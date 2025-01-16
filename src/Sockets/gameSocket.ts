@@ -40,12 +40,6 @@ const gameSocket = (io: Server, socket: AuthenticatedSocket) => {
                 throw new SocketError('Game not found');
             }
 
-            console.log('user: ');
-            console.log(user);
-            console.log('team_name: ', team_name);
-            console.log('game: ');
-            console.log(game);
-
             // Get the controller via the factory by passing the dependencies
             const controller = GameControllerFactory.getController(game.mode, dependencies);
 
