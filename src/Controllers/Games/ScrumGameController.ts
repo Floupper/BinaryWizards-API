@@ -110,13 +110,13 @@ export class ScrumGameController implements GameControllerInterface {
         throw new SocketError('Switching teams is only available in team games.');
     }
 
-    async leave_game(game_id: string, user_id: string): Promise<void> {
+    async leave_game(game_id: string, user_id: string, socket: Socket): Promise<void> {
         const team = await get_team_from_game(game_id, user_id);
         if (!team) {
             throw new Error("User is not a player in this game");
         }
 
-        await remove_player(team.team_id, user_id);
+        socket.leave(game_id);
     }
 }
 

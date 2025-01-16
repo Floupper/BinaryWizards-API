@@ -1,5 +1,5 @@
 import { Games } from "@prisma/client";
-import { count_correct_answers_multiplayer, count_correct_answers_singleplayer, get_correct_answers } from "../Repositories/answersRepository";
+import { count_correct_answers_multiplayer, count_correct_answers_singleplayer } from "../Repositories/answersRepository";
 import { user_team_in_game } from "../Repositories/teamsRepository";
 import { Server } from "socket.io";
 import { persist_game_update } from "../Repositories/gamesRepository";
@@ -18,7 +18,7 @@ export async function get_correct_answers_count(game_id: string, user_id?: strin
         const user_team = await user_team_in_game(game_id, user_id);
 
         if (!user_team) {
-            throw new Error("User is not in the game");
+            return 0; // User has leaved the game
         }
 
         return await count_correct_answers_multiplayer(game_id, user_id);

@@ -74,7 +74,7 @@ const gameSocket = (io: Server, socket: AuthenticatedSocket) => {
             // Get the controller via the factory by passing the dependencies
             const controller = GameControllerFactory.getController(game.mode, dependencies);
 
-            await controller.leave_game(game.game_id, user.user_id);
+            await controller.leave_game(game.game_id, user.user_id, socket);
         } catch (error: any) {
             if (error instanceof SocketError) {
                 logSocketEvent("Socket error in start game function", error.message, socket);
