@@ -7,5 +7,5 @@ export interface GameControllerInterface {
     start(game: Games): Promise<any>;
     game_informations(game: Games, user_id: string): Promise<any>;
     switch_team(game: Games, user_id: string, new_team_name: string): Promise<void>;
-    leave_game(game_id: string, user_id: string): Promise<void>;
+    leave_game(game_id: string, user_id: string, socket: Socket): Promise<void>;
 }
