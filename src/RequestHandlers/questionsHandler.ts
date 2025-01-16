@@ -246,14 +246,6 @@ export async function create_one(req: Request, res: Response) {
             option_content: option.option_content
         }));
 
-        // Sort options randomly
-        optionsData.sort(() => Math.random() - 0.5);
-
-        // Update option_index after random
-        optionsData.forEach((option, index) => {
-            option.option_index = index;
-        });
-
         // Save options to the database
         for (const option of optionsData) {
             persist_option(option);
