@@ -262,3 +262,43 @@ export async function get_team_rankings(game_id: string) {
         }
     });
 }
+
+
+export async function get_players_without_answers(game_id: string) {
+    const playersWithoutAnswers = await prisma.users.findMany({
+        where: {
+            teams: {
+                some: {
+                    gamesGame_id: game_id
+                }
+            },
+            AND: {
+                answers: {
+                    none: {
+                        gamesGame_id: game_id
+                    }
+                }
+            }
+        },
+        select: {
+            user_id: true,
+            username: true
+        }
+    });
+
+    const missingPlayers: {
+        [key: string]: {
+            correct: number;
+            username: string;
+        }
+    } = {};
+
+    playersWithoutAnswers.forEach(player => {
+        missingPlayers[player.user_id] = {
+            correct: 0,
+            username: player.username
+        };
+    });
+
+    return missingPlayers;
+}
