@@ -45,6 +45,9 @@ export class ScrumQuestionController implements MultiplayerQuestionControllerInt
 
         const question = await get_current_question(game.quizzesQuiz_id, game.current_question_index);
         if (!question) {
+            console.log("BUGGGGGGGGGGGGGGGGGGGGGGG");
+            console.log("game :");
+            console.log(game);
             clearQuestionTimeout(game_id);
             throw new SocketError('Question not found');
         }

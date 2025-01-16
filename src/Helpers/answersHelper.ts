@@ -123,11 +123,6 @@ class ScrumQuestionTimeoutManager {
                 }
 
                 if (current_index === game.current_question_index && this.questionStart !== null) {
-                    const currentGame = await persist_game_update(game.game_id, {
-                        question_start_time: null,
-                        current_question_index: game.current_question_index + 1
-                    });
-
                     nb_questions_total = await get_total_questions_count(game.quizzesQuiz_id);
                     if (game.current_question_index >= nb_questions_total) {
                         const ranking = await get_scrum_scores(game.game_id);
@@ -139,6 +134,11 @@ class ScrumQuestionTimeoutManager {
                         });
                         return;
                     }
+
+                    const currentGame = await persist_game_update(game.game_id, {
+                        question_start_time: null,
+                        current_question_index: game.current_question_index + 1
+                    });
 
                     const question = await get_current_question(game.quizzesQuiz_id, game.current_question_index);
                     if (question) {
