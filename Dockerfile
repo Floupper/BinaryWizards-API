@@ -40,6 +40,8 @@
 
 FROM node:24-slim AS build
 
+USER root
+
 WORKDIR /app
 
 RUN apt-get update -y && apt-get install -y openssl
@@ -52,7 +54,17 @@ ADD . .
 
 RUN npx prisma generate
 
+RUN groupadd -r api && \
+    useradd -r -g api -d /home/apiUser -s /bin/bash -m apiUser && \
+    mkdir -p /home/apiUser && chown -R apiUser:api /app /home/apiUser
+
 FROM build AS production
+
+ENV NODE_ENV=production
+
+USER apiUser
+
+WORKDIR /app
 
 EXPOSE 33012
 
